@@ -13,7 +13,7 @@ use ErrorException,
 
 /**
  * That class defines the behaviour of all drivers
- * and implements the Tag system
+ *
  */
 abstract class BaseDriver implements CacheDriver, Stringable, JsonSerializable {
 
@@ -131,6 +131,7 @@ abstract class BaseDriver implements CacheDriver, Stringable, JsonSerializable {
 
     /**
      * Save Multiples entries using an array of keys and value pairs
+     * 
      * @param array<string,CacheObject|mixed> $keysAndValues Namespaced(not hashed) key and values
      * @param int $expiry the timestamp at which the item expires
      * @return bool true if 'all' entries were saved
