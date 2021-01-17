@@ -25,7 +25,7 @@ abstract class BaseDriver implements CacheDriver {
     /**
      * References the default metacache capacity
      */
-    public const DEFAULT_INDEX_CAPACITY = 32;
+    public const MIN_INDEX_CAPACITY = 32;
 
     /**
      * Char codes used by hash method
@@ -79,14 +79,14 @@ abstract class BaseDriver implements CacheDriver {
     /**
      * Used to index expiries of already loaded items,
      *
-     * @var FixedArray<string,int>
+     * @var FixedArray|array
      */
     protected $expiries;
 
     /**
      * Used to index the currently loaded tags
      *
-     * @var FixedArray<string,Tag|Key>
+     * @var FixedArray|array
      */
     protected $loadedTags;
 
@@ -97,10 +97,10 @@ abstract class BaseDriver implements CacheDriver {
      * @param int $capacity Maximum capacity of the FixedArray used to contains the Tag, expiries of items that are already loaded (increases performances)
      */
     public function __construct(
-            int $capacity = self::DEFAULT_INDEX_CAPACITY
+            int $capacity = 0
     ) {
         // cannot be negative, cannot be less than 32
-        $this->capacity = max(self::DEFAULT_INDEX_CAPACITY, $capacity);
+        $this->capacity = $capacity > 0 ? max(self::MIN_INDEX_CAPACITY, $capacity) : 0;
         $this->initialize();
     }
 
@@ -108,8 +108,11 @@ abstract class BaseDriver implements CacheDriver {
      * Resets the indexes and some params
      */
     final protected function initialize() {
-        $this->expiries = FixedArray::create($this->capacity);
-        $this->loadedTags = FixedArray::create($this->capacity);
+        if ($this->capacity > 0) {
+            $this->expiries = FixedArray::create($this->capacity);
+            $this->loadedTags = FixedArray::create($this->capacity);
+            $this->expiries->recursive = $this->loadedTags->recursive = false;
+        } else $this->expiries = $this->loadedTags = [];
         $this->hasCreatedTags = null;
         $this->namespace_version = null;
     }
@@ -467,6 +470,7 @@ abstract class BaseDriver implements CacheDriver {
         foreach ($this->doFetch($key) as $value) {
             return $value !== null ? $value : $default;
         }
+        return $default;
     }
 
     /**
@@ -491,7 +495,7 @@ abstract class BaseDriver implements CacheDriver {
 
     /**
      * Get the Tag Creation status
-     * @param bool $set Change the status
+     * @param bool|null $set Change the status
      * @return bool
      */
     protected function hasCreatedTags(bool $set = null): bool {

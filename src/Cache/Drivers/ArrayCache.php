@@ -34,11 +34,8 @@ class ArrayCache extends BaseDriver {
             int $maxLifeTime = 0
     ) {
 
-        parent::__construct($capacity > 0 ? $capacity : PHP_INT_MAX);
-
-
+        parent::__construct($capacity);
         $this->maxLifeTime = max(0, $maxLifeTime);
-        $this->capacity = max(0, $capacity);
         $this->storeSerialized = $storeSerialized;
         $this->doClear();
     }
@@ -54,11 +51,9 @@ class ArrayCache extends BaseDriver {
         if (empty($tags)) return true;
 
         foreach ($tags as $tagItem) {
-
-            foreach ($this->taglist->getTag($tagItem->getLabel()) as $key) {
-                $this->taglist->remove($key->getLabel(), $tagItem->getLabel());
-            }
-            $this->taglist->loadTag($tagItem);
+            $this->taglist
+                    ->clearTag($tagItem->getLabel())
+                    ->loadTag($tagItem);
         }
         if (!$this->hasCreatedTags()) $this->hasCreatedTags(true);
         return true;

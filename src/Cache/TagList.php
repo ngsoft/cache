@@ -16,6 +16,7 @@ use Stringable;
 
 /**
  * Manages Tags and Keys
+ * @phan-file-suppress PhanUnusedPublicNoOverrideMethodParameter
  */
 class TagList implements Stringable, JsonSerializable, Countable, IteratorAggregate {
 
@@ -105,7 +106,6 @@ class TagList implements Stringable, JsonSerializable, Countable, IteratorAggreg
     /**
      * Removes all associations with a key
      *
-     * @suppress PhanUnusedPublicNoOverrideMethodParameter
      * @param string $key
      * @return self
      */
