@@ -178,8 +178,8 @@ abstract class BaseDriver implements CacheDriver {
     final public function deleteAll(): bool {
         $key = $this->getNamespaceKey();
         $version = $this->getNamespaceVersion() + 1;
+        $this->initialize();
         if ($this->saveValue($key, $version)) {
-            $this->initialize();
             $this->namespace_version = $version;
             return true;
         }

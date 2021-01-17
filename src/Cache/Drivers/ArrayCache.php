@@ -17,9 +17,6 @@ class ArrayCache extends BaseDriver {
     /** @var int */
     protected $maxLifeTime;
 
-    /** @var TagList */
-    protected $taglist;
-
     /** @var array|FixedArray */
     protected $values = [];
 
@@ -41,27 +38,7 @@ class ArrayCache extends BaseDriver {
     }
 
     /** {@inheritdoc} */
-    public function fetchTag(string $tag): \NGSOFT\Cache\Tag {
-
-        return $this->taglist->getTag($tag);
-    }
-
-    /** {@inheritdoc} */
-    public function saveTag(\NGSOFT\Cache\Tag ...$tags): bool {
-        if (empty($tags)) return true;
-
-        foreach ($tags as $tagItem) {
-            $this->taglist
-                    ->clearTag($tagItem->getLabel())
-                    ->loadTag($tagItem);
-        }
-        if (!$this->hasCreatedTags()) $this->hasCreatedTags(true);
-        return true;
-    }
-
-    /** {@inheritdoc} */
     protected function doClear(): bool {
-        $this->taglist = TagList::create();
         if ($this->capacity > 0) {
             $this->values = FixedArray::create($this->capacity);
             $this->expiries = FixedArray::create($this->capacity);
@@ -180,9 +157,7 @@ class ArrayCache extends BaseDriver {
 
     public function __debugInfo() {
         return [
-            'expiries' => $this->expiries,
-            'values' => $this->values,
-            'taglist' => $this->taglist
+            "entries" => count($this->values)
         ];
     }
 
