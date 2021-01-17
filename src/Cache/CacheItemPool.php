@@ -64,6 +64,15 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
         $this->setNamespace($namespace);
     }
 
+    /**
+     * Access Currently assigned Driver
+     *
+     * @return CacheDriver
+     */
+    public function getDriver(): CacheDriver {
+        return $this->driver;
+    }
+
     ////////////////////////////   Pool   ////////////////////////////
 
     /** {@inheritdoc} */
@@ -461,6 +470,11 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
         }
 
         return $exception;
+    }
+
+    /** {@inheritdoc} */
+    public function __debugInfo() {
+        return $this->jsonSerialize();
     }
 
     /** {@inheritdoc} */

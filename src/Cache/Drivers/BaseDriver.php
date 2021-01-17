@@ -43,7 +43,13 @@ abstract class BaseDriver implements CacheDriver {
      * A Reserved Cache Key that is used to retrieve and save the current namespace version
      * the %s stands for the namespace
      */
-    protected const NAMESPACE_VERSION_KEY = 'NGSOFT_CACHE_DRIVER_NAMESPACE_VERSION[%s]';
+    private const NAMESPACE_VERSION_KEY = 'NGSOFT_CACHE_DRIVER_NAMESPACE_VERSION[%s]';
+
+    /**
+     * A Reserved cache key that is used to check if at least one tag has been created in the current namespace
+     * That can improve performances if no tags has been issued as it prevents cache hits on save and removal
+     */
+    private const CREATED_TAG_KEY = 'NGSOFT_CACHE_DRIVER_CREATED_TAG';
 
     /**
      * Tags are saved using the cache pool, so they are also cache entries,
@@ -58,7 +64,7 @@ abstract class BaseDriver implements CacheDriver {
      * Used to hold current namespace version
      * Changing the version invalidates cache items without removing them physically
      *
-     * @var int
+     * @var int|null
      */
     private $namespace_version;
 
@@ -84,6 +90,9 @@ abstract class BaseDriver implements CacheDriver {
      */
     protected $loadedTags;
 
+    /** @var bool|null */
+    private $hasCreatedTags;
+
     /**
      * @param int $capacity Maximum capacity of the FixedArray used to contains the Tag, expiries of items that are already loaded (increases performances)
      */
@@ -96,11 +105,13 @@ abstract class BaseDriver implements CacheDriver {
     }
 
     /**
-     * Resets the indexes
+     * Resets the indexes and some params
      */
     final protected function initialize() {
         $this->expiries = FixedArray::create($this->capacity);
         $this->loadedTags = FixedArray::create($this->capacity);
+        $this->hasCreatedTags = null;
+        $this->namespace_version = null;
     }
 
     ////////////////////////////   Interface   ////////////////////////////
@@ -124,18 +135,19 @@ abstract class BaseDriver implements CacheDriver {
     }
 
     /** {@inheritdoc} */
-    final public function fetchTag(string $tag): Tag {
+    public function fetchTag(string $tag): Tag {
         $cacheKey = sprintf(self::TAG_MODIFIER, $tag);
         $hKey = $this->getHashedKey($cacheKey);
         if (isset($this->loadedTags[$hKey])) return clone $this->loadedTags[$hKey];
-        $tagItem = $this->fetchValue($cacheKey);
+        $tagItem = null;
+        if ($this->hasCreatedTags()) $tagItem = $this->fetchValue($cacheKey);
         if (!($tagItem instanceof Tag)) $tagItem = new Tag($tag);
         $this->loadedTags[$hKey] = clone $tagItem;
         return $tagItem;
     }
 
     /** {@inheritdoc} */
-    final public function saveTag(Tag ...$tags): bool {
+    public function saveTag(Tag ...$tags): bool {
         if (count($tags) == 0) return true;
         $r = true;
         $toRemove = $toSave = [];
@@ -147,7 +159,10 @@ abstract class BaseDriver implements CacheDriver {
             else $toSave[] = $this->createItem($cacheKey, $tagItem, 0);
         }
         if (count($toRemove) > 0) $r = $this->delete(...$toRemove);
-        if (count($toSave) > 0) $r = $this->save(...$toSave) && $r;
+        if (count($toSave) > 0) {
+            if (!$this->hasCreatedTags() and $this->saveValue($this->getStorageKey(self::CREATED_TAG_KEY), true)) $this->hasCreatedTags = true;
+            $r = $this->save(...$toSave) && $r;
+        }
 
         if ($r === true) {
             foreach ($tags as $tagItem) $this->loadedTags[$this->getHashedKey($this->getStorageKey($tagItem->getLabel()))] = clone $tagItem;
@@ -168,7 +183,7 @@ abstract class BaseDriver implements CacheDriver {
     }
 
     /** {@inheritdoc} */
-    final public function contains(string $key): bool {
+    public function contains(string $key): bool {
         $hKey = $this->getHashedKey($this->getStorageKey($key));
         if (isset($this->expiries[$hKey])) {
             if ($this->isExpired($this->expiries[$hKey])) {
@@ -187,37 +202,40 @@ abstract class BaseDriver implements CacheDriver {
     }
 
     /** {@inheritdoc} */
-    public function delete(string ...$keys): bool {
+    final public function delete(string ...$keys): bool {
         if (empty($keys)) return true;
-        //we need to know which tags to remove
-        $taglist = new TagList();
-        $loadedTags = [];
-        foreach ($this->fetch(...$keys) as $item) {
+        $r = true;
+        if ($this->hasCreatedTags()) {
+            //we need to know which tags to remove
+            $taglist = new TagList();
+            $loadedTags = [];
+            foreach ($this->fetch(...$keys) as $item) {
 
-            if (count($item->getPreviousTags()) > 0) {
-                $key = $item->getKey();
-                foreach ($item->getPreviousTags() as $tagName) {
-                    if (!isset($loadedTags[$tagName])) {
-                        $loadedTags[$tagName] = $tagName;
-                        $taglist->loadTag($this->fetchTag($tagName));
+                if (count($item->getPreviousTags()) > 0) {
+                    $key = $item->getKey();
+                    foreach ($item->getPreviousTags() as $tagName) {
+                        if (!isset($loadedTags[$tagName])) {
+                            $loadedTags[$tagName] = $tagName;
+                            $taglist->loadTag($this->fetchTag($tagName));
+                        }
+                        $taglist->remove($key, $tagName);
                     }
-                    $taglist->remove($key, $tagName);
                 }
             }
-        }
-        $r = true;
-        if (count($loadedTags) > 0) {
-            $tags = [];
-            foreach ($loadedTags as $tagName) {
-                $tags[] = $taglist->getTag($tagName);
+            if (count($loadedTags) > 0) {
+                $tags = [];
+                foreach ($loadedTags as $tagName) {
+                    $tags[] = $taglist->getTag($tagName);
+                }
+                $r = $this->saveTag(...$tags);
             }
-            $r = $this->saveTag(...$tags);
         }
+
         return $this->doDelete(... array_map(fn($k) => $this->getStorageKey($k), $keys)) && $r;
     }
 
     /** {@inheritdoc} */
-    public function fetch(string ...$keys) {
+    final public function fetch(string ...$keys) {
         if (empty($keys)) return;
         $nKeys = array_combine(array_map(fn($k) => $this->getStorageKey($k), $keys), $keys);
         $args = array_keys($nKeys);
@@ -234,19 +252,23 @@ abstract class BaseDriver implements CacheDriver {
     }
 
     /** {@inheritdoc} */
-    public function save(CacheItem ...$items): bool {
+    final public function save(CacheItem ...$items): bool {
         if (empty($items)) return true;
         $r = true;
         $toSave = $toRemove = $loadedTags = [];
         // compute tags to add and delete
         $taglist = new TagList();
+
         foreach ($items as $item) {
             $key = $item->getKey();
             $sKey = $this->getStorageKey($item->getKey());
             if ($item->isHit()) {
                 $expire = $item->getExpiration();
                 $value = $item->get();
-                if (count($oldTags = $item->getPreviousTags()) > 0) {
+                if (
+                        $this->hasCreatedTags() and
+                        count($oldTags = $item->getPreviousTags()) > 0
+                ) {
                     foreach ($oldTags as $tagName) {
                         if (!isset($loadedTags[$tagName])) {
                             $loadedTags[$tagName] = $tagName;
@@ -312,7 +334,7 @@ abstract class BaseDriver implements CacheDriver {
      * Fetches multiple entries from the cache
      *
      * @param string ...$keys A list of namespaced keys (not hashed) to fetch
-     * @return \Traversable<string,array|null> An iterator indexed by keys and a null result if not fetched or an array that can be decoded  using createCacheItemFromSaved()
+     * @return \Traversable An iterator indexed by keys and a null result if not fetched or an array that can be decoded  using createCacheItemFromSaved()
      */
     abstract protected function doFetch(string ...$keys);
 
@@ -442,11 +464,9 @@ abstract class BaseDriver implements CacheDriver {
      * @return mixed
      */
     protected function fetchValue(string $key, $default = null) {
-        $item = $this->getItem($key);
-        return
-                $item->isHit() ?
-                $item->get() :
-                $default;
+        foreach ($this->doFetch($key) as $value) {
+            return $value !== null ? $value : $default;
+        }
     }
 
     /**
@@ -455,11 +475,10 @@ abstract class BaseDriver implements CacheDriver {
      * @internal Do not uses Cache pool lifetime
      * @param string $key The cache Key
      * @param mixed $value The value to save
-     * @param int $ttl Lifetime for the item
      * @return bool
      */
-    protected function saveValue(string $key, $value, int $ttl = 0): bool {
-        return $this->save($this->createItem($key, $value, $ttl > 0 ? time() + $ttl : 0));
+    protected function saveValue(string $key, $value): bool {
+        return $value !== null ? $this->doSave([$key => $value]) : false;
     }
 
     /**
@@ -471,13 +490,24 @@ abstract class BaseDriver implements CacheDriver {
     }
 
     /**
+     * Get the Tag Creation status
+     * @return bool
+     */
+    private function hasCreatedTags(): bool {
+        if ($this->hasCreatedTags === null) {
+            $this->hasCreatedTags = $this->fetchValue($this->getStorageKey(self::CREATED_TAG_KEY), false) === true;
+        }
+        return $this->hasCreatedTags;
+    }
+
+    /**
      * Get Current Namespace Version
      * @return int
      */
     private function getNamespaceVersion(): int {
         if ($this->namespace_version === null) {
             $key = $this->getNamespaceKey();
-            if (is_int($version = $this->fetchValue($key))) $this->namespace_version = $version;
+            if (is_int($val = $this->fetchValue($key))) $this->namespace_version = $val;
             else $this->namespace_version = 1;
         }
         return $this->namespace_version;
@@ -491,7 +521,7 @@ abstract class BaseDriver implements CacheDriver {
      * @return string
      */
     final protected function getStorageKey(string $key): string {
-        return sprintf(self::NAMESPACE_MODIFIER, $this->namepace, $key, $this->getNamespaceVersion());
+        return sprintf(self::NAMESPACE_MODIFIER, $this->getNamespace(), $key, $this->getNamespaceVersion());
     }
 
     /**

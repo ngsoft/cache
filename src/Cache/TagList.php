@@ -19,8 +19,12 @@ use Stringable;
  */
 class TagList implements Stringable, JsonSerializable, Countable, IteratorAggregate {
 
-    use CacheUtils;
-    use Exportable;
+    use CacheUtils,
+        Exportable {
+        Exportable::__debugInfo insteadof CacheUtils;
+        Exportable::jsonSerialize insteadof CacheUtils;
+        CacheUtils::__toString insteadof Exportable;
+    }
 
     /** @var SharedList */
     private $list;
