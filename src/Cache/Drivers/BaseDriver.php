@@ -126,8 +126,12 @@ abstract class BaseDriver implements CacheDriver {
     /** {@inheritdoc} */
     final public function fetchTag(string $tag): Tag {
         $cacheKey = sprintf(self::TAG_MODIFIER, $tag);
-        if (($tagItem = $this->fetchValue($cacheKey)) instanceof Tag) return $tagItem;
-        return new Tag($tag);
+        $hKey = $this->getHashedKey($cacheKey);
+        if (isset($this->loadedTags[$hKey])) return clone $this->loadedTags[$hKey];
+        $tagItem = $this->fetchValue($cacheKey);
+        if (!($tagItem instanceof Tag)) $tagItem = new Tag($tag);
+        $this->loadedTags[$hKey] = clone $tagItem;
+        return $tagItem;
     }
 
     /** {@inheritdoc} */
@@ -137,11 +141,17 @@ abstract class BaseDriver implements CacheDriver {
         $toRemove = $toSave = [];
         foreach ($tags as $tagItem) {
             $cacheKey = sprintf(self::TAG_MODIFIER, $tagItem->getLabel());
+            $hKey = $this->getHashedKey($cacheKey);
+            unset($this->loadedTags[$hKey]);
             if (count($tagItem) == 0) $toRemove[] = $cacheKey;
             else $toSave[] = $this->createItem($cacheKey, $tagItem, 0);
         }
         if (count($toRemove) > 0) $r = $this->delete(...$toRemove);
         if (count($toSave) > 0) $r = $this->save(...$toSave) && $r;
+
+        if ($r === true) {
+            foreach ($tags as $tagItem) $this->loadedTags[$this->getHashedKey($this->getStorageKey($tagItem->getLabel()))] = clone $tagItem;
+        }
         return $r;
     }
 
