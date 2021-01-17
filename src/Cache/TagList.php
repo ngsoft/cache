@@ -29,9 +29,6 @@ class TagList implements Stringable, JsonSerializable, Countable, IteratorAggreg
     /** @var SharedList */
     private $list;
 
-    /** @var array */
-    private $orphaned;
-
     /** @var Closure */
     private $tagManager;
 
@@ -59,7 +56,6 @@ class TagList implements Stringable, JsonSerializable, Countable, IteratorAggreg
      */
     public function clear(): void {
         $this->list = new SharedList();
-        $this->orphaned = [Tag::class => [], Key::class => []];
         $tm = function(Tag $tag, array $properties): Tag {
             $tag->extract($properties);
             return $tag;
@@ -82,8 +78,6 @@ class TagList implements Stringable, JsonSerializable, Countable, IteratorAggreg
      */
     public function add(string $key, string $tag): self {
         $this->list->set($key, $tag);
-        //keep track of the tags marked for removal
-        unset($this->orphaned[Tag::class][$tag], $this->orphaned[Key::class][$key]);
         return $this;
     }
 
@@ -95,13 +89,6 @@ class TagList implements Stringable, JsonSerializable, Countable, IteratorAggreg
      */
     public function remove(string $key, string $tag): self {
         $this->list->delete($key, $tag);
-        //keep track of the tags marked for removal
-        if (count($this->list->getKeys($tag)) == 0) {
-            $this->orphaned[Tag::class][$tag] = $tag;
-        }
-        if (count($this->list->get($key)) == 0) {
-            $this->orphaned[Key::class][$key] = $key;
-        }
         return $this;
     }
 
@@ -164,8 +151,10 @@ class TagList implements Stringable, JsonSerializable, Countable, IteratorAggreg
      * @return \Generator<string,Tag>
      */
     public function getRemovedTags(): Generator {
-        foreach ($this->orphaned[Tag::class] as $tagName) {
-            yield $tagName => new Tag($tagName);
+        foreach ($this->list->values() as $tagName) {
+            if (count($this->list->getKeys($tagName)) == 0) {
+                yield $tagName => new Tag($tagName);
+            }
         }
     }
 
@@ -175,8 +164,10 @@ class TagList implements Stringable, JsonSerializable, Countable, IteratorAggreg
      * @return \Generator<string,Key>
      */
     public function getRemovedKeys(): Generator {
-        foreach ($this->orphaned[Key::class] as $keyName) {
-            yield $keyName => new Key($keyName);
+        foreach ($this->list->keys() as $keyName) {
+            if (count($this->list->get($keyName)) == 0) {
+                yield $keyName => new Key($keyName);
+            }
         }
     }
 
@@ -243,17 +234,26 @@ class TagList implements Stringable, JsonSerializable, Countable, IteratorAggreg
         $result = [
             Key::class => [],
             Tag::class => [],
-            'orphaned' => $this->orphaned
+            'orphaned' => [
+                Key::class => [],
+                Tag::class => []
+            ]
         ];
         $keys = &$result[Key::class];
         $tags = &$result[Tag::class];
         foreach ($this->list->keys() as $keyName) {
             $keys[$keyName] = $this->getKey($keyName);
+            if (count($keys[$keyName]) == 0) {
+                $result['orphaned'] [Key::class] [$keyName] = $keys[$keyName];
+            }
         }
-
         foreach ($this->list->values() as $tagName) {
             $tags[$tagName] = $this->getTag($tagName);
+            if (count($tags[$tagName]) == 0) {
+                $result['orphaned'] [Tag::class] [$tagName] = $tags[$tagName];
+            }
         }
+
         return $result;
     }
 

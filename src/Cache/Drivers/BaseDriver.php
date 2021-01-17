@@ -49,7 +49,7 @@ abstract class BaseDriver implements CacheDriver {
      * A Reserved cache key that is used to check if at least one tag has been created in the current namespace
      * That can improve performances if no tags has been issued as it prevents cache hits on save and removal
      */
-    private const CREATED_TAG_KEY = 'NGSOFT_CACHE_DRIVER_CREATED_TAG';
+    protected const CREATED_TAG_KEY = 'NGSOFT_CACHE_DRIVER_CREATED_TAG';
 
     /**
      * Tags are saved using the cache pool, so they are also cache entries,
@@ -91,7 +91,7 @@ abstract class BaseDriver implements CacheDriver {
     protected $loadedTags;
 
     /** @var bool|null */
-    private $hasCreatedTags;
+    protected $hasCreatedTags;
 
     /**
      * @param int $capacity Maximum capacity of the FixedArray used to contains the Tag, expiries of items that are already loaded (increases performances)
@@ -493,7 +493,7 @@ abstract class BaseDriver implements CacheDriver {
      * Get the Tag Creation status
      * @return bool
      */
-    private function hasCreatedTags(): bool {
+    protected function hasCreatedTags(): bool {
         if ($this->hasCreatedTags === null) {
             $this->hasCreatedTags = $this->fetchValue($this->getStorageKey(self::CREATED_TAG_KEY), false) === true;
         }

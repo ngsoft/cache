@@ -50,6 +50,8 @@ class ArrayCache extends BaseDriver {
 
     /** {@inheritdoc} */
     public function saveTag(\NGSOFT\Cache\Tag ...$tags): bool {
+        if (empty($tags)) return true;
+
         foreach ($tags as $tagItem) {
 
             foreach ($this->taglist->getTag($tagItem->getLabel()) as $key) {
@@ -57,7 +59,7 @@ class ArrayCache extends BaseDriver {
             }
             $this->taglist->loadTag($tagItem);
         }
-
+        if (!$this->hasCreatedTags() and $this->saveValue($this->getStorageKey(self::CREATED_TAG_KEY), true)) $this->hasCreatedTags = true;
         return true;
     }
 
