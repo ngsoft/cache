@@ -144,15 +144,16 @@ trait CacheUtils {
      * @param string[] $tags
      * @return CacheItem
      */
-    protected function createItem(string $key, $value = null, int $expire = null, array $tags = []): CacheItem {
+    protected function createItem(string $key, $value = null, int $expire = null, array $tags = [], bool $poolTaggable = false): CacheItem {
         static $create, $item;
         if (!$item) {
             $item = new CacheItem(uniqid(''));
-            $create = static function (string $key, $value, int $expire = null, array $tags = []) use ($item): CacheItem {
+            $create = static function (string $key, $value, int $expire = null, array $tags = [], bool $poolTaggable = false) use ($item): CacheItem {
                 $c = clone $item;
                 $c->key = $key;
                 $c->tags = $tags;
                 $c->expiry = $expire;
+                $c->poolTaggable = $poolTaggable;
                 // checks valid data
                 $c->set($value);
                 return $c;
@@ -160,7 +161,7 @@ trait CacheUtils {
 
             $create = $create->bindTo(null, CacheItem::class);
         }
-        return $create($key, $value, $expire, $tags);
+        return $create($key, $value, $expire, $tags, $poolTaggable);
     }
 
     /**

@@ -6,7 +6,7 @@ namespace NGSOFT\Cache\Drivers;
 
 use ErrorException;
 use NGSOFT\{
-    Cache\CacheDriver, Cache\CacheException, Cache\CacheItem, Cache\CacheUtils, Cache\InvalidArgumentException, Cache\Key, Cache\TagList, Tools\FixedArray, Traits\LoggerAware
+    Cache\CacheDriver, Cache\CacheException, Cache\CacheItem, Cache\CacheUtils, Cache\InvalidArgumentException, Cache\Key, Cache\TagList, Traits\LoggerAware
 };
 use Throwable,
     Traversable,
@@ -21,11 +21,6 @@ abstract class BaseDriver implements CacheDriver {
     use LoggerAware;
 
     use CacheUtils;
-
-    /**
-     * References the default metacache capacity
-     */
-    public const MIN_INDEX_CAPACITY = 32;
 
     /**
      * Char codes used by hash method
@@ -449,69 +444,6 @@ abstract class BaseDriver implements CacheDriver {
         // classname added to prevent conflicts on similar drivers
         // MD5 as we need speed and some filesystems are limited in length
         return hash('MD5', static::class . $key);
-    }
-
-}
-
-/**
- * A CacheObject
- */
-class CacheObject {
-
-    /** @var string */
-    public $key;
-
-    /** @var mixed */
-    public $value;
-
-    /** @var int|null */
-    public $expiry = null;
-
-    /** @var string[] */
-    public $tags = [];
-
-    /**
-     * @param string $key The Namespaced key
-     * @param mixed $value
-     * @param int|null $expiry
-     * @param array $tags
-     */
-    public function __construct(string $key, $value = null, int $expiry = null, array $tags = []) {
-
-        $this->key = $key;
-        $this->value = $value;
-        $this->expiry = $expiry ?? 0;
-        $this->tags = $tags;
-    }
-
-    /** {@inheritdoc} */
-    public static function __set_state($data) {
-        static $obj;
-        if (!$obj) $obj = new static('key');
-        $c = clone $obj;
-        $c->key = $data['key'] ?? '';
-        $c->value = $data['value'] ?? null;
-        $c->expiry = $data['expiry'] ?? null;
-        $c->tags = $data['tags'] ?? [];
-        return $c;
-    }
-
-    /** {@inheritdoc} */
-    public function __unserialize(array $data) {
-        $this->key = $data['k'] ?? '';
-        $this->value = $data['v'] ?? null;
-        $this->expiry = $data['e'] ?? null;
-        $this->tags = $data['t'] ?? [];
-    }
-
-    /** {@inheritdoc} */
-    public function __serialize() {
-        return [
-            'k' => $this->key,
-            'v' => $this->value,
-            'e' => $this->expiry,
-            't' => $this->tags
-        ];
     }
 
 }

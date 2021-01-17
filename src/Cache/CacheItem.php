@@ -35,6 +35,9 @@ class CacheItem implements CacheItemInterface, TaggableCacheItemInterface, ItemI
     /** @var int|null */
     private $expiry = null;
 
+    /** @var bool */
+    private $poolTaggable = false;
+
     /**
      * @var string[] Tags saved with the entry
      */

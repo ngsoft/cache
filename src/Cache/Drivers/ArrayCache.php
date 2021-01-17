@@ -9,6 +9,11 @@ use NGSOFT\Tools\FixedArray,
 
 class ArrayCache extends BaseDriver {
 
+    /**
+     * References the default metacache capacity
+     */
+    public const MIN_INDEX_CAPACITY = 32;
+
     /** @var bool */
     protected $storeSerialized;
 
