@@ -195,7 +195,7 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
 
     /**
      * {@inheritdoc}
-     * @return CacheItem
+     * @return CacheItemInterface|CacheItem
      */
     public function getItem($key): CacheItemInterface {
         try {

@@ -44,6 +44,24 @@ class ArrayCache extends BaseDriver {
     }
 
     /** {@inheritdoc} */
+    public function fetchTag(string $tag): \NGSOFT\Cache\Tag {
+        return $this->taglist->getTag($tag);
+    }
+
+    /** {@inheritdoc} */
+    public function saveTag(\NGSOFT\Cache\Tag ...$tags): bool {
+        foreach ($tags as $tagItem) {
+
+            foreach ($this->taglist->getTag($tagItem->getLabel()) as $key) {
+                $this->taglist->remove($key->getLabel(), $tagItem->getLabel());
+            }
+            $this->taglist->loadTag($tagItem);
+        }
+
+        return true;
+    }
+
+    /** {@inheritdoc} */
     protected function doClear(): bool {
         $this->taglist = TagList::create();
         if ($this->capacity > 0) {
@@ -75,6 +93,7 @@ class ArrayCache extends BaseDriver {
         }
     }
 
+    /** {@inheritdoc} */
     protected function doSave($keysAndValues): bool {
 
         $r = true;
@@ -163,7 +182,7 @@ class ArrayCache extends BaseDriver {
         return [
             'expiries' => $this->expiries,
             'values' => $this->values,
-                // 'taglist' => $this->taglist
+            'taglist' => $this->taglist
         ];
     }
 
