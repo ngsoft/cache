@@ -170,10 +170,10 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
         try {
             $key = $this->getValidKey($key);
             if ($this->deferred) $this->commit();
-            foreach ($this->driver->fetch($key) as $item) {
-                return $item;
+            foreach ($this->driver->fetch($key) as $value) {
+                if ($value instanceof CacheObject) return $this->createItem($key, $value->value, $value->expiry);
             }
-            return new CacheItem($key);
+            return $this->createItem($key);
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
@@ -190,7 +190,10 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
             $this->doCheckKeys($keys);
             if ($this->deferred) $this->commit();
             $keys = array_values(array_unique($keys));
-            yield from $this->driver->fetch(...$keys);
+            foreach ($this->driver->fetch(...$keys) as $key => $value) {
+                if ($value instanceof CacheObject) yield $key => $this->createItem($key, $value->value, $value->expiry);
+                else yield $key => $this->createItem($key);
+            }
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
