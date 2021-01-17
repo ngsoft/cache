@@ -285,6 +285,12 @@ abstract class BaseDriver implements CacheDriver {
         return $r;
     }
 
+    /** {@inheritdoc} */
+    final public function clear(): bool {
+        $this->initialize();
+        return $this->doClear();
+    }
+
     ////////////////////////////   Abstract Methods   ////////////////////////////
 
     /**
@@ -310,7 +316,12 @@ abstract class BaseDriver implements CacheDriver {
      */
     abstract protected function doFetch(string ...$keys);
 
-
+    /**
+     * Flushes all cache entries (globally).
+     *
+     * @return bool true if the cache entries were successfully flushed, false otherwise.
+     */
+    abstract protected function doClear(): bool;
 
 
 
