@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
-use NGSOFT\{
-    Cache\TagList, Tools\FixedArray
-};
-use Throwable;
+use NGSOFT\Tools\FixedArray,
+    Throwable;
 
 class ArrayCache extends BaseDriver {
 
@@ -74,12 +72,10 @@ class ArrayCache extends BaseDriver {
         $r = true;
         foreach ($keysAndValues as $key => $value) {
             $hKey = $this->getHashedKey($key);
-            // check if object encoded using buildItemToSave() or not
-            $expire = is_array($value) ? $value['e'] ?? 0 : 0;
+            $expire = 0;
+            if ($value instanceof CacheObject) $expire = $value->expiry;
             if ($this->maxLifeTime > 0) $expire = min(time() + $this->maxLifeTime, $expire == 0 ? PHP_INT_MAX : $expire);
-            if ($this->storeSerialized) {
-                $value = $this->serializeIfNeeded($value);
-            }
+            if ($this->storeSerialized) $value = $this->serializeIfNeeded($value);
             if (null !== $value) {
                 $this->expiries[$hKey] = $expire;
                 $this->values[$hKey] = $value;
@@ -157,7 +153,9 @@ class ArrayCache extends BaseDriver {
 
     public function __debugInfo() {
         return [
-            "entries" => count($this->values)
+            "entries" => count($this->values),
+            $this->values,
+            $this->expiries
         ];
     }
 

@@ -99,7 +99,7 @@ abstract class BaseDriver implements CacheDriver {
     public function __construct(
             int $capacity = 0
     ) {
-        // cannot be negative, cannot be less than 32
+        // cannot be negative, cannot be less than 32 if defined
         $this->capacity = $capacity > 0 ? max(self::MIN_INDEX_CAPACITY, $capacity) : 0;
         $this->initialize();
     }
@@ -138,7 +138,7 @@ abstract class BaseDriver implements CacheDriver {
     }
 
     /** {@inheritdoc} */
-    public function fetchTag(string $tag): Tag {
+    final public function fetchTag(string $tag): Tag {
         $cacheKey = $this->getStorageKey(sprintf(self::TAG_MODIFIER, $tag));
         $hKey = $this->getHashedKey($cacheKey);
         if (isset($this->loadedTags[$hKey])) return clone $this->loadedTags[$hKey];
@@ -150,7 +150,7 @@ abstract class BaseDriver implements CacheDriver {
     }
 
     /** {@inheritdoc} */
-    public function saveTag(Tag ...$tags): bool {
+    final public function saveTag(Tag ...$tags): bool {
         if (count($tags) == 0) return true;
         $r = true;
         $toRemove = $toSave = [];
@@ -245,9 +245,8 @@ abstract class BaseDriver implements CacheDriver {
         foreach ($this->doFetch(...$args) as $sKey => $value) {
             unset($this->expiries[$this->getHashedKey($sKey)]);
             $key = $nKeys[$sKey];
-            if (is_array($value) and array_key_exists('v', $value)) {
-                $item = $this->createCacheItemFromSaved($key, $value);
-                //index expiration
+            if ($value instanceof CacheObject) {
+                $item = $this->createItem($key, $value->value, $value->expiry, $value->tags);
                 if ($item->isHit()) $this->expiries[$this->getHashedKey($sKey)] = $item->getExpiration();
                 yield $key => $item;
             } else yield $key => $this->createItem($key);
@@ -263,8 +262,7 @@ abstract class BaseDriver implements CacheDriver {
         $taglist = new TagList();
 
         foreach ($items as $item) {
-            $key = $item->getKey();
-            $sKey = $this->getStorageKey($item->getKey());
+            $sKey = $this->getStorageKey($key = $item->getKey());
             if ($item->isHit()) {
                 $expire = $item->getExpiration();
                 $value = $item->get();
@@ -289,8 +287,7 @@ abstract class BaseDriver implements CacheDriver {
                         $taglist->add($key, $tagName);
                     }
                 }
-
-                $toSave[$sKey] = $this->buildItemToSave($value, $expire ?? 0, $tags);
+                $toSave[$sKey] = new CacheObject($sKey, $value, $expire, $tags);
             } else $toRemove[] = $key;
         }
         if (count($toSave) > 0) {
@@ -328,7 +325,7 @@ abstract class BaseDriver implements CacheDriver {
 
     /**
      * Save Multiples entries using an array of keys and value pairs
-     * @param array<string,array> $keysAndValues Namespaced(not hashed) key and value from buildItemToSave()
+     * @param array<string,CacheObject|mixed> $keysAndValues Namespaced(not hashed) key and values
      * @return bool true if 'all' entries were saved
      */
     abstract protected function doSave(array $keysAndValues): bool;
@@ -337,7 +334,7 @@ abstract class BaseDriver implements CacheDriver {
      * Fetches multiple entries from the cache
      *
      * @param string ...$keys A list of namespaced keys (not hashed) to fetch
-     * @return \Traversable An iterator indexed by keys and a null result if not fetched or an array that can be decoded  using createCacheItemFromSaved()
+     * @return \Traversable An iterator indexed by keys and a null result if not fetched
      */
     abstract protected function doFetch(string ...$keys);
 
@@ -386,11 +383,10 @@ abstract class BaseDriver implements CacheDriver {
     /**
      * Creates a cache item using decoded datas from buildItemToSave()
      *
-     * @param string $key
-     * @param array $value
+     * @param CacheObject $obj
      * @return CacheItem
      */
-    protected function createCacheItemFromSaved(string $key, array $value): CacheItem {
+    protected function createCacheItemFromSaved(CacheObject $obj): CacheItem {
         $tags = $value['t'] ?? [];
         $expire = $value['e'] ?? null;
         $v = $value['v'] ?? null;
@@ -542,6 +538,69 @@ abstract class BaseDriver implements CacheDriver {
         // classname added to prevent conflicts on similar drivers
         // MD5 as we need speed and some filesystems are limited in length
         return hash('MD5', static::class . $key);
+    }
+
+}
+
+/**
+ * A CacheObject
+ */
+class CacheObject {
+
+    /** @var string */
+    public $key;
+
+    /** @var mixed */
+    public $value;
+
+    /** @var int|null */
+    public $expiry = null;
+
+    /** @var string[] */
+    public $tags = [];
+
+    /**
+     * @param string $key The Namespaced key
+     * @param mixed $value
+     * @param int|null $expiry
+     * @param array $tags
+     */
+    public function __construct(string $key, $value = null, int $expiry = null, array $tags = []) {
+
+        $this->key = $key;
+        $this->value = $value;
+        $this->expiry = $expiry ?? 0;
+        $this->tags = $tags;
+    }
+
+    /** {@inheritdoc} */
+    public static function __set_state($data) {
+        static $obj;
+        if (!$obj) $obj = new static('key');
+        $c = clone $obj;
+        $c->key = $data['key'] ?? '';
+        $c->value = $data['value'] ?? null;
+        $c->expiry = $data['expiry'] ?? null;
+        $c->tags = $data['tags'] ?? [];
+        return $c;
+    }
+
+    /** {@inheritdoc} */
+    public function __unserialize(array $data) {
+        $this->key = $data['k'] ?? '';
+        $this->value = $data['v'] ?? null;
+        $this->expiry = $data['e'] ?? null;
+        $this->tags = $data['t'] ?? [];
+    }
+
+    /** {@inheritdoc} */
+    public function __serialize() {
+        return [
+            'k' => $this->key,
+            'v' => $this->value,
+            'e' => $this->expiry,
+            't' => $this->tags
+        ];
     }
 
 }
