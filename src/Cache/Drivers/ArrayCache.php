@@ -151,12 +151,4 @@ class ArrayCache extends BaseDriver {
         }
     }
 
-    public function __debugInfo() {
-        return [
-            "entries" => count($this->values),
-            $this->values,
-            $this->expiries
-        ];
-    }
-
 }
