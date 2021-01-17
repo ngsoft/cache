@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
+use ErrorException;
 use NGSOFT\{
     Cache\CacheDriver, Cache\CacheException, Cache\CacheItem, Cache\CacheUtils, Cache\InvalidArgumentException, Cache\Key, Cache\Tag, Tools\FixedArray, Traits\LoggerAware
 };
@@ -143,6 +144,17 @@ abstract class BaseDriver implements CacheDriver {
         return $r;
     }
 
+    /** {@inheritdoc} */
+    final public function deleteAll(): bool {
+        $key = $this->getNamespaceKey();
+        $version = $this->getNamespaceVersion() + 1;
+        if ($this->saveValue($key, $version)) {
+            $this->namespace_version = $version;
+            return true;
+        }
+        return false;
+    }
+
     ////////////////////////////   Abstract Methods   ////////////////////////////
 
     /**
@@ -229,6 +241,23 @@ abstract class BaseDriver implements CacheDriver {
             }
             return $result;
         } catch (Throwable $ex) { return null; } finally { \restore_error_handler(); }
+    }
+
+    /**
+     * Convenient Function used to convert php errors, warning, ... as ErrorException
+     *
+     * @suppress PhanTypeMismatchArgumentInternal
+     * @staticvar Closure $handler
+     * @return void
+     */
+    protected function setErrorHandler(): void {
+        static $handler;
+        if (!$handler) {
+            $handler = static function ($type, $msg, $file, $line) {
+                throw new ErrorException($msg, 0, $type, $file, $line);
+            };
+        }
+        set_error_handler($handler);
     }
 
     /**
