@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Drivers;
 
 use NGSOFT\{
-    Cache\CacheDriver, Cache\CacheItem, Cache\CacheUtils, Cache\InvalidArgumentException, Cache\Tag, Tools\FixedArray, Traits\LoggerAware
+    Cache\CacheDriver, Cache\CacheException, Cache\CacheItem, Cache\CacheUtils, Cache\InvalidArgumentException, Cache\Key, Cache\Tag, Tools\FixedArray, Traits\LoggerAware
 };
+use Throwable,
+    TypeError;
 
 /**
  * That class defines the behaviour of all drivers
@@ -148,12 +150,86 @@ abstract class BaseDriver implements CacheDriver {
      */
     abstract protected function doRemoveExpired(): bool;
 
-
-
-
-
-
     ////////////////////////////   Utils   ////////////////////////////
+
+    /**
+     * Creates an array to serialize (or other methods)
+     * to save into storage
+     *
+     * @param mixed $value
+     * @param int $expire
+     * @param array $tags
+     * @return array
+     */
+    protected function buildItemToSave($value, int $expire, array $tags = []): array {
+        try {
+            $tagsToSave = [];
+            foreach ($tags as $key) {
+                $this->checkType($key, 'string', Key::class);
+                if ($key instanceof Key) {
+                    foreach ($key as $tagItem) {
+                        $tagsToSave[$tagItem->getLabel()] = $tagItem->getLabel();
+                    }
+                } elseif (is_string($key)) $tagsToSave[$key] = $key;
+            }
+            $tagsToSave = array_values($tagsToSave);
+            return [
+                't' => $tagsToSave,
+                'e' => $expire,
+                'v' => $value
+            ];
+        } catch (TypeError $error) {
+            throw new CacheException(sprintf('Invalid tag type. %s', $error->getMessage()));
+        }
+    }
+
+    /**
+     * Creates a cache item using decoded datas from buildItemToSave()
+     *
+     * @param string $key
+     * @param array $value
+     * @return CacheItem
+     */
+    protected function createCacheItemFromSaved(string $key, array $value): CacheItem {
+        $tags = $value['t'] ?? [];
+        $expire = $value['e'] ?? null;
+        $v = $value['v'] ?? null;
+        return $this->createItem($key, $v, $expire, $tags);
+    }
+
+    /**
+     * Prevents Thowable inside classes __sleep or __serialize methods to interrupt operarations
+     * @param mixed $value
+     * @return string|null
+     */
+    protected function safeSerialize($value): ?string {
+
+        if ($value === null) return null;
+        try {
+            $this->setErrorHandler();
+            return \serialize($value);
+        } catch (Throwable $ex) { return null; } finally { \restore_error_handler(); }
+    }
+
+    /**
+     * Prevents Thowable inside classes __wakeup or __unserialize methods to interrupt operarations
+     * Also the warning for wrong input
+     * @param string $input
+     * @return mixed|null
+     */
+    protected function safeUnserialize($input) {
+
+        if (!is_string($input)) return null;
+        try {
+            $this->setErrorHandler();
+            $result = \unserialize($input);
+            //warning will be converted to ErrorException but we never know
+            if (false === $result) {
+                return null;
+            }
+            return $result;
+        } catch (Throwable $ex) { return null; } finally { \restore_error_handler(); }
+    }
 
     /**
      * Get an individual CacheItem
