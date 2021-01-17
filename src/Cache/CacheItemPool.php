@@ -108,9 +108,24 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
     public function commit() {
         try {
             if (empty($this->deferred)) return true;
-            $items = array_values($this->deferred);
-            $this->deferred = [];
-            return $this->driver->save(...$items);
+
+            $r = true;
+            $items = $this->deferred;
+            $this->deferred = $toSave = $toRemove = [];
+            //group items by expiries
+            foreach ($items as $key => $item) {
+                if (!$item->isHit()) {
+                    $toRemove[] = $key;
+                    continue;
+                }
+                $expiry = $item->getExpiration() ?? $this->getExpiryRealValue();
+                $toSave[$expiry] = $toSave[$expiry] ?? [];
+                //a CacheObject makes it easier to retrieve item expiry
+                $toSave[$expiry] [$key] = new CacheObject($key, $item->get(), $expiry);
+            }
+            if (count($toRemove) > 0) $r = $this->driver->delete(...$toRemove);
+            foreach ($toSave as $expiry => $knv) $r = $this->driver->save($knv, $expiry) && $r;
+            return $r;
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
@@ -222,8 +237,6 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
                             __FUNCTION__
             );
         }
-
-        $item->setExpiration($this->getExpiryRealValue($item->getExpiration()));
         $this->deferred[$item->getKey()] = $item;
         return true;
     }
