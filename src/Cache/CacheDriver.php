@@ -12,6 +12,7 @@ use JsonSerializable,
 /**
  * The Cache driver
  * Does not handle keys/tags names verifications (the cache pool must do that)
+ *
  */
 interface CacheDriver extends LoggerAwareInterface, Stringable, JsonSerializable {
 
@@ -52,26 +53,19 @@ interface CacheDriver extends LoggerAwareInterface, Stringable, JsonSerializable
      * Fetches multiple entries from the cache  (Tag entries must be included).
      *
      * @param string ...$keys The keys to fetch
-     * @return Traversable|CacheItem[] A traversable indexed by keys Empty items must be issued on cache miss
+     * @return Traversable A traversable indexed by keys null values must be issued on cache miss
      */
     public function fetch(string ...$keys);
 
     /**
-     * Get a Tag object containing current assigned keys
-     *
-     * @param string $tag the tag label
-     * @return Tag
-     */
-    public function fetchTag(string $tag): Tag;
-
-    /**
-     * Persists a cache item(s) immediately (Tag entries must be included).
+     * Persists a cache item(s) immediately.
      * If the cache item is expired it must be removed
      *
-     * @param CacheItem ...$items The cache item(s) to save.
+     * @param array $keysAndValues The cache item(s) to save.
+     * @param int $expiry the timestam at which the item expires
      * @return bool True if the items were successfully persisted/removed. False if there was an error.
      */
-    public function save(CacheItem ...$items): bool;
+    public function save(array $keysAndValues, int $expiry = 0): bool;
 
     /**
      * Deletes one or several cache entries.

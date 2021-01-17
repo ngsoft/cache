@@ -39,24 +39,8 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
      */
     public const VERSION = '1.0';
 
-    /**
-     * Holds the list of issued tags
-     */
-    private const ISSUED_TAG_KEY_INDEX = 'NGSOFT_CACHE_DRIVER_TAG_INDEX';
-
-    /**
-     * Key Modifier for a stored tag
-     */
-    private const TAG_KEY_MODIFIER = '__TAG__%s';
-
     /** @var CacheDriver */
     protected $driver;
-
-    /** @var CacheDriver */
-    protected $tagDriver;
-
-    /** @var array */
-    protected $issuedTags = [];
 
     /** @var int */
     protected $defaultLifetime;
