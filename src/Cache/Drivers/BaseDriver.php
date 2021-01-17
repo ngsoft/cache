@@ -179,17 +179,31 @@ abstract class BaseDriver implements CacheDriver {
     /** {@inheritdoc} */
     public function delete(string ...$keys): bool {
         if (empty($keys)) return true;
-
         //we need to know which tags to remove
         $taglist = new TagList();
         $loadedTags = [];
-        foreach ($keys as $key) {
+        foreach ($this->fetch(...$keys) as $item) {
 
-            $item = $this->getItem($key);
+            if (count($item->getPreviousTags()) > 0) {
+                $key = $item->getKey();
+                foreach ($item->getPreviousTags() as $tagName) {
+                    if (!isset($loadedTags[$tagName])) {
+                        $loadedTags[$tagName] = $tagName;
+                        $taglist->loadTag($this->fetchTag($tagName));
+                    }
+                    $taglist->remove($key, $tagName);
+                }
+            }
         }
-
-
-        return $this->doDelete(... array_map(fn($k) => $this->getStorageKey($k), $keys));
+        $r = true;
+        if (count($loadedTags) > 0) {
+            $tags = [];
+            foreach ($loadedTags as $tagName) {
+                $tags[] = $taglist->getTag($tagName);
+            }
+            $r = $this->saveTag(...$tags);
+        }
+        return $this->doDelete(... array_map(fn($k) => $this->getStorageKey($k), $keys)) && $r;
     }
 
     /** {@inheritdoc} */
@@ -200,7 +214,7 @@ abstract class BaseDriver implements CacheDriver {
         foreach ($this->doFetch(...$args) as $sKey => $value) {
             unset($this->expiries[$this->getHashedKey($sKey)]);
             $key = $nKeys[$sKey];
-            if (is_array($value)) {
+            if (is_array($value) and array_key_exists('v', $value)) {
                 $item = $this->createCacheItemFromSaved($key, $value);
                 //index expiration
                 if ($item->isHit()) $this->expiries[$this->getHashedKey($sKey)] = $item->getExpiration();
@@ -222,7 +236,7 @@ abstract class BaseDriver implements CacheDriver {
             if ($item->isHit()) {
                 $expire = $item->getExpiration();
                 $value = $item->get();
-                if (count($oldTags = $items->getPreviousTags()) > 0) {
+                if (count($oldTags = $item->getPreviousTags()) > 0) {
                     foreach ($oldTags as $tagName) {
                         if (!isset($loadedTags[$tagName])) {
                             $loadedTags[$tagName] = $tagName;
@@ -241,7 +255,7 @@ abstract class BaseDriver implements CacheDriver {
                     }
                 }
 
-                $toSave[$sKey] = $this->buildItemToSave($value, $expire, $tags);
+                $toSave[$sKey] = $this->buildItemToSave($value, $expire ?? 0, $tags);
             } else $toRemove[] = $key;
         }
         if (count($toSave) > 0) {
