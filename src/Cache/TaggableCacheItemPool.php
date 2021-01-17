@@ -77,9 +77,9 @@ class TaggableCacheItemPool extends CacheItemPool implements TaggableCacheItemPo
         try {
             if ($this->deferred) $this->commit();
             $tags = array_map(fn($t) => $this->getValidTag($t), array_values(array_unique($tags)));
-            $toRemove = $tagitems = [];
+            $toRemove = [];
             foreach ($tags as $tagName) {
-                foreach ($this->driver->fetchTag($tagName) as $keyItem) {
+                foreach ($this->fetchTag($tagName) as $keyItem) {
                     $toRemove[$keyItem->getLabel()] = $keyItem->getLabel();
                 }
             }
@@ -96,6 +96,72 @@ class TaggableCacheItemPool extends CacheItemPool implements TaggableCacheItemPo
     public function clear(): bool {
         $this->loadedTags = [];
         return parent::clear();
+    }
+
+    /**
+     * {@inheritdoc}
+     * @return bool
+     */
+    public function commit() {
+        try {
+            if (empty($this->deferred)) return true;
+
+            $r = true;
+            $items = $this->deferred;
+            $this->deferred = $toSave = $toRemove = $loaded = [];
+            $tagList = new TagList();
+            //group items by expiries
+            foreach ($items as $key => $item) {
+                if (!$item->isHit()) {
+                    $toRemove[] = $key;
+                    continue;
+                }
+                $expiry = $item->getExpiration() ?? $this->getExpiryRealValue();
+                $toSave[$expiry] = $toSave[$expiry] ?? [];
+                // tags
+                foreach ($item->getPreviousTags() as $tagLabel) {
+                    if (!isset($loaded[$tagLabel])) {
+                        $tagList->loadTag($this->fetchTag($tagLabel));
+                        $loaded[$tagLabel] = $tagLabel;
+                    }
+                    $tagList->remove($key, $tagLabel);
+                }
+                foreach (($tags = $item->getNewTags()) as $tagLabel) {
+                    if (!isset($loaded[$tagLabel])) {
+                        $tagList->loadTag($this->fetchTag($tagLabel));
+                        $loaded[$tagLabel] = $tagLabel;
+                    }
+                    $tagList->add($key, $tagLabel);
+                }
+                //a CacheObject makes it easier to retrieve item expiry
+                $toSave[$expiry] [$key] = new CacheObject($key, $item->get(), $expiry, $tags);
+            }
+            foreach ($loaded as $tagLabel) $r = $this->saveTag($tagList->getTag($tagLabel)) && $r;
+            foreach ($toSave as $expiry => $knv) $r = $this->driver->save($knv, $expiry) && $r;
+            if (count($toRemove) > 0) $r = $this->deleteItems($toRemove) && $r;
+            return $r;
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     * @return bool
+     */
+    public function deleteItems(array $keys) {
+        if (empty($keys)) return true;
+        try {
+            $this->doCheckKeys($keys);
+            $keys = array_values(array_unique($keys));
+            foreach ($keys as $key) {
+                $this->getValidKey($key);
+                unset($this->deferred[$key]);
+            }
+            return $this->driver->delete(...$keys);
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
     }
 
     ////////////////////////////   Utils   ////////////////////////////

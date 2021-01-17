@@ -123,8 +123,8 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
                 //a CacheObject makes it easier to retrieve item expiry
                 $toSave[$expiry] [$key] = new CacheObject($key, $item->get(), $expiry);
             }
-            if (count($toRemove) > 0) $r = $this->driver->delete(...$toRemove);
             foreach ($toSave as $expiry => $knv) $r = $this->driver->save($knv, $expiry) && $r;
+            if (count($toRemove) > 0) $r = $this->driver->delete(...$toRemove) && $r;
             return $r;
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
@@ -151,6 +151,7 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
     public function deleteItems(array $keys) {
         if (empty($keys)) return true;
         try {
+            $this->doCheckKeys($keys);
             $keys = array_values(array_unique($keys));
             foreach ($keys as $key) {
                 $this->getValidKey($key);
@@ -171,7 +172,7 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
             $key = $this->getValidKey($key);
             if ($this->deferred) $this->commit();
             foreach ($this->driver->fetch($key) as $value) {
-                if ($value instanceof CacheObject) return $this->createItem($key, $value->value, $value->expiry);
+                if ($value instanceof CacheObject) return $this->createItem($key, $value->value, $value->expiry, $value->tags);
             }
             return $this->createItem($key);
         } catch (Throwable $error) {
@@ -191,7 +192,7 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
             if ($this->deferred) $this->commit();
             $keys = array_values(array_unique($keys));
             foreach ($this->driver->fetch(...$keys) as $key => $value) {
-                if ($value instanceof CacheObject) yield $key => $this->createItem($key, $value->value, $value->expiry);
+                if ($value instanceof CacheObject) yield $key => $this->createItem($key, $value->value, $value->expiry, $value->tags);
                 else yield $key => $this->createItem($key);
             }
         } catch (Throwable $error) {
