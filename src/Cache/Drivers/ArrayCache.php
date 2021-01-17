@@ -59,7 +59,7 @@ class ArrayCache extends BaseDriver {
             }
             $this->taglist->loadTag($tagItem);
         }
-        if (!$this->hasCreatedTags() and $this->saveValue($this->getStorageKey(self::CREATED_TAG_KEY), true)) $this->hasCreatedTags = true;
+        if (!$this->hasCreatedTags()) $this->hasCreatedTags(true);
         return true;
     }
 

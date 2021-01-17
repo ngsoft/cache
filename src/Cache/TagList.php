@@ -35,6 +35,12 @@ class TagList implements Stringable, JsonSerializable, Countable, IteratorAggreg
     /** @var Closure */
     private $keyManager;
 
+    /** @var string[] */
+    private $removedKeys;
+
+    /** @var string[] */
+    private $removedTags;
+
     ////////////////////////////   Init   ////////////////////////////
 
     /**
@@ -66,6 +72,7 @@ class TagList implements Stringable, JsonSerializable, Countable, IteratorAggreg
         };
         $this->tagManager = $tm->bindTo($this, Tag::class);
         $this->keyManager = $km->bindTo($this, Key::class);
+        $this->removedKeys = $this->removedTags = [];
     }
 
     ////////////////////////////   API   ////////////////////////////
@@ -89,6 +96,9 @@ class TagList implements Stringable, JsonSerializable, Countable, IteratorAggreg
      */
     public function remove(string $key, string $tag): self {
         $this->list->delete($key, $tag);
+        //keep track of the removed keys/tags for the iterators as they are removed from the SharedList
+        $this->removedKeys[$key] = $key;
+        $this->removedTags[$tag] = $tag;
         return $this;
     }
 
@@ -151,7 +161,7 @@ class TagList implements Stringable, JsonSerializable, Countable, IteratorAggreg
      * @return \Generator<string,Tag>
      */
     public function getRemovedTags(): Generator {
-        foreach ($this->list->values() as $tagName) {
+        foreach ($this->removedTags as $tagName) {
             if (count($this->list->getKeys($tagName)) == 0) {
                 yield $tagName => new Tag($tagName);
             }
@@ -164,7 +174,7 @@ class TagList implements Stringable, JsonSerializable, Countable, IteratorAggreg
      * @return \Generator<string,Key>
      */
     public function getRemovedKeys(): Generator {
-        foreach ($this->list->keys() as $keyName) {
+        foreach ($this->removedKeys as $keyName) {
             if (count($this->list->get($keyName)) == 0) {
                 yield $keyName => new Key($keyName);
             }
@@ -231,30 +241,14 @@ class TagList implements Stringable, JsonSerializable, Countable, IteratorAggreg
      * @return array
      */
     public function toArray(): array {
-        $result = [
-            Key::class => [],
-            Tag::class => [],
+        return [
+            Key::class => iterator_to_array($this->getKeys()),
+            Tag::class => iterator_to_array($this->getTags()),
             'orphaned' => [
-                Key::class => [],
-                Tag::class => []
+                Key::class => iterator_to_array($this->getRemovedKeys()),
+                Tag::class => iterator_to_array($this->getRemovedTags())
             ]
         ];
-        $keys = &$result[Key::class];
-        $tags = &$result[Tag::class];
-        foreach ($this->list->keys() as $keyName) {
-            $keys[$keyName] = $this->getKey($keyName);
-            if (count($keys[$keyName]) == 0) {
-                $result['orphaned'] [Key::class] [$keyName] = $keys[$keyName];
-            }
-        }
-        foreach ($this->list->values() as $tagName) {
-            $tags[$tagName] = $this->getTag($tagName);
-            if (count($tags[$tagName]) == 0) {
-                $result['orphaned'] [Tag::class] [$tagName] = $tags[$tagName];
-            }
-        }
-
-        return $result;
     }
 
     ////////////////////////////   Interfaces   ////////////////////////////

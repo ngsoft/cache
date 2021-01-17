@@ -49,7 +49,7 @@ abstract class BaseDriver implements CacheDriver {
      * A Reserved cache key that is used to check if at least one tag has been created in the current namespace
      * That can improve performances if no tags has been issued as it prevents cache hits on save and removal
      */
-    protected const CREATED_TAG_KEY = 'NGSOFT_CACHE_DRIVER_CREATED_TAG';
+    private const CREATED_TAG_KEY = 'NGSOFT_CACHE_DRIVER_CREATED_TAG';
 
     /**
      * Tags are saved using the cache pool, so they are also cache entries,
@@ -91,7 +91,7 @@ abstract class BaseDriver implements CacheDriver {
     protected $loadedTags;
 
     /** @var bool|null */
-    protected $hasCreatedTags;
+    private $hasCreatedTags;
 
     /**
      * @param int $capacity Maximum capacity of the FixedArray used to contains the Tag, expiries of items that are already loaded (increases performances)
@@ -160,7 +160,7 @@ abstract class BaseDriver implements CacheDriver {
         }
         if (count($toRemove) > 0) $r = $this->delete(...$toRemove);
         if (count($toSave) > 0) {
-            if (!$this->hasCreatedTags() and $this->saveValue($this->getStorageKey(self::CREATED_TAG_KEY), true)) $this->hasCreatedTags = true;
+            if (!$this->hasCreatedTags()) $this->hasCreatedTags(true);
             $r = $this->save(...$toSave) && $r;
         }
 
@@ -210,7 +210,6 @@ abstract class BaseDriver implements CacheDriver {
             $taglist = new TagList();
             $loadedTags = [];
             foreach ($this->fetch(...$keys) as $item) {
-
                 if (count($item->getPreviousTags()) > 0) {
                     $key = $item->getKey();
                     foreach ($item->getPreviousTags() as $tagName) {
@@ -491,9 +490,13 @@ abstract class BaseDriver implements CacheDriver {
 
     /**
      * Get the Tag Creation status
+     * @param bool $set Change the status
      * @return bool
      */
-    protected function hasCreatedTags(): bool {
+    protected function hasCreatedTags(bool $set = null): bool {
+        if ($set !== null and $this->saveValue($this->getStorageKey(self::CREATED_TAG_KEY), $set)) {
+            $this->hasCreatedTags = true;
+        }
         if ($this->hasCreatedTags === null) {
             $this->hasCreatedTags = $this->fetchValue($this->getStorageKey(self::CREATED_TAG_KEY), false) === true;
         }
