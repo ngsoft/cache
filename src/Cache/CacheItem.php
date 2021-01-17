@@ -36,7 +36,7 @@ class CacheItem implements CacheItemInterface, TaggableCacheItemInterface, ItemI
     private $expiry = null;
 
     /** @var bool */
-    private $poolTaggable = false;
+    private $tagAware = false;
 
     /**
      * @var string[] Tags saved with the entry
@@ -125,6 +125,10 @@ class CacheItem implements CacheItemInterface, TaggableCacheItemInterface, ItemI
         if (!is_iterable($tags)) {
             $tags = [$tags];
         }
+        if (count($tags) == 0) return $this;
+
+        if (!$this->tagAware) throw new CacheException('Cache Pool is not Tag Aware, you cannot assign tags.');
+
         foreach ($tags as $tag) {
             $tag = $this->getValidTag($tag);
             $this->newTags[$tag] = $tag;

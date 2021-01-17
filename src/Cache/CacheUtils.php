@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-use Closure,
+use Cache\TagInterop\TaggableCacheItemPoolInterface,
+    Closure,
     NGSOFT\Traits\UnionType,
     TypeError;
 use function get_debug_type;
@@ -142,18 +143,19 @@ trait CacheUtils {
      * @param mixed $value
      * @param int|null $expire
      * @param string[] $tags
+     * @param bool|null $tagAware Determines if pool is tag aware
      * @return CacheItem
      */
-    protected function createItem(string $key, $value = null, int $expire = null, array $tags = [], bool $poolTaggable = false): CacheItem {
+    protected function createItem(string $key, $value = null, int $expire = null, array $tags = [], bool $tagAware = null): CacheItem {
         static $create, $item;
         if (!$item) {
             $item = new CacheItem(uniqid(''));
-            $create = static function (string $key, $value, int $expire = null, array $tags = [], bool $poolTaggable = false) use ($item): CacheItem {
+            $create = static function (string $key, $value, int $expire = null, array $tags = [], bool $tagAware = false) use ($item): CacheItem {
                 $c = clone $item;
                 $c->key = $key;
                 $c->tags = $tags;
                 $c->expiry = $expire;
-                $c->poolTaggable = $poolTaggable;
+                $c->tagAware = $tagAware;
                 // checks valid data
                 $c->set($value);
                 return $c;
@@ -161,7 +163,10 @@ trait CacheUtils {
 
             $create = $create->bindTo(null, CacheItem::class);
         }
-        return $create($key, $value, $expire, $tags, $poolTaggable);
+        //auto determine if tag aware
+        if ($tagAware === null) $tagAware = $this instanceof TaggableCacheItemPoolInterface;
+
+        return $create($key, $value, $expire, $tags, $tagAware);
     }
 
     /**
