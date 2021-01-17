@@ -132,6 +132,7 @@ abstract class BaseDriver implements CacheDriver, Stringable, JsonSerializable {
     /**
      * Save Multiples entries using an array of keys and value pairs
      * @param array<string,CacheObject|mixed> $keysAndValues Namespaced(not hashed) key and values
+     * @param int $expiry the timestamp at which the item expires
      * @return bool true if 'all' entries were saved
      */
     abstract protected function doSave(array $keysAndValues, int $expiry = 0): bool;
@@ -157,6 +158,7 @@ abstract class BaseDriver implements CacheDriver, Stringable, JsonSerializable {
 
     /**
      * Prevents Thowable inside classes __sleep or __serialize methods to interrupt operarations
+     *
      * @param mixed $value
      * @return string|null
      */
@@ -172,6 +174,7 @@ abstract class BaseDriver implements CacheDriver, Stringable, JsonSerializable {
     /**
      * Prevents Thowable inside classes __wakeup or __unserialize methods to interrupt operarations
      * Also the warning for wrong input
+     *
      * @param string $input
      * @return mixed|null
      */
@@ -231,8 +234,8 @@ abstract class BaseDriver implements CacheDriver, Stringable, JsonSerializable {
     protected function saveOne(string $key, $value, int $expiry = 0): bool {
         $this->doCheckValue($value);
         return
-                $value !== null or
-                $this->isExpired($expiry) ?
+                $value !== null and
+                !$this->isExpired($expiry) ?
                 $this->doSave([$key => $value], $expiry) :
                 $this->doDelete($key);
     }

@@ -163,7 +163,7 @@ trait CacheUtils {
     protected function createItem(string $key, $value = null, int $expire = null, array $tags = [], bool $tagAware = null): CacheItem {
         static $create, $item;
         if (!$item) {
-            $item = new CacheItem(uniqid(''));
+            $item = new CacheItem('CacheItem');
             $create = static function (string $key, $value, int $expire = null, array $tags = [], bool $tagAware = false) use ($item): CacheItem {
                 $c = clone $item;
                 $c->key = $key;

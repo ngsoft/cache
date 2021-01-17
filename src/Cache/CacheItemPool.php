@@ -49,9 +49,9 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
     protected $deferred = [];
 
     /**
-     * @param CacheDriver $driver The CacheDriver to use
-     * @param int $defaultLifetime Default Lifetime in seconds for items that do not define an expirity a value of 0 never expires
-     * @param string $namespace Namespace to assign to the driver
+     * @param CacheDriver $driver The Cache Driver
+     * @param int $defaultLifetime TTL to cache entries without expiry values. A value of 0 never expires (or at least until the cache flush it)
+     * @param string $namespace the namespace to use
      */
     public function __construct(
             CacheDriver $driver,

@@ -21,13 +21,17 @@ class TaggableCacheItemPool extends CacheItemPool implements TaggableCacheItemPo
     /** @var CacheDriver */
     protected $tagDriver;
 
-    /** @var Tag[] */
+    /**
+     * A small ArrayCache to make things faster
+     *
+     * @var Tag[]
+     */
     protected $loadedTags = [];
 
     /**
      * @param CacheDriver $driver The Cache Driver
      * @param CacheDriver|null $tagDriver The driver used to hold tags, if set to null the cache driver will be used
-     * @param int $defaultLifetime TTL dor cache entries without expiry values
+     * @param int $defaultLifetime TTL to cache entries without expiry values. A value of 0 never expires (or at least until the cache flush it)
      * @param string $namespace the namespace to use
      */
     public function __construct(
@@ -36,6 +40,7 @@ class TaggableCacheItemPool extends CacheItemPool implements TaggableCacheItemPo
             int $defaultLifetime = 0,
             string $namespace = ''
     ) {
+
         $this->tagDriver = $tagDriver ?? clone $driver;
         parent::__construct($driver, $defaultLifetime, $namespace);
     }
@@ -154,11 +159,23 @@ class TaggableCacheItemPool extends CacheItemPool implements TaggableCacheItemPo
         try {
             $this->doCheckKeys($keys);
             $keys = array_values(array_unique($keys));
+            $tagList = new TagList();
+            $loaded = [];
             foreach ($keys as $key) {
                 $this->getValidKey($key);
                 unset($this->deferred[$key]);
+                // tags: we need to load each items
+                foreach ($this->getItem($key)->getPreviousTags() as $tagLabel) {
+                    if (!isset($loaded[$tagLabel])) {
+                        $tagList->loadTag($this->fetchTag($tagLabel));
+                        $loaded[$tagLabel] = $tagLabel;
+                    }
+                    $tagList->remove($key, $tagLabel);
+                }
             }
-            return $this->driver->delete(...$keys);
+            $r = true;
+            foreach ($loaded as $tagLabel) $r = $this->saveTag($tagList->getTag($tagLabel)) && $r;
+            return $this->driver->delete(...$keys) && $r;
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
@@ -168,6 +185,9 @@ class TaggableCacheItemPool extends CacheItemPool implements TaggableCacheItemPo
 
     /**
      * Shortcut to fetch value directly from the tag driver
+     *
+     * Tags already makes the cache slower due to more computing,
+     * we do not need to issue a CacheItem for it
      *
      * @param string $key
      * @param mixed $default
@@ -191,14 +211,15 @@ class TaggableCacheItemPool extends CacheItemPool implements TaggableCacheItemPo
     protected function saveOne(string $key, $value, int $expiry = 0): bool {
         $this->doCheckValue($value);
         return
-                $value !== null or
-                $this->isExpired($expiry) ?
+                $value !== null and
+                !$this->isExpired($expiry) ?
                 $this->tagDriver->save([$key => $value], $expiry) :
                 $this->tagDriver->delete($key);
     }
 
     /**
-     * Converts tag name into tag key
+     * Converts tag label into tag key
+     * Also checks if tag is valid
      *
      * @param mixed $tag
      * @return string
