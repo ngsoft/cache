@@ -6,10 +6,10 @@ namespace NGSOFT\Cache\Drivers;
 
 use ErrorException;
 use NGSOFT\{
-    Cache\CacheDriver, Cache\CacheException, Cache\CacheItem, Cache\CacheUtils, Cache\InvalidArgumentException, Cache\Key, Cache\Tag, Cache\TagList, Tools\FixedArray,
-    Traits\LoggerAware
+    Cache\CacheDriver, Cache\CacheException, Cache\CacheItem, Cache\CacheUtils, Cache\InvalidArgumentException, Cache\Key, Cache\TagList, Tools\FixedArray, Traits\LoggerAware
 };
 use Throwable,
+    Traversable,
     TypeError;
 
 /**
@@ -45,18 +45,6 @@ abstract class BaseDriver implements CacheDriver {
      */
     private const NAMESPACE_VERSION_KEY = 'NGSOFT_CACHE_DRIVER_NAMESPACE_VERSION[%s]';
 
-    /**
-     * A Reserved cache key that is used to check if at least one tag has been created in the current namespace
-     * That can improve performances if no tags has been issued as it prevents cache hits on save and removal
-     */
-    private const CREATED_TAG_KEY = 'NGSOFT_CACHE_DRIVER_CREATED_TAG';
-
-    /**
-     * Tags are saved using the cache pool, so they are also cache entries,
-     * so to prevent conflicts with user provided key we have to add something to it
-     */
-    private const TAG_KEY_MODIFIER = '%s[%s][%u]TAG';
-
     /** @var string */
     protected $namepace = '';
 
@@ -66,56 +54,7 @@ abstract class BaseDriver implements CacheDriver {
      *
      * @var int|null
      */
-    private $namespace_version;
-
-    // A Fixed Array is an ArrayAccess object that limits
-    // the number of values it can hold using its capacity,
-    // Each time the fixed array is accessed (using isset not included) the internal pointer is updated and
-    // older entries are removed (if capacity reached) to make place for the new
-
-    /** @var int */
-    protected $capacity;
-
-    /**
-     * Used to index expiries of already loaded items,
-     *
-     * @var FixedArray|array
-     */
-    protected $expiries;
-
-    /**
-     * Used to index the currently loaded tags
-     *
-     * @var FixedArray|array
-     */
-    protected $loadedTags;
-
-    /** @var bool|null */
-    private $hasCreatedTags;
-
-    /**
-     * @param int $capacity Maximum capacity of the FixedArray used to contains the Tag, expiries of items that are already loaded (increases performances)
-     */
-    public function __construct(
-            int $capacity = 0
-    ) {
-        // cannot be negative, cannot be less than 32 if defined
-        $this->capacity = $capacity > 0 ? max(self::MIN_INDEX_CAPACITY, $capacity) : 0;
-        $this->initialize();
-    }
-
-    /**
-     * Resets the indexes and some params
-     */
-    final protected function initialize() {
-        if ($this->capacity > 0) {
-            $this->expiries = FixedArray::create($this->capacity);
-            $this->loadedTags = FixedArray::create($this->capacity);
-            $this->expiries->recursive = $this->loadedTags->recursive = false;
-        } else $this->expiries = $this->loadedTags = [];
-        $this->hasCreatedTags = null;
-        $this->namespace_version = null;
-    }
+    private $namespace_version = null;
 
     ////////////////////////////   Interface   ////////////////////////////
 
@@ -130,48 +69,6 @@ abstract class BaseDriver implements CacheDriver {
             throw new InvalidArgumentException(sprintf('Cache namespace "%s" contains reserved characters "%s".', $key, '{}()/\@:'));
         }
         $this->namepace = $namespace;
-    }
-
-    /**
-     * Persists a cache Tag(s) immediately
-     *
-     * @param Tag ...$tags If tag object does not contains keys it must be removed.
-     * @return bool True if the items were successfully persisted/removed. False if there was an error.
-     */
-    final public function saveTag(Tag ...$tags): bool {
-        if (count($tags) == 0) return true;
-        $r = true;
-        $toRemove = $toSave = [];
-        foreach ($tags as $tagItem) {
-            $cacheKey = $this->getStorageTagKey($tag);
-            $hKey = $this->getHashedKey($cacheKey);
-            unset($this->loadedTags[$hKey]);
-            if (count($tagItem) == 0) $toRemove[] = $cacheKey;
-            else $toSave[$cacheKey] = $tagItem;
-        }
-        if (count($toRemove) > 0) $r = $this->delete(...$toRemove);
-        if (count($toSave) > 0) {
-            if (!$this->hasCreatedTags()) $this->hasCreatedTags(true);
-            //direct input as we don't need a cache item
-            $r = $this->doSave($toSave) && $r;
-        }
-
-        if ($r === true) {
-            foreach ($tags as $tagItem) $this->loadedTags[$this->getHashedKey($this->getStorageKey($tagItem->getLabel()))] = clone $tagItem;
-        }
-        return $r;
-    }
-
-    /** {@inheritdoc} */
-    final public function fetchTag(string $tag): Tag {
-        $cacheKey = $this->getStorageKey(sprintf(self::TAG_MODIFIER, $tag));
-        $hKey = $this->getHashedKey($cacheKey);
-        if (isset($this->loadedTags[$hKey])) return clone $this->loadedTags[$hKey];
-        $tagItem = null;
-        if ($this->hasCreatedTags()) $tagItem = $this->fetchValue($cacheKey, null);
-        if (!($tagItem instanceof Tag)) $tagItem = new Tag($tag);
-        $this->loadedTags[$hKey] = clone $tagItem;
-        return $tagItem;
     }
 
     /** {@inheritdoc} */
@@ -309,7 +206,7 @@ abstract class BaseDriver implements CacheDriver {
 
     /** {@inheritdoc} */
     final public function clear(): bool {
-        $this->initialize();
+        $this->namespace_version = null;
         return $this->doClear();
     }
 
@@ -334,7 +231,7 @@ abstract class BaseDriver implements CacheDriver {
      * Fetches multiple entries from the cache
      *
      * @param string ...$keys A list of namespaced keys (not hashed) to fetch
-     * @return \Traversable An iterator indexed by keys and a null result if not fetched
+     * @return Traversable An iterator indexed by keys and a null result if not fetched
      */
     abstract protected function doFetch(string ...$keys);
 
