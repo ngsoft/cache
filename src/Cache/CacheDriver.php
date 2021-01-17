@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-use JsonSerializable,
-    Psr\Log\LoggerAwareInterface,
-    Stringable,
+use Psr\Log\LoggerAwareInterface,
     Traversable;
 
 /**
@@ -14,7 +12,7 @@ use JsonSerializable,
  * Does not handle keys/tags names verifications (the cache pool must do that)
  *
  */
-interface CacheDriver extends LoggerAwareInterface, Stringable, JsonSerializable {
+interface CacheDriver extends LoggerAwareInterface {
 
     /**
      * Change the namespace for the current instance
@@ -55,7 +53,7 @@ interface CacheDriver extends LoggerAwareInterface, Stringable, JsonSerializable
      * @param string ...$keys The keys to fetch
      * @return Traversable A traversable indexed by keys null values must be issued on cache miss
      */
-    public function fetch(string ...$keys);
+    public function fetch(string ...$keys): Traversable;
 
     /**
      * Persists a cache item(s) immediately.
