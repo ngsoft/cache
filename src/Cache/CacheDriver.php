@@ -16,17 +16,11 @@ use JsonSerializable,
 interface CacheDriver extends LoggerAwareInterface, Stringable, JsonSerializable {
 
     /**
-     * Valid namespace can be an empty string or a word beginning with a letter
-     * and containing [a-zA-Z0-9_-.], other characters are forbidden
-     */
-    public const VALID_NAMESPACE_REGEX = '/^(|[a-zA-Z][\w\-\.]+)$/';
-
-    /**
      * Change the namespace for the current instance
      * A namespace is a prefix assigned to the key
      *
      * @param string $namespace The prefix to use
-     * @throws InvalidArgumentException if the namespace is invalid
+     * @throws InvalidArgumentException if the namespace is invalid: '{}()/\@:' are found.
      * @return void
      */
     public function setNamespace(string $namespace): void;
@@ -69,14 +63,6 @@ interface CacheDriver extends LoggerAwareInterface, Stringable, JsonSerializable
      * @return Tag
      */
     public function fetchTag(string $tag): Tag;
-
-    /**
-     * Persists a cache Tag(s) immediately
-     *
-     * @param Tag ...$tags If tag object does not contains keys it must be removed.
-     * @return bool True if the items were successfully persisted/removed. False if there was an error.
-     */
-    public function saveTag(Tag ...$tags): bool;
 
     /**
      * Persists a cache item(s) immediately (Tag entries must be included).

@@ -124,21 +124,11 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
             $tags = array_map(fn($t) => $this->getValidTag($t), array_values(array_unique($tags)));
             $toRemove = $tagitems = [];
             foreach ($tags as $tagName) {
-                $tagItem = $this->driver->fetchTag($tagName);
-                if (count($tagItem) > 0) {
-                    foreach ($tagItem as $keyItem) {
-                        $toRemove[$keyItem->getLabel()] = $keyItem->getLabel();
-                    }
-                    $tagItem->clear();
-                    $tagitems[] = $tagItem;
+                foreach ($this->driver->fetchTag($tagName) as $keyItem) {
+                    $toRemove[$keyItem->getLabel()] = $keyItem->getLabel();
                 }
             }
-            if (count($toRemove) > 0) {
-                //     $toRemove = array_values($toRemove);
-                $r = $this->driver->saveTag(...$tagitems);
-                return $this->deleteItems($toRemove) && $r;
-            }
-
+            if (count($toRemove) > 0) return $this->deleteItems($toRemove);
             return true;
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);

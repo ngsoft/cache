@@ -151,4 +151,9 @@ class ArrayCache extends BaseDriver {
         }
     }
 
+    /** {@inheritdoc} */
+    public function __debugInfo() {
+        return ['values' => $this->values];
+    }
+
 }

@@ -178,4 +178,9 @@ class CacheItem implements CacheItemInterface, TaggableCacheItemInterface, ItemI
         $this->key = $this->getValidKey($key);
     }
 
+    /** {@inheritdoc} */
+    public function __debugInfo() {
+        return $this->getMetadata();
+    }
+
 }

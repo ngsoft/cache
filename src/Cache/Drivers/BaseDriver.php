@@ -55,7 +55,7 @@ abstract class BaseDriver implements CacheDriver {
      * Tags are saved using the cache pool, so they are also cache entries,
      * so to prevent conflicts with user provided key we have to add something to it
      */
-    protected const TAG_MODIFIER = 'TAG!%s';
+    private const TAG_KEY_MODIFIER = '%s[%s][%u]TAG';
 
     /** @var string */
     protected $namepace = '';
@@ -126,13 +126,8 @@ abstract class BaseDriver implements CacheDriver {
 
     /** {@inheritdoc} */
     final public function setNamespace(string $namespace): void {
-
-        if (!preg_match(CacheDriver::VALID_NAMESPACE_REGEX, $namespace)) {
-            throw new InvalidArgumentException(sprintf(
-                                    'Illegal $namespace "%s" provided, valid characters are %s.',
-                                    $namespace,
-                                    CacheDriver::VALID_NAMESPACE_REGEX
-            ));
+        if (!empty($namespace) and (false !== strpbrk($namespace, '{}()/\@:'))) {
+            throw new InvalidArgumentException(sprintf('Cache namespace "%s" contains reserved characters "%s".', $key, '{}()/\@:'));
         }
         $this->namepace = $namespace;
     }
@@ -149,7 +144,12 @@ abstract class BaseDriver implements CacheDriver {
         return $tagItem;
     }
 
-    /** {@inheritdoc} */
+    /**
+     * Persists a cache Tag(s) immediately
+     *
+     * @param Tag ...$tags If tag object does not contains keys it must be removed.
+     * @return bool True if the items were successfully persisted/removed. False if there was an error.
+     */
     final public function saveTag(Tag ...$tags): bool {
         if (count($tags) == 0) return true;
         $r = true;
@@ -495,8 +495,12 @@ abstract class BaseDriver implements CacheDriver {
      * @return bool
      */
     protected function hasCreatedTags(bool $set = null): bool {
-        if ($set !== null and $this->saveValue($this->getStorageKey(self::CREATED_TAG_KEY), $set)) {
-            $this->hasCreatedTags = true;
+        if (
+                $set !== null and
+                $this->hasCreatedTags !== $set and
+                $this->saveValue($this->getStorageKey(self::CREATED_TAG_KEY), $set)
+        ) {
+            $this->hasCreatedTags = $set;
         }
         if ($this->hasCreatedTags === null) {
             $this->hasCreatedTags = $this->fetchValue($this->getStorageKey(self::CREATED_TAG_KEY), false) === true;
@@ -526,6 +530,16 @@ abstract class BaseDriver implements CacheDriver {
      */
     final protected function getStorageKey(string $key): string {
         return sprintf(self::NAMESPACE_MODIFIER, $this->getNamespace(), $key, $this->getNamespaceVersion());
+    }
+
+    /**
+     * Get the namespaced Tag Key (strorage key that is assigned to a tag)
+     *
+     * @param string $tag
+     * @return string
+     */
+    final protected function getStorageTagKey(string $tag): string {
+        return sprintf(self::TAG_KEY_MODIFIER, $this->getNamespace(), $tag, $this->getNamespaceVersion());
     }
 
     /**
