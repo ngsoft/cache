@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Drivers;
 
 use NGSOFT\{
-    Cache\CacheDriver, Cache\CacheItem, Cache\CacheUtils, Cache\InvalidArgumentException, Tools\FixedArray, Traits\LoggerAware
+    Cache\CacheDriver, Cache\CacheItem, Cache\CacheUtils, Cache\InvalidArgumentException, Cache\Tag, Tools\FixedArray, Traits\LoggerAware
 };
 
 /**
@@ -119,20 +119,26 @@ abstract class BaseDriver implements CacheDriver {
         $this->namepace = $namespace;
     }
 
-    public function removeExpired(): bool {
-
-    }
-
-    public function fetchTag(string $tag): \NGSOFT\Cache\Tag {
+    /** {@inheritdoc} */
+    public function fetchTag(string $tag): Tag {
         $cacheKey = sprintf(self::TAG_MODIFIER, $tag);
+        if (($tagItem = $this->fetchValue($cacheKey)) instanceof Tag) return $tagItem;
+        return new Tag($tag);
     }
 
-    public function saveTag(\NGSOFT\Cache\Tag ...$tags): bool {
-
-    }
-
-    public function clear(): bool {
-
+    /** {@inheritdoc} */
+    public function saveTag(Tag ...$tags): bool {
+        if (count($tags) == 0) return true;
+        $r = true;
+        $toRemove = $toSave = [];
+        foreach ($tags as $tagItem) {
+            $cacheKey = sprintf(self::TAG_MODIFIER, $tagItem->getLabel());
+            if (count($tagItem) == 0) $toRemove[] = $cacheKey;
+            else $toSave[] = $this->createItem($cacheKey, $tagItem, 0);
+        }
+        if (count($toRemove) > 0) $r = $this->delete(...$toRemove);
+        if (count($toSave) > 0) $r = $this->save(...$toSave) && $r;
+        return $r;
     }
 
     ////////////////////////////   Abstract Methods   ////////////////////////////
