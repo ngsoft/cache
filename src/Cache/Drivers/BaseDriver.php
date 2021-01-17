@@ -132,18 +132,6 @@ abstract class BaseDriver implements CacheDriver {
         $this->namepace = $namespace;
     }
 
-    /** {@inheritdoc} */
-    final public function fetchTag(string $tag): Tag {
-        $cacheKey = $this->getStorageKey(sprintf(self::TAG_MODIFIER, $tag));
-        $hKey = $this->getHashedKey($cacheKey);
-        if (isset($this->loadedTags[$hKey])) return clone $this->loadedTags[$hKey];
-        $tagItem = null;
-        if ($this->hasCreatedTags()) $tagItem = $this->fetchValue($cacheKey, null);
-        if (!($tagItem instanceof Tag)) $tagItem = new Tag($tag);
-        $this->loadedTags[$hKey] = clone $tagItem;
-        return $tagItem;
-    }
-
     /**
      * Persists a cache Tag(s) immediately
      *
@@ -155,7 +143,7 @@ abstract class BaseDriver implements CacheDriver {
         $r = true;
         $toRemove = $toSave = [];
         foreach ($tags as $tagItem) {
-            $cacheKey = $this->getStorageKey(sprintf(self::TAG_MODIFIER, $tagItem->getLabel()));
+            $cacheKey = $this->getStorageTagKey($tag);
             $hKey = $this->getHashedKey($cacheKey);
             unset($this->loadedTags[$hKey]);
             if (count($tagItem) == 0) $toRemove[] = $cacheKey;
@@ -172,6 +160,18 @@ abstract class BaseDriver implements CacheDriver {
             foreach ($tags as $tagItem) $this->loadedTags[$this->getHashedKey($this->getStorageKey($tagItem->getLabel()))] = clone $tagItem;
         }
         return $r;
+    }
+
+    /** {@inheritdoc} */
+    final public function fetchTag(string $tag): Tag {
+        $cacheKey = $this->getStorageKey(sprintf(self::TAG_MODIFIER, $tag));
+        $hKey = $this->getHashedKey($cacheKey);
+        if (isset($this->loadedTags[$hKey])) return clone $this->loadedTags[$hKey];
+        $tagItem = null;
+        if ($this->hasCreatedTags()) $tagItem = $this->fetchValue($cacheKey, null);
+        if (!($tagItem instanceof Tag)) $tagItem = new Tag($tag);
+        $this->loadedTags[$hKey] = clone $tagItem;
+        return $tagItem;
     }
 
     /** {@inheritdoc} */

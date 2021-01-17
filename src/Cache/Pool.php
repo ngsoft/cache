@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-use Cache\TagInterop\TaggableCacheItemPoolInterface;
 use Psr\{
     Cache\CacheItemPoolInterface, Log\LoggerAwareInterface, SimpleCache\CacheInterface
 };
@@ -12,7 +11,7 @@ use Psr\{
 /**
  * Cache Pool Interface
  */
-interface Pool extends CacheInterface, CacheItemPoolInterface, TaggableCacheItemPoolInterface, LoggerAwareInterface {
+interface Pool extends CacheInterface, CacheItemPoolInterface, LoggerAwareInterface {
 
     /**
      * Change the namespace for the current driver
