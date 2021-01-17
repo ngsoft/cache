@@ -6,7 +6,8 @@ namespace NGSOFT\Cache\Drivers;
 
 use ErrorException;
 use NGSOFT\{
-    Cache\CacheDriver, Cache\CacheException, Cache\CacheItem, Cache\CacheUtils, Cache\InvalidArgumentException, Cache\Key, Cache\Tag, Tools\FixedArray, Traits\LoggerAware
+    Cache\CacheDriver, Cache\CacheException, Cache\CacheItem, Cache\CacheUtils, Cache\InvalidArgumentException, Cache\Key, Cache\Tag, Cache\TagList, Tools\FixedArray,
+    Traits\LoggerAware
 };
 use Throwable,
     TypeError;
@@ -123,14 +124,14 @@ abstract class BaseDriver implements CacheDriver {
     }
 
     /** {@inheritdoc} */
-    public function fetchTag(string $tag): Tag {
+    final public function fetchTag(string $tag): Tag {
         $cacheKey = sprintf(self::TAG_MODIFIER, $tag);
         if (($tagItem = $this->fetchValue($cacheKey)) instanceof Tag) return $tagItem;
         return new Tag($tag);
     }
 
     /** {@inheritdoc} */
-    public function saveTag(Tag ...$tags): bool {
+    final public function saveTag(Tag ...$tags): bool {
         if (count($tags) == 0) return true;
         $r = true;
         $toRemove = $toSave = [];
@@ -149,18 +150,145 @@ abstract class BaseDriver implements CacheDriver {
         $key = $this->getNamespaceKey();
         $version = $this->getNamespaceVersion() + 1;
         if ($this->saveValue($key, $version)) {
+            $this->initialize();
             $this->namespace_version = $version;
             return true;
         }
         return false;
     }
 
+    /** {@inheritdoc} */
+    final public function contains(string $key): bool {
+        $hKey = $this->getHashedKey($this->getStorageKey($key));
+        if (isset($this->expiries[$hKey])) {
+            if ($this->isExpired($this->expiries[$hKey])) {
+                unset($this->expiries[$hKey]);
+                $this->delete($key);
+                return false;
+            }
+            return true;
+        }
+        $item = $this->getItem($key);
+        if ($item->isHit()) {
+            $this->expiries[$hKey] = $item->getExpiration();
+            return true;
+        }
+        return false;
+    }
+
+    /** {@inheritdoc} */
+    public function delete(string ...$keys): bool {
+        if (empty($keys)) return true;
+
+        //we need to know which tags to remove
+        $taglist = new TagList();
+        $loadedTags = [];
+        foreach ($keys as $key) {
+
+            $item = $this->getItem($key);
+        }
+
+
+        return $this->doDelete(... array_map(fn($k) => $this->getStorageKey($k), $keys));
+    }
+
+    /** {@inheritdoc} */
+    public function fetch(string ...$keys) {
+        if (empty($keys)) return;
+        $nKeys = array_combine(array_map(fn($k) => $this->getStorageKey($k), $keys), $keys);
+        $args = array_keys($nKeys);
+        foreach ($this->doFetch(...$args) as $sKey => $value) {
+            unset($this->expiries[$this->getHashedKey($sKey)]);
+            $key = $nKeys[$sKey];
+            if (is_array($value)) {
+                $item = $this->createCacheItemFromSaved($key, $value);
+                //index expiration
+                if ($item->isHit()) $this->expiries[$this->getHashedKey($sKey)] = $item->getExpiration();
+                yield $key => $item;
+            } else yield $key => $this->createItem($key);
+        }
+    }
+
+    /** {@inheritdoc} */
+    public function save(CacheItem ...$items): bool {
+        if (empty($items)) return true;
+        $r = true;
+        $toSave = $toRemove = $loadedTags = [];
+        // compute tags to add and delete
+        $taglist = new TagList();
+        foreach ($items as $item) {
+            $key = $item->getKey();
+            $sKey = $this->getStorageKey($item->getKey());
+            if ($item->isHit()) {
+                $expire = $item->getExpiration();
+                $value = $item->get();
+                if (count($oldTags = $items->getPreviousTags()) > 0) {
+                    foreach ($oldTags as $tagName) {
+                        if (!isset($loadedTags[$tagName])) {
+                            $loadedTags[$tagName] = $tagName;
+                            $taglist->loadTag($this->fetchTag($tagName));
+                        }
+                        $taglist->remove($key, $tagName);
+                    }
+                }
+                if (count($tags = $item->getNewTags()) > 0) {
+                    foreach ($tags as $tagName) {
+                        if (!isset($loadedTags[$tagName])) {
+                            $loadedTags[$tagName] = $tagName;
+                            $taglist->loadTag($this->fetchTag($tagName));
+                        }
+                        $taglist->add($key, $tagName);
+                    }
+                }
+
+                $toSave[$sKey] = $this->buildItemToSave($value, $expire, $tags);
+            } else $toRemove[] = $key;
+        }
+        if (count($toSave) > 0) {
+            if (count($loadedTags) > 0) {
+                $tagsTosave = [];
+                foreach ($loadedTags as $tagName) {
+                    $tagsTosave[] = $taglist->getTag($tagName);
+                }
+                $r = $this->saveTag(...$tagsTosave) && $r;
+            }
+            //we handle creation before removal as we already commited the tags
+            $r = $this->doSave($toSave) && $r;
+        }
+        if (count($toRemove) > 0) {
+            $r = $this->delete(...$toRemove) && $r;
+        }
+        return $r;
+    }
+
     ////////////////////////////   Abstract Methods   ////////////////////////////
 
     /**
+     * Deletes one or several cache entries.
      *
+     * @param string ...$keys The namespaced keys to delete.
+     * @return bool True if the items was successfully removed. False if there was an error.
      */
-    abstract protected function doRemoveExpired(): bool;
+    abstract protected function doDelete(string ...$keys): bool;
+
+    /**
+     * Save Multiples entries using an array of keys and value pairs
+     * @param array<string,array> $keysAndValues Namespaced(not hashed) key and value from buildItemToSave()
+     * @return bool true if 'all' entries were saved
+     */
+    abstract protected function doSave(array $keysAndValues): bool;
+
+    /**
+     * Fetches multiple entries from the cache
+     *
+     * @param string ...$keys A list of namespaced keys (not hashed) to fetch
+     * @return \Traversable<string,array|null> An iterator indexed by keys and a null result if not fetched or an array that can be decoded  using createCacheItemFromSaved()
+     */
+    abstract protected function doFetch(string ...$keys);
+
+
+
+
 
     ////////////////////////////   Utils   ////////////////////////////
 
@@ -333,7 +461,6 @@ abstract class BaseDriver implements CacheDriver {
 
     /**
      * Get a 32 Chars hashed key
-     * Replaces getStorageKey on some drivers that needs a word (eg: ArrayCache, FileSystem ...)
      *
      * @param string $key
      * @return string
@@ -341,7 +468,7 @@ abstract class BaseDriver implements CacheDriver {
     final protected function getHashedKey(string $key): string {
         // classname added to prevent conflicts on similar drivers
         // MD5 as we need speed and some filesystems are limited in length
-        return hash('MD5', static::class . $this->getStorageKey($key));
+        return hash('MD5', static::class . $key);
     }
 
 }
