@@ -136,11 +136,11 @@ abstract class BaseDriver implements CacheDriver {
 
     /** {@inheritdoc} */
     public function fetchTag(string $tag): Tag {
-        $cacheKey = sprintf(self::TAG_MODIFIER, $tag);
+        $cacheKey = $this->getStorageKey(sprintf(self::TAG_MODIFIER, $tag));
         $hKey = $this->getHashedKey($cacheKey);
         if (isset($this->loadedTags[$hKey])) return clone $this->loadedTags[$hKey];
         $tagItem = null;
-        if ($this->hasCreatedTags()) $tagItem = $this->fetchValue($cacheKey);
+        if ($this->hasCreatedTags()) $tagItem = $this->fetchValue($cacheKey, null);
         if (!($tagItem instanceof Tag)) $tagItem = new Tag($tag);
         $this->loadedTags[$hKey] = clone $tagItem;
         return $tagItem;
@@ -152,16 +152,17 @@ abstract class BaseDriver implements CacheDriver {
         $r = true;
         $toRemove = $toSave = [];
         foreach ($tags as $tagItem) {
-            $cacheKey = sprintf(self::TAG_MODIFIER, $tagItem->getLabel());
+            $cacheKey = $this->getStorageKey(sprintf(self::TAG_MODIFIER, $tagItem->getLabel()));
             $hKey = $this->getHashedKey($cacheKey);
             unset($this->loadedTags[$hKey]);
             if (count($tagItem) == 0) $toRemove[] = $cacheKey;
-            else $toSave[] = $this->createItem($cacheKey, $tagItem, 0);
+            else $toSave[$cacheKey] = $tagItem;
         }
         if (count($toRemove) > 0) $r = $this->delete(...$toRemove);
         if (count($toSave) > 0) {
             if (!$this->hasCreatedTags()) $this->hasCreatedTags(true);
-            $r = $this->save(...$toSave) && $r;
+            //direct input as we don't need a cache item
+            $r = $this->doSave($toSave) && $r;
         }
 
         if ($r === true) {

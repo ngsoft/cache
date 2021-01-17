@@ -45,6 +45,7 @@ class ArrayCache extends BaseDriver {
 
     /** {@inheritdoc} */
     public function fetchTag(string $tag): \NGSOFT\Cache\Tag {
+
         return $this->taglist->getTag($tag);
     }
 
@@ -101,7 +102,9 @@ class ArrayCache extends BaseDriver {
         $r = true;
         foreach ($keysAndValues as $key => $value) {
             $hKey = $this->getHashedKey($key);
-            $expire = $value['e'] ?? 0;
+            // check if object encoded using buildItemToSave() or not
+            $expire = is_array($value) ? $value['e'] ?? 0 : 0;
+            if ($this->maxLifeTime > 0) $expire = min(time() + $this->maxLifeTime, $expire == 0 ? PHP_INT_MAX : $expire);
             if ($this->storeSerialized) {
                 $value = $this->serializeIfNeeded($value);
             }
