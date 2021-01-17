@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace NGSOFT\Cache;
 
 use Cache\TagInterop\TaggableCacheItemPoolInterface,
-    Closure,
     NGSOFT\Traits\UnionType,
     TypeError;
 use function get_debug_type;
@@ -152,7 +151,7 @@ trait CacheUtils {
 
     /**
      * Creates a CacheItem
-     * @staticvar Closure $create
+     * @staticvar \Closure $create
      * @staticvar CacheItem $item
      * @param string $key
      * @param mixed $value

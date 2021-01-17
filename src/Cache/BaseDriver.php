@@ -69,7 +69,7 @@ abstract class BaseDriver implements CacheDriver, Stringable, JsonSerializable {
     final public function deleteAll(): bool {
         $key = $this->getNamespaceKey();
         $version = $this->getNamespaceVersion() + 1;
-        if ($this->saveValue($key, $version)) {
+        if ($this->saveOne($key, $version)) {
             $this->namespace_version = $version;
             return true;
         }
@@ -223,14 +223,18 @@ abstract class BaseDriver implements CacheDriver, Stringable, JsonSerializable {
     /**
      * Shortcut to save value directly to the cache
      *
-     * @internal Do not uses Cache pool lifetime
      * @param string $key The cache Key
      * @param mixed $value The value to save
      * @param int $expiry Expiration Timestamp
-     * @return bool
+     * @return bool true if item succesfully saved/removed
      */
     protected function saveOne(string $key, $value, int $expiry = 0): bool {
-        return $value !== null ? $this->doSave([$key => $value], $expiry) : false;
+        $this->doCheckValue($value);
+        return
+                $value !== null or
+                $this->isExpired($expiry) ?
+                $this->doSave([$key => $value], $expiry) :
+                $this->doDelete($key);
     }
 
     /**
@@ -248,7 +252,7 @@ abstract class BaseDriver implements CacheDriver, Stringable, JsonSerializable {
     private function getNamespaceVersion(): int {
         if ($this->namespace_version === null) {
             $key = $this->getNamespaceKey();
-            if (is_int($val = $this->fetchValue($key))) $this->namespace_version = $val;
+            if (is_int($val = $this->fetchOne($key))) $this->namespace_version = $val;
             else $this->namespace_version = 1;
         }
         return $this->namespace_version;
