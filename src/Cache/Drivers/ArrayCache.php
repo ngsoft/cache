@@ -34,7 +34,7 @@ class ArrayCache extends BaseDriver {
             int $maxLifeTime = 0
     ) {
 
-        parent::__construct();
+        parent::__construct($capacity > 0 ? $capacity : PHP_INT_MAX);
 
 
         $this->maxLifeTime = max(0, $maxLifeTime);

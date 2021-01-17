@@ -103,6 +103,31 @@ class TagList implements Stringable, JsonSerializable, Countable, IteratorAggreg
     }
 
     /**
+     * Removes all associations with a key
+     *
+     * @suppress PhanUnusedPublicNoOverrideMethodParameter
+     * @param string $key
+     * @return self
+     */
+    public function clearKey(string $key): self {
+        $this->list = $this->list->filter(fn($t, $k) => $k != $key);
+        $this->removedKeys[$key] = $key;
+        return $this;
+    }
+
+    /**
+     * Removes all associations with a tag
+     *
+     * @param string $tag
+     * @return self
+     */
+    public function clearTag(string $tag): self {
+        $this->list = $this->list->filter(fn($t) => $t != $tag);
+        $this->removedTags[$tag] = $tag;
+        return $this;
+    }
+
+    /**
      * Get Key instance linked with the corresponding tags
      *
      * @param string $key
