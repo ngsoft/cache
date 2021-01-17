@@ -84,23 +84,42 @@ abstract class BaseDriver implements CacheDriver, Stringable, JsonSerializable {
         return $this->doClear();
     }
 
-    public function contains(string $key): bool {
-
+    /** {@inheritdoc} */
+    final public function contains(string $key): bool {
+        return $this->doContains($this->getStorageKey($key));
     }
 
-    public function delete(string ...$keys): bool {
-
+    /** {@inheritdoc} */
+    final public function delete(string ...$keys): bool {
+        if (empty($keys)) return true;
+        return $this->doDelete(...array_map(fn($k) => $this->getStorageKey($k), $keys));
     }
 
-    public function fetch(string ...$keys) {
-
+    /** {@inheritdoc} */
+    final public function save(array $keysAndValues, int $expiry = 0): bool {
+        if (empty($keysAndValues)) return true;
+        return $this->doSave(array_combine(array_map(fn($k) => $this->getStorageKey($k), array_keys($keysAndValues)), array_values($keysAndValues)), $expiry);
     }
 
-    public function save(array $keysAndValues, int $expiry = 0): bool {
-
+    /** {@inheritdoc} */
+    final public function fetch(string ...$keys): Traversable {
+        if (empty($keys)) return;
+        $keysToFetch = array_map(fn($k) => $this->getStorageKey($k), $keys);
+        $assoc = array_combine($keysToFetch, $keys);
+        foreach ($this->fetch(...$keysToFetch) as $fetchedKey => $value) {
+            yield $assoc[$fetchedKey] => $value;
+        }
     }
 
     ////////////////////////////   Abstract Methods   ////////////////////////////
+
+    /**
+     * Confirms if the cache contains specified cache key.
+     *
+     * @param string $key The key for which to check existence.
+     * @return bool true if item exists in the cache, false otherwise.
+     */
+    abstract protected function doContains(string $key): bool;
 
     /**
      * Deletes one or several cache entries.
@@ -123,7 +142,7 @@ abstract class BaseDriver implements CacheDriver, Stringable, JsonSerializable {
      * @param string ...$keys A list of namespaced keys (not hashed) to fetch
      * @return Traversable An iterator indexed by keys and a null result if not fetched
      */
-    abstract protected function doFetch(string ...$keys);
+    abstract protected function doFetch(string ...$keys): Traversable;
 
     /**
      * Flushes all cache entries (globally).
@@ -188,24 +207,13 @@ abstract class BaseDriver implements CacheDriver, Stringable, JsonSerializable {
     }
 
     /**
-     * Get an individual CacheItem
-     * @param string $key
-     * @return CacheItem
-     */
-    protected function getItem(string $key): CacheItem {
-        foreach ($this->fetch($key) as $item) return $item;
-        //will never get to that but PhanPluginAlwaysReturnMethod won't stops with it
-        return $this->createItem($key);
-    }
-
-    /**
      * Shortcut to fetch value directly from the cache
      *
      * @param string $key
      * @param mixed $default
      * @return mixed
      */
-    protected function fetchValue(string $key, $default = null) {
+    protected function fetchOne(string $key, $default = null) {
         foreach ($this->doFetch($key) as $value) {
             return $value !== null ? $value : $default;
         }
@@ -218,10 +226,11 @@ abstract class BaseDriver implements CacheDriver, Stringable, JsonSerializable {
      * @internal Do not uses Cache pool lifetime
      * @param string $key The cache Key
      * @param mixed $value The value to save
+     * @param int $expiry Expiration Timestamp
      * @return bool
      */
-    protected function saveValue(string $key, $value): bool {
-        return $value !== null ? $this->doSave([$key => $value]) : false;
+    protected function saveOne(string $key, $value, int $expiry = 0): bool {
+        return $value !== null ? $this->doSave([$key => $value], $expiry) : false;
     }
 
     /**

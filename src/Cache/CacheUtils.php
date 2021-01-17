@@ -136,6 +136,21 @@ trait CacheUtils {
     }
 
     /**
+     * Convenience function to convert expiry into TTL
+     * A TTL/expiry of 0 never expires
+     *
+     *
+     * @param int $expiry
+     * @return int the ttl a negative ttl is already expired
+     */
+    protected function expiryToLifetime(int $expiry): int {
+        return
+                $expiry > 0 ?
+                $expiry - time() :
+                0;
+    }
+
+    /**
      * Creates a CacheItem
      * @staticvar Closure $create
      * @staticvar CacheItem $item
@@ -167,19 +182,6 @@ trait CacheUtils {
         if ($tagAware === null) $tagAware = $this instanceof TaggableCacheItemPoolInterface;
 
         return $create($key, $value, $expire, $tags, $tagAware);
-    }
-
-    /**
-     * Execute a callable inside a CacheItem
-     *
-     * @param CacheItem $item
-     * @param callable $callable
-     * @return mixed
-     */
-    protected function itemExecute(CacheItem $item, callable $callable) {
-        $callable = Closure::fromCallable($callable);
-        $callable->bindTo($this, CacheItem::class);
-        return $callable($item);
     }
 
     /** {@inheritdoc} */
