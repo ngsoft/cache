@@ -57,7 +57,7 @@ class PHPFileCache extends FileSystem implements CacheDriver {
         if (empty($keys)) return true;
         $r = true;
         foreach ($keys as $key) {
-            $filename = $this->getFilename($key);
+            $filename = $this->getFilename($key, self::EXTENSION);
             if (is_file($filename)) {
                 $this->invalidate($filename);
                 $r = $this->unlink($filename) && $r;
