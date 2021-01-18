@@ -55,7 +55,7 @@ final class Serializer {
 
         if (is_scalar($input) or is_null($input)) return var_export($input, true);
         if (is_object($input) and method_exists($input, '__set_state')) return var_export($input, true);
-        if (is_array($input) and self::canVarExport($input)) return self::var_export($input, true);
+        if (is_array($input) and self::canVarExport($input)) return var_export($input, true);
         return null;
     }
 
