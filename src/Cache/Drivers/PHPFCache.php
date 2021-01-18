@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Drivers;
 
 use NGSOFT\Cache\{
-    CacheDriver, CacheObject, Serializer
+    CacheDriver, CacheObject, FileSystem, Serializer
 };
 use Psr\Log\LogLevel,
     Throwable;
 
-class PHPFileCache extends FileSystem implements CacheDriver {
+class PHPFCache extends FileSystem implements CacheDriver {
 
     /**
      * File Modification time to add to enable opcache compilation

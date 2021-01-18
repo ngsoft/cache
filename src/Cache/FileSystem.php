@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Cache\Drivers;
+namespace NGSOFT\Cache;
 
 use ErrorException,
     FilesystemIterator,
