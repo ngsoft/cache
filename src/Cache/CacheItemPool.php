@@ -11,8 +11,8 @@ use DateInterval,
     DateTime,
     Generator,
     JsonSerializable;
-use NGSOFT\Traits\{
-    LoggerAware, Unserializable
+use NGSOFT\{
+    Cache\Drivers\ChainCache, Traits\LoggerAware, Traits\Unserializable
 };
 use Psr\{
     Cache\CacheException as PSRCacheException, Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerInterface, Log\LogLevel, Log\NullLogger,
@@ -62,8 +62,12 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
         $this->driver = $driver;
         $this->setLogger(new NullLogger());
         $this->setNamespace($namespace);
+        if ($driver instanceof ChainCache) {
+            $driver->setDefaultLifetime($this->defaultLifetime);
+        }
     }
 
+    /** {@inheritdoc} */
     public function __destruct() {
         $this->commit();
     }
