@@ -64,6 +64,10 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
         $this->setNamespace($namespace);
     }
 
+    public function __destruct() {
+        $this->commit();
+    }
+
     /**
      * Access Currently assigned Driver
      *
@@ -77,6 +81,7 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
 
     /** {@inheritdoc} */
     public function deleteAll(): bool {
+
         return $this->driver->deleteAll();
     }
 

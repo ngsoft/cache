@@ -29,76 +29,24 @@ class PHPFileCache extends FileSystem implements CacheDriver {
      */
     private const TEMPLATE_WITH_EXPIRATION = '<?php return microtime(true) > %u ? null: %s;';
 
-    /**
-     * Extension for value saved as php code
-     */
-    private const EXTENSION = '.php';
-
     ////////////////////////////   Implementation   ////////////////////////////
 
     /** {@inheritdoc} */
-    protected function doClear(): bool {
-        $r = true;
-        foreach ($this->scanFiles($this->getCacheRoot(), self::EXTENSION) as $file) {
-            $this->invalidate($file);
-            $r = $this->unlink($file) && $r;
-        }
-        foreach ($this->scanDirs($this->getCacheRoot()) as $dir) $this->rmdir($dir);
-        return $r;
-    }
-
-    /** {@inheritdoc} */
-    protected function doContains(string $key): bool {
-        return $this->read($this->getFilename($key, self::EXTENSION));
-    }
-
-    /** {@inheritdoc} */
-    protected function doDelete(string ...$keys): bool {
-        if (empty($keys)) return true;
-        $r = true;
-        foreach ($keys as $key) {
-            $filename = $this->getFilename($key, self::EXTENSION);
-            if (is_file($filename)) {
-                $this->invalidate($filename);
-                $r = $this->unlink($filename) && $r;
-            }
-        }
-
-        return $r;
-    }
-
-    /** {@inheritdoc} */
-    protected function doFetch(string ...$keys): Traversable {
-        if (empty($keys)) return;
-        foreach ($keys as $key) {
-            if ($this->read($this->getFilename($key, self::EXTENSION), $value)) {
-                yield $key => $value;
-            } else yield $key => null;
-        }
+    protected function getExtension(): string {
+        return '.php';
     }
 
     /** {@inheritdoc} */
     protected function doSave(array $keysAndValues, int $expiry = 0): bool {
         $r = true;
         foreach ($keysAndValues as $key => $value) {
-            $filename = $this->getFilename($key, self::EXTENSION);
+            $filename = $this->getFilename($key, $this->getExtension());
 
             $contents = $this->toPHPCode($value, $expiry);
             if (null !== $contents and $this->write($filename, $contents)) {
                 $this->compile($filename);
             } else $r = false;
         }
-        return $r;
-    }
-
-    /** {@inheritdoc} */
-    public function purge(): bool {
-        $r = true;
-        foreach ($this->scanFiles($this->getCacheRoot(), self::EXTENSION) as $file) {
-            // embed expiry is useful
-            if (!$this->read($file)) $r = $this->unlink($file) && $r;
-        }
-
         return $r;
     }
 
