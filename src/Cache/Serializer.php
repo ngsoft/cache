@@ -29,6 +29,37 @@ final class Serializer {
     }
 
     /**
+     * Recursively walk the array to check if there are values that cannot be exported
+     *
+     * @param array $array
+     * @return bool
+     */
+    public static function canVarExport(array $array): bool {
+
+        foreach ($array as $v) {
+            if (is_scalar($v) or is_null($v)) continue;
+            if (is_object($v) and method_exists($v, '__set_state')) continue; //better use serialize for included objects
+            if (is_array($v) and self::canVarExport($v)) continue;
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Type hint var_export
+     *
+     * @param mixed $input
+     * @return string|null null if cannot be used for the cache needs
+     */
+    public static function var_export($input): ?string {
+
+        if (is_scalar($input) or is_null($input)) return var_export($input, true);
+        if (is_object($input) and method_exists($input, '__set_state')) return var_export($input, true);
+        if (is_array($input) and self::canVarExport($input)) return self::var_export($input, true);
+        return null;
+    }
+
+    /**
      * Prevents Thowable inside classes __sleep or __serialize methods to interrupt operarations
      *
      * @param mixed $input
