@@ -6,7 +6,7 @@ namespace NGSOFT\Cache\Drivers;
 
 use ErrorException;
 use NGSOFT\Cache\{
-    CacheDriver, FileSystem
+    CacheDriver, CacheObject, FileSystem
 };
 use Psr\Log\LogLevel;
 
@@ -51,7 +51,7 @@ class FileCache extends FileSystem implements CacheDriver {
             try {
                 //generally it's where the error is thrown
                 if (
-                        $handle = fopen($filename, 'r') and
+                        $handle = fopen($filename, 'rb') and
                         flock($handle, LOCK_SH)
                 ) {
 
@@ -64,15 +64,26 @@ class FileCache extends FileSystem implements CacheDriver {
                             $expire = (int) $expiry;
                             if (
                                     !$this->isExpired($expire) and
-                                    in_array($ct, ['scalar', 'string', 'serializable'])
+                                    in_array($ct, ['scalar', 'string', 'serializable', CacheObject::class])
                             ) {
+                                if ($ct === CacheObject::class) {
+                                    $obj = $this->safeUnserialize(rtrim(fgets($handle)));
+                                    if (is_array($obj)) {
+                                        $value = new CacheObject($obj['k']);
+                                        $value->expiry = $obj['e'];
+                                        $value->tags = $obj['t'];
+                                        $ct = $obj['c'];
+                                    }
+                                }
                                 $data = '';
                                 while (($line = fgets($handle)) !== false) {
                                     $data .= $line;
                                 }
                                 $data = $this->decode($data, $ct);
                                 if (null !== $data) {
-                                    $value = $data;
+                                    if ($value instanceof CacheObject) {
+                                        $value->value = $data;
+                                    } else $value = $data;
                                     $success = true;
                                 }
                             }
@@ -89,9 +100,7 @@ class FileCache extends FileSystem implements CacheDriver {
                     "error" => $error
                 ]);
             }
-        } finally {
-            \restore_error_handler();
-        }
+        } finally { \restore_error_handler(); }
 
         return $success;
     }
@@ -108,11 +117,12 @@ class FileCache extends FileSystem implements CacheDriver {
     protected function createFileContents($value, int $expiry = null): ?string {
         $expiry = max(0, $expiry ?? 0);
         if ($this->isExpired($expiry)) return null;
+
         if (
                 $ct = $this->getContentType($value) and
                 ($serialized = $this->encode($value)) !== null
         ) {
-            //we just add a line on top of the contents 0|string
+            //we just add a line on top of the contents 0|string|true
             return sprintf("%u|%s\n%s", $expiry, $ct, $serialized);
         }
         return null;
@@ -121,13 +131,14 @@ class FileCache extends FileSystem implements CacheDriver {
     /**
      * Checks content type to use
      *
-     * @param mixed $value
+     * @param mixed $input
      * @return string|null
      */
-    protected function getContentType($value): ?string {
-        if (is_string($value)) return 'string';
-        if (is_scalar($value)) return 'scalar';
-        if (is_object($value) or is_array($value)) return 'serializable';
+    protected function getContentType($input): ?string {
+        if ($input instanceof CacheObject) return CacheObject::class;
+        if (is_string($input)) return 'string';
+        if (is_scalar($input)) return 'scalar';
+        if (is_object($input) or is_array($input)) return 'serializable';
         return null;
     }
 
@@ -137,7 +148,6 @@ class FileCache extends FileSystem implements CacheDriver {
      * @return string|null
      */
     protected function encode($input): ?string {
-
         switch ($this->getContentType($input)) {
             case 'string':
                 return $input;
@@ -145,7 +155,25 @@ class FileCache extends FileSystem implements CacheDriver {
                 return var_export($input, true);
             case 'serializable':
                 return $this->safeSerialize($input);
+            case CacheObject::class:
+                /** @var CacheObject $input */
+                if (
+                        ($ct = $this->getContentType($input->value)) and
+                        ($value = $this->encode($input->value)) !== null
+                ) {
+                    $obj = [
+                        'k' => $input->key,
+                        'c' => $ct,
+                        'e' => $input->expiry,
+                        't' => $input->tags,
+                    ];
+
+                    if ($serialized = $this->safeSerialize($obj)) {
+                        return sprintf("%s\n%s", $serialized, $value);
+                    }
+                }
         }
+
         return null;
     }
 
@@ -153,9 +181,9 @@ class FileCache extends FileSystem implements CacheDriver {
      * Decode input
      * @param string $input
      * @param string $method
-     * @return string|null
+     * @return mixed|null
      */
-    protected function decode(string $input, string $method): ?string {
+    protected function decode(string $input, string $method) {
         switch ($method) {
             case 'string':
                 return $input;
@@ -164,6 +192,8 @@ class FileCache extends FileSystem implements CacheDriver {
             case 'serializable':
                 return $this->safeUnserialize($input);
         }
+
+
         return null;
     }
 

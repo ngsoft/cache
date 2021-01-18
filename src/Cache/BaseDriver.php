@@ -188,6 +188,13 @@ abstract class BaseDriver implements Stringable, JsonSerializable {
     protected function safeUnserialize($input) {
 
         if (!is_string($input)) return null;
+        // prevents cache miss
+        switch ($input) {
+            case 'b:1;':
+                return true;
+            case 'b:0;':
+                return false;
+        }
         try {
             $this->setErrorHandler();
             $result = \unserialize($input);
