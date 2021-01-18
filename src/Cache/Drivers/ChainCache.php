@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
-use Generator,
+use Countable,
+    Generator,
     IteratorAggregate;
 use NGSOFT\{
     Cache\CacheDriver, Cache\CacheUtils, Cache\InvalidArgumentException, Traits\LoggerAware, Traits\Unserializable
@@ -15,7 +16,7 @@ use function get_debug_type;
 /**
  * Chain Cache Implementation
  */
-class ChainCache implements CacheDriver, IteratorAggregate {
+class ChainCache implements CacheDriver, IteratorAggregate, Countable {
 
     use LoggerAware;
     use CacheUtils;
@@ -69,6 +70,11 @@ class ChainCache implements CacheDriver, IteratorAggregate {
         for ($j = $current - 1; $j > -1; $j--) {
             yield $j => $this->drivers[$j];
         }
+    }
+
+    /** {@inheritdoc} */
+    public function count() {
+        return count($this->drivers);
     }
 
     ////////////////////////////   API   ////////////////////////////
