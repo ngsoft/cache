@@ -35,6 +35,23 @@ class CacheObject {
         $this->tags = $tags;
     }
 
+    /**
+     * Exports object as an array
+     *
+     * @return array
+     */
+    public function toArray(): array {
+        //  static $template;
+        //$template = $template ?? static::class . '::__set_state(%s)';
+
+        return [
+            'key' => $this->key,
+            'expiry' => $this->expiry,
+            'tags' => array_values($this->tags),
+            'value' => $this->value
+        ];
+    }
+
     /** {@inheritdoc} */
     public static function __set_state($data) {
         static $obj;

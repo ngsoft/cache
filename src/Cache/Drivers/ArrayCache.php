@@ -81,12 +81,10 @@ class ArrayCache extends BaseDriver implements CacheDriver {
     protected function doFetch(string ...$keys): Traversable {
         foreach ($keys as $key) {
             if (!$this->doContains($key)) {
-                var_dump($key . ' expired');
-                yield $key => null;
-                continue;
-            }
-            if ($this->storeSerialized) yield $key => $this->unserializeIfNeeded($this->values[$this->getHashedKey($key)]);
-            else yield $key => $this->values[$this->getHashedKey($key)];
+                $value = null;
+            } elseif ($this->storeSerialized) $value = $this->unserializeIfNeeded($this->values[$this->getHashedKey($key)]);
+            else $value = $this->values[$this->getHashedKey($key)];
+            yield $key => $value;
         }
     }
 
@@ -172,6 +170,15 @@ class ArrayCache extends BaseDriver implements CacheDriver {
             return null;
         } finally {
             \restore_error_handler();
+        }
+    }
+
+    /** {@inheritdoc} */
+    public function __clone() {
+        // clone the fixed arrays for tag aware
+        if ($this->capacity > 0) {
+            $this->values = clone $this->values;
+            $this->expiries = clone $this->expiries;
         }
     }
 
