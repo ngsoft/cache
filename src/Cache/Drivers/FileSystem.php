@@ -143,6 +143,8 @@ abstract class FileSystem extends BaseDriver {
         }
 
         $this->cacheRoot = $rootDir;
+
+        var_dump($rootDir);
     }
 
     /**
@@ -184,7 +186,7 @@ abstract class FileSystem extends BaseDriver {
      * @return bool true if dir exists or dir created
      */
     final protected function mkdir(string $dir, bool $recursive = false): bool {
-        return is_dir($dir) or @mkdir($dir, static::CHMOD_DIRECTORY, $recursive);
+        return is_dir($dir) or @mkdir($dir, self::CHMOD_DIRECTORY, $recursive);
     }
 
     /**
@@ -209,7 +211,7 @@ abstract class FileSystem extends BaseDriver {
     final protected function chmod(string $file): bool {
         return
                 is_file($file) and
-                @chmod($file, static::CHMOD_FILE);
+                @chmod($file, self::CHMOD_FILE);
     }
 
     /**
