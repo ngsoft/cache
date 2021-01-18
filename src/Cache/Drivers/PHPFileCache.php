@@ -8,8 +8,7 @@ use NGSOFT\Cache\{
     CacheDriver, CacheObject, Serializer
 };
 use Psr\Log\LogLevel,
-    Throwable,
-    Traversable;
+    Throwable;
 
 class PHPFileCache extends FileSystem implements CacheDriver {
 
