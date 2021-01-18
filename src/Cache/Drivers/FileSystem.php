@@ -121,6 +121,7 @@ abstract class FileSystem extends BaseDriver {
 
         //creates rootdir if not exists 0777 for parent directories
         @mkdir($root, 0777, true);
+
         if (
                 !is_dir($root) or
                 !is_writable($root)
