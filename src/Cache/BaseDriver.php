@@ -29,7 +29,7 @@ abstract class BaseDriver implements Stringable, JsonSerializable {
     /**
      * Char codes used by hash method
      */
-    protected const HASH_CARCODES = '0123456789abcdef';
+    protected const HASH_CHARCODES = '0123456789abcdef';
 
     /**
      * Namespaces are used to prevent conflicts between differents applications that can use the same cache keys

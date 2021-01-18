@@ -157,6 +157,7 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
                 $this->getValidKey($key);
                 unset($this->deferred[$key]);
             }
+            $this->commit();
             return $this->driver->delete(...$keys);
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
@@ -170,7 +171,9 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
     public function getItem($key): CacheItemInterface {
         try {
             $key = $this->getValidKey($key);
-            if ($this->deferred) $this->commit();
+            if (isset($this->deferred[$key])) {
+                return clone $this->deferred[$key];
+            }
             foreach ($this->driver->fetch($key) as $value) {
                 if ($value instanceof CacheObject) return $this->createItem($key, $value->value, $value->expiry, $value->tags);
             }
@@ -186,11 +189,29 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
      */
     public function getItems(array $keys = []) {
         try {
-            if ($this->deferred) $this->commit();
             if (empty($keys)) return;
             $this->doCheckKeys($keys);
-            if ($this->deferred) $this->commit();
             $keys = array_values(array_unique($keys));
+            if (count($this->deferred) > 0) {
+                $items = [];
+                $missing = array_combine($keys, $keys);
+                foreach ($keys as $key) {
+                    if (isset($this->deferred[$key])) {
+                        $items[$key] = clone $this->deferred[$key];
+                        unset($missing[$key]);
+                    }
+                }
+                $missing = array_values($missing);
+                foreach ($this->driver->fetch(...$missing) as $key => $value) {
+                    if ($value instanceof CacheObject) $items[$key] = $this->createItem($key, $value->value, $value->expiry, $value->tags);
+                    else $items[$key] = $this->createItem($key);
+                }
+                foreach ($keys as $key) {
+                    yield $key => $items[$key];
+                }
+                return;
+            }
+
             foreach ($this->driver->fetch(...$keys) as $key => $value) {
                 if ($value instanceof CacheObject) yield $key => $this->createItem($key, $value->value, $value->expiry, $value->tags);
                 else yield $key => $this->createItem($key);
@@ -358,10 +379,8 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
      * @return bool
      */
     public function clear() {
-        return
-                empty($this->getNamespace()) ?
-                $this->driver->clear() :
-                $this->driver->deleteAll();
+        $this->deferred = [];
+        return $this->driver->clear();
     }
 
     ////////////////////////////   LoggerAware   ////////////////////////////

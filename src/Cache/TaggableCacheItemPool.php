@@ -85,7 +85,6 @@ class TaggableCacheItemPool extends CacheItemPool implements TaggableCacheItemPo
     public function invalidateTags(array $tags) {
         if (empty($tags)) return true;
         try {
-            if ($this->deferred) $this->commit();
             $tags = array_map(fn($t) => $this->getValidTag($t), array_values(array_unique($tags)));
             $toRemove = [];
             foreach ($tags as $tagName) {
@@ -103,7 +102,7 @@ class TaggableCacheItemPool extends CacheItemPool implements TaggableCacheItemPo
     ////////////////////////////   Overrides   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function clear(): bool {
+    public function clear() {
         $this->loadedTags = [];
         return parent::clear();
     }

@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Drivers;
 
 use NGSOFT\Cache\{
-    CacheDriver, Serializer
+    CacheDriver, CacheObject, Serializer
 };
 use Psr\Log\LogLevel,
-    Throwable;
+    Throwable,
+    Traversable;
 
 class PHPFileCache extends FileSystem implements CacheDriver {
 
@@ -39,6 +40,7 @@ class PHPFileCache extends FileSystem implements CacheDriver {
     protected function doClear(): bool {
         $r = true;
         foreach ($this->scanFiles($this->getCacheRoot(), self::EXTENSION) as $file) {
+            $this->invalidate($file);
             $r = $this->unlink($file) && $r;
         }
         foreach ($this->scanDirs($this->getCacheRoot()) as $dir) $this->rmdir($dir);
@@ -66,7 +68,7 @@ class PHPFileCache extends FileSystem implements CacheDriver {
     }
 
     /** {@inheritdoc} */
-    protected function doFetch(string ...$keys): \Traversable {
+    protected function doFetch(string ...$keys): Traversable {
         if (empty($keys)) return;
         foreach ($keys as $key) {
             if ($this->read($this->getFilename($key, self::EXTENSION), $value)) {
@@ -80,6 +82,7 @@ class PHPFileCache extends FileSystem implements CacheDriver {
         $r = true;
         foreach ($keysAndValues as $key => $value) {
             $filename = $this->getFilename($key, self::EXTENSION);
+
             $contents = $this->toPHPCode($value, $expiry);
             if (null !== $contents and $this->write($filename, $contents)) {
                 $this->compile($filename);
@@ -126,13 +129,7 @@ class PHPFileCache extends FileSystem implements CacheDriver {
         if (!is_file($filename)) return false;
         try {
             \set_error_handler($errorHandler);
-            $result = $handler($filename);
-
-            if (
-                    !is_array($result) or
-                    !array_key_exists('e', $result) or
-                    !array_key_exists('v', $result)
-            ) return false;
+            if (null === ($result = $handler($filename))) return false;
             $value = $result;
             return true;
         } catch (Throwable $error) {
@@ -155,7 +152,13 @@ class PHPFileCache extends FileSystem implements CacheDriver {
     public function toPHPCode($value, int $expiry = null): ?string {
         $expiry = max(0, $expiry ?? 0);
         if ($this->isExpired($expiry)) return null;
-        $contents = $this->var_exporter($value);
+        $contents = null;
+        if (
+                $value instanceof CacheObject and
+                $contents = $this->var_exporter($value->toArray())
+        ) {
+            $contents = sprintf('%s::__set_state(%s)', CacheObject::class, $contents);
+        } else $contents = $this->var_exporter($value);
         if (!is_string($contents)) return null;
         if ($expiry > 0) $result = sprintf(self::TEMPLATE_WITH_EXPIRATION, $expiry, $contents);
         else $result = sprintf(self::TEMPLATE, $contents);

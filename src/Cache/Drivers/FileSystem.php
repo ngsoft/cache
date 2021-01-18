@@ -109,13 +109,15 @@ abstract class FileSystem extends BaseDriver {
      */
     final protected function initialize(string $root = null, string $prefix = null): void {
 
+        if (!empty($prefix) and preg_match('#[^-_.A-Za-z0-9]#', $prefix, $match) > 0) {
+            throw new InvalidArgumentException(sprintf('Prefix contains "%s" but only characters in [-_.A-Za-z0-9] are allowed.', $match[0]));
+        }
+
         if (empty($prefix)) {
             $classname = static::class;
             $prefix = strtolower(substr($classname, 1 + strrpos($classname, self::NS)));
         }
-        if (preg_match('#[^-_.A-Za-z0-9]#', $prefix, $match) > 0) {
-            throw new InvalidArgumentException(sprintf('Prefix contains "%s" but only characters in [-_.A-Za-z0-9] are allowed.', $match[0]));
-        }
+
 
         $root = $root ?? sys_get_temp_dir();
 
@@ -141,10 +143,7 @@ abstract class FileSystem extends BaseDriver {
         if (!$this->mkdir($rootDir)) {
             throw new CacheException(sprintf('Cannot create storage directory (%s).', $rootDir));
         }
-
         $this->cacheRoot = $rootDir;
-
-        var_dump($rootDir);
     }
 
     /**
@@ -261,8 +260,8 @@ abstract class FileSystem extends BaseDriver {
         foreach ($this->scanDirs($dir) as $folder) {
             foreach (scandir($folder, SCANDIR_SORT_NONE) ?: [] as $file) {
                 if (
-                        is_file($path = $folder . self::DS . $file) and
-                        strpos($file, '.') === 20 and
+                        is_file($path = ($folder . self::DS . $file)) and
+                        strpos($file, '.') === 32 and
                         ($extension === null or str_ends_with($file, $extension))
                 ) yield $file => $path;
             }
@@ -279,7 +278,7 @@ abstract class FileSystem extends BaseDriver {
         if (!is_dir($dir)) return;
         for ($i = 0; $i < 16; $i++) {
             for ($j = 0; $j < 16; $j++) {
-                $file = self::HASH_CARCODES[$i] . self::HASH_CARCODES[$j];
+                $file = self::HASH_CHARCODES[$i] . self::HASH_CHARCODES[$j];
                 if (!is_dir($path = $dir . self::DS . $file)) continue;
                 yield $file => $path;
             }

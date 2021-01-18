@@ -41,9 +41,6 @@ class CacheObject {
      * @return array
      */
     public function toArray(): array {
-        //  static $template;
-        //$template = $template ?? static::class . '::__set_state(%s)';
-
         return [
             'key' => $this->key,
             'expiry' => $this->expiry,

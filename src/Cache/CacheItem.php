@@ -190,4 +190,10 @@ class CacheItem implements CacheItemInterface, TaggableCacheItemInterface, ItemI
         return $this->getMetadata();
     }
 
+    /** {@inheritdoc} */
+    public function __clone() {
+        $this->tags = $this->newTags;
+        $this->newTags = [];
+    }
+
 }
