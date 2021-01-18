@@ -165,7 +165,6 @@ class PHPFCache extends FileSystem implements CacheDriver {
                 if ($str === null) return null;
                 $toExport .= sprintf('%s=>%s,', var_export($key, true), $str);
             }
-
             return $toExport . ']';
         } elseif (is_scalar($data) or is_null($data)) return var_export($data, true);
         elseif (is_object($data)) {

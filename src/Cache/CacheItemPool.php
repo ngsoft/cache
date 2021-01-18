@@ -11,8 +11,8 @@ use DateInterval,
     DateTime,
     Generator,
     JsonSerializable;
-use NGSOFT\{
-    Cache\Drivers\ChainCache, Traits\LoggerAware, Traits\Unserializable
+use NGSOFT\Traits\{
+    LoggerAware, Unserializable
 };
 use Psr\{
     Cache\CacheException as PSRCacheException, Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerInterface, Log\LogLevel, Log\NullLogger,

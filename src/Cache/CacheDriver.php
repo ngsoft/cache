@@ -48,7 +48,7 @@ interface CacheDriver extends LoggerAwareInterface {
     public function contains(string $key): bool;
 
     /**
-     * Fetches multiple entries from the cache  (Tag entries must be included).
+     * Fetches multiple entries from the cache.
      *
      * @param string ...$keys The keys to fetch
      * @return Traversable A traversable indexed by keys null values must be issued on cache miss
