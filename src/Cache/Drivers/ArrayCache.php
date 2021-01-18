@@ -52,12 +52,6 @@ class ArrayCache extends BaseDriver implements CacheDriver {
     ////////////////////////////   Implementation   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function isSupported(): bool {
-
-        return true;
-    }
-
-    /** {@inheritdoc} */
     protected function doClear(): bool {
         if ($this->capacity > 0) {
             $this->expiries = FixedArray::create($this->capacity);

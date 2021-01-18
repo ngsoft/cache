@@ -15,13 +15,6 @@ use Psr\Log\LoggerAwareInterface,
 interface CacheDriver extends LoggerAwareInterface {
 
     /**
-     * Tells if the Cache Driver can be loaded
-     *
-     * @return bool
-     */
-    public function isSupported(): bool;
-
-    /**
      * Change the namespace for the current instance
      * A namespace is a prefix assigned to the key
      *

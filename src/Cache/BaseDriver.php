@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace NGSOFT\Cache;
 
 use ErrorException,
-    JsonSerializable,
-    NGSOFT\Traits\LoggerAware,
-    Stringable,
+    JsonSerializable;
+use NGSOFT\Traits\{
+    LoggerAware, Unserializable
+};
+use Stringable,
     Throwable,
     Traversable;
 
@@ -21,8 +23,8 @@ use ErrorException,
 abstract class BaseDriver implements Stringable, JsonSerializable {
 
     use LoggerAware;
-
     use CacheUtils;
+    use Unserializable;
 
     /**
      * Char codes used by hash method
@@ -288,5 +290,4 @@ abstract class BaseDriver implements Stringable, JsonSerializable {
         return hash('MD5', static::class . $key);
     }
 
-    ////////////////////////////   Debug   ////////////////////////////
 }
