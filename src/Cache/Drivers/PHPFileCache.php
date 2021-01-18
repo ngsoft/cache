@@ -50,6 +50,44 @@ class PHPFileCache extends FileSystem implements CacheDriver {
         return $r;
     }
 
+    /** {@inheritdoc} */
+    protected function doClear(): bool {
+        $r = true;
+        foreach ($this->scanFiles($this->getCacheRoot(), $this->getExtension()) as $file) {
+            $this->invalidate($file);
+            $r = $this->unlink($file) && $r;
+        }
+        foreach ($this->scanDirs($this->getCacheRoot()) as $dir) $this->rmdir($dir);
+        return $r;
+    }
+
+    /** {@inheritdoc} */
+    protected function doDelete(string ...$keys): bool {
+        if (empty($keys)) return true;
+        $r = true;
+        foreach ($keys as $key) {
+            $filename = $this->getFilename($key, $this->getExtension());
+            if (is_file($filename)) {
+                $this->invalidate($filename);
+                $r = $this->unlink($filename) && $r;
+            }
+        }
+        return $r;
+    }
+
+    /** {@inheritdoc} */
+    public function purge(): bool {
+        $r = true;
+        foreach ($this->scanFiles($this->getCacheRoot(), $this->getExtension()) as $file) {
+            // embed expiry is useful
+            if (!$this->read($file)) {
+                $this->invalidate($file);
+                $r = $this->unlink($file) && $r;
+            }
+        }
+        return $r;
+    }
+
     ////////////////////////////   Utils   ////////////////////////////
 
     /**

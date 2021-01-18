@@ -168,7 +168,6 @@ abstract class FileSystem extends BaseDriver {
     protected function doClear(): bool {
         $r = true;
         foreach ($this->scanFiles($this->getCacheRoot(), $this->getExtension()) as $file) {
-            $this->invalidate($file);
             $r = $this->unlink($file) && $r;
         }
         foreach ($this->scanDirs($this->getCacheRoot()) as $dir) $this->rmdir($dir);
@@ -186,12 +185,8 @@ abstract class FileSystem extends BaseDriver {
         $r = true;
         foreach ($keys as $key) {
             $filename = $this->getFilename($key, $this->getExtension());
-            if (is_file($filename)) {
-                $this->invalidate($filename);
-                $r = $this->unlink($filename) && $r;
-            }
+            if (is_file($filename)) $r = $this->unlink($filename) && $r;
         }
-
         return $r;
     }
 
@@ -209,7 +204,6 @@ abstract class FileSystem extends BaseDriver {
     public function purge(): bool {
         $r = true;
         foreach ($this->scanFiles($this->getCacheRoot(), $this->getExtension()) as $file) {
-            // embed expiry is useful
             if (!$this->read($file)) $r = $this->unlink($file) && $r;
         }
         return $r;
