@@ -11,13 +11,11 @@ use Cache\TagInterop\TaggableCacheItemInterface,
     JsonSerializable,
     NGSOFT\Traits\Unserializable;
 use Psr\{
-    Cache\CacheException as PSRCacheException, Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerInterface, Log\LogLevel, Log\NullLogger,
-    SimpleCache\CacheInterface
+    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerInterface, Log\NullLogger, SimpleCache\CacheInterface
 };
 use Stringable,
     Symfony\Contracts\Cache\ItemInterface,
-    Throwable,
-    TypeError;
+    Throwable;
 use function get_debug_type;
 
 /**
@@ -280,6 +278,7 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
      */
     public function delete($key) {
         try {
+            $key = $this->getValidKey($key);
             return $this->deleteItems([$key]);
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
@@ -422,20 +421,6 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
         elseif ($ttl instanceof DateInterval) $expire = (new DateTime())->add($ttl)->getTimestamp();
         else $expire = time() + $ttl;
         return $expire;
-    }
-
-    /**
-     * Assert valid ttl
-     *
-     * @param mixed $ttl
-     * @throws InvalidArgumentException
-     */
-    protected function doCheckTTL($ttl) {
-        try {
-            $this->checkType($ttl, 'null', 'int', DateInterval::class);
-        } catch (TypeError $error) {
-            throw new InvalidArgumentException(sprintf('Invalid $ttl provided. %s', $error->getMessage()));
-        }
     }
 
     /** {@inheritdoc} */

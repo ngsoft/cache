@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-use Cache\TagInterop\TaggableCacheItemPoolInterface;
+use Cache\TagInterop\TaggableCacheItemPoolInterface,
+    DateInterval;
 use NGSOFT\Traits\{
     LoggerAware, UnionType
 };
-use PSR\Cache\CacheException as PSRCacheException,
-    Psr\Log\LogLevel,
-    Throwable,
+use Psr\{
+    Cache\CacheException as PSR6CacheException, Log\LogLevel, SimpleCache\CacheException as PSR16CacheException
+};
+use Throwable,
     TypeError;
 use function get_debug_type;
 
@@ -44,7 +46,8 @@ trait CacheUtils {
         if ($exception instanceof InvalidArgumentException) $level = LogLevel::WARNING;
         $this->log($level, $exception->getMessage(), ['exception' => $exception]);
         if (
-                $exception instanceof PSRCacheException and
+                ($exception instanceof PSR6CacheException or
+                $exception instanceof PSR16CacheException) and
                 $method
         ) {
 
@@ -145,6 +148,20 @@ trait CacheUtils {
             $this->checkType($value, 'scalar', 'null', 'array', 'object');
         } catch (TypeError $error) {
             throw new InvalidArgumentException(sprintf('Invalid value provided. %s', $error->getMessage()));
+        }
+    }
+
+    /**
+     * Assert valid ttl
+     *
+     * @param mixed $ttl
+     * @throws InvalidArgumentException
+     */
+    protected function doCheckTTL($ttl) {
+        try {
+            $this->checkType($ttl, 'null', 'int', DateInterval::class);
+        } catch (TypeError $error) {
+            throw new InvalidArgumentException(sprintf('Invalid $ttl provided. %s', $error->getMessage()));
         }
     }
 
