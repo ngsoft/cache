@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
-use NGSOFT\Tools\FixedArray,
-    Throwable;
+use NGSOFT\{
+    Cache\BaseDriver, Cache\CacheDriver, Tools\FixedArray
+};
+use Throwable,
+    Traversable;
 
-class ArrayCache extends BaseDriver {
+class ArrayCache extends BaseDriver implements CacheDriver {
 
     /**
      * References the default metacache capacity
@@ -18,7 +21,13 @@ class ArrayCache extends BaseDriver {
     protected $storeSerialized;
 
     /** @var int */
+    protected $capacity;
+
+    /** @var int */
     protected $maxLifeTime;
+
+    /** @var array|FixedArray */
+    protected $expiries = [];
 
     /** @var array|FixedArray */
     protected $values = [];
@@ -34,56 +43,65 @@ class ArrayCache extends BaseDriver {
             int $maxLifeTime = 0
     ) {
 
-        parent::__construct($capacity);
+        $this->capacity = $capacity !== 0 ? max(self::MIN_INDEX_CAPACITY, $capacity) : 0;
         $this->maxLifeTime = max(0, $maxLifeTime);
         $this->storeSerialized = $storeSerialized;
         $this->doClear();
     }
 
+    ////////////////////////////   Implementation   ////////////////////////////
+
     /** {@inheritdoc} */
     protected function doClear(): bool {
         if ($this->capacity > 0) {
-            $this->values = FixedArray::create($this->capacity);
             $this->expiries = FixedArray::create($this->capacity);
-            $this->values->recursive = $this->expiries->recursive = false;
-        } else $this->values = $this->expiries = [];
+            $this->values = FixedArray::create($this->capacity);
+            $this->expiries->recursive = $this->values->recursive = false;
+        } else $this->expiries = $this->values = [];
         return true;
+    }
+
+    /** {@inheritdoc} */
+    protected function doContains(string $key): bool {
+        $key = $this->getHashedKey($key);
+        return isset($this->expiries[$key]) and
+                !$this->isExpired($this->expiries[$key]);
     }
 
     /** {@inheritdoc} */
     protected function doDelete(string ...$keys): bool {
         foreach ($keys as $key) {
-            $hKey = $this->getHashedKey($key);
-            unset($this->expiries[$hKey], $this->values[$hKey]);
+            $key = $this->getHashedKey($key);
+            unset($this->expiries[$key], $this->values[$key]);
         }
         return true;
     }
 
     /** {@inheritdoc} */
-    protected function doFetch(string ...$keys) {
+    protected function doFetch(string ...$keys): Traversable {
         foreach ($keys as $key) {
-            $hKey = $this->getHashedKey($key);
-            if (isset($this->expiries[$hKey])) {
-                $value = $this->values[$hKey];
-                if ($this->storeSerialized) $value = $this->unserializeIfNeeded($value);
-                yield $key => $value;
-            } else yield $key => null;
+            if (!$this->doContains($key)) {
+                yield $key => null;
+                continue;
+            }
+            yield $key => $this->values[$this->getHashedKey($key)];
         }
     }
 
     /** {@inheritdoc} */
-    protected function doSave($keysAndValues): bool {
-
+    protected function doSave(array $keysAndValues, int $expiry = 0): bool {
         $r = true;
         foreach ($keysAndValues as $key => $value) {
-            $hKey = $this->getHashedKey($key);
-            $expire = 0;
-            if ($value instanceof CacheObject) $expire = $value->expiry;
-            if ($this->maxLifeTime > 0) $expire = min(time() + $this->maxLifeTime, $expire == 0 ? PHP_INT_MAX : $expire);
+            $this->doDelete($key);
+            $hk = $this->getHashedKey($key);
             if ($this->storeSerialized) $value = $this->serializeIfNeeded($value);
-            if (null !== $value) {
-                $this->expiries[$hKey] = $expire;
-                $this->values[$hKey] = $value;
+            if ($value !== null) {
+                $expiry = max(0, $expiry);
+                //prevents isset return false
+                if ($expiry === 0) $expiry = PHP_INT_MAX;
+                $expiry = $this->maxLifeTime > 0 ? min(time() + $this->maxLifeTime, $expiry) : $expiry;
+                $this->expiries[$hk] = $expiry;
+                $this->values[$hk] = $value;
             } else $r = false;
         }
         return $r;
@@ -91,10 +109,9 @@ class ArrayCache extends BaseDriver {
 
     /** {@inheritdoc} */
     public function removeExpired(): bool {
-        foreach ($this->expiries as $k => $expire) {
-            if ($this->isExpired($expire)) {
-                unset($this->expiries[$k], $this->values[$k]);
-            }
+
+        foreach ($this->expiries as $key => $expiry) {
+            if ($this->isExpired($expiry)) unset($this->expiries[$key], $this->values[$key]);
         }
         return true;
     }

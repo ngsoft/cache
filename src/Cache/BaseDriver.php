@@ -14,8 +14,11 @@ use ErrorException,
 /**
  * That class defines the behaviour of all drivers
  *
+ * Inspired by doctrine CacheProvider
+ * @link https://github.com/doctrine/cache
+ *
  */
-abstract class BaseDriver implements CacheDriver, Stringable, JsonSerializable {
+abstract class BaseDriver implements Stringable, JsonSerializable {
 
     use LoggerAware;
 
@@ -106,7 +109,7 @@ abstract class BaseDriver implements CacheDriver, Stringable, JsonSerializable {
         if (empty($keys)) return;
         $keysToFetch = array_map(fn($k) => $this->getStorageKey($k), $keys);
         $assoc = array_combine($keysToFetch, $keys);
-        foreach ($this->fetch(...$keysToFetch) as $fetchedKey => $value) {
+        foreach ($this->doFetch(...$keysToFetch) as $fetchedKey => $value) {
             yield $assoc[$fetchedKey] => $value;
         }
     }
@@ -131,7 +134,7 @@ abstract class BaseDriver implements CacheDriver, Stringable, JsonSerializable {
 
     /**
      * Save Multiples entries using an array of keys and value pairs
-     * 
+     *
      * @param array<string,CacheObject|mixed> $keysAndValues Namespaced(not hashed) key and values
      * @param int $expiry the timestamp at which the item expires
      * @return bool true if 'all' entries were saved

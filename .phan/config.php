@@ -40,7 +40,7 @@ return [
         'vendor/',
         '../tools/src',
         '../tools/vendor',
-        'src/Cache/Drivers/',
+    //'src/Cache/Drivers/',
     ],
     // A list of plugin files to execute.
     // See https://github.com/phan/phan/tree/master/.phan/plugins for even more.
