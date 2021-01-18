@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-use Cache\TagInterop\{
-    TaggableCacheItemInterface, TaggableCacheItemPoolInterface
-};
-use DateInterval,
+use Cache\TagInterop\TaggableCacheItemInterface,
+    DateInterval,
     DateTime,
     Generator,
     JsonSerializable;
@@ -490,7 +488,6 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
             static::class => [
                 CacheItemPoolInterface::class,
                 CacheInterface::class,
-                TaggableCacheItemPoolInterface::class,
             ],
             CacheItem::class => [
                 CacheItemInterface::class,

@@ -12,7 +12,7 @@ use Psr\Log\LogLevel;
 
 /**
  * This Adapter mainly exists to store binary files
- * It has compatibility with the serialiser but it's way slower than PHPFCache
+ * It has compatibility with the serialiser but it's way slower than OPHPCache
  * But to store Images or other types of binary/text files it's way better
  *
  */
@@ -122,7 +122,7 @@ class FileCache extends FileSystem implements CacheDriver {
                 $ct = $this->getContentType($value) and
                 ($serialized = $this->encode($value)) !== null
         ) {
-            //we just add a line on top of the contents 0|string|true
+            //we just add a line on top of the contents 0|string
             return sprintf("%u|%s\n%s", $expiry, $ct, $serialized);
         }
         return null;
