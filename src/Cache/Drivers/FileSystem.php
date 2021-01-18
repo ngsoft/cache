@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
-use FilesystemIterator,
+use ErrorException,
+    FilesystemIterator,
     Generator;
 use NGSOFT\Cache\{
     BaseDriver, CacheException, InvalidArgumentException
 };
-use RecursiveDirectoryIterator,
+use Psr\Log\LogLevel,
+    RecursiveDirectoryIterator,
     RuntimeException;
 use function mb_strlen,
              str_ends_with,
@@ -23,17 +25,17 @@ abstract class FileSystem extends BaseDriver {
     /**
      * PREFIX for the namespace
      */
-    protected const STORAGE_PREFIX = '@';
+    private const STORAGE_PREFIX = '@';
 
     /**
      * Chmod assigned to directories
      */
-    protected const CHMOD_DIRECTORY = 0775;
+    private const CHMOD_DIRECTORY = 0775;
 
     /**
      * Chmod assigned to regular files
      */
-    protected const CHMOD_FILE = 0664;
+    private const CHMOD_FILE = 0664;
 
     /**
      * DIRECTORY_SEPARATOR
@@ -48,29 +50,37 @@ abstract class FileSystem extends BaseDriver {
     protected const NS = '\\';
 
     /** @var bool|null */
-    protected static $runOnWindows;
+    private static $runOnWindows;
 
     /**
      * References main storage root
      * @var string
      */
-    protected $cacheRoot;
+    private $cacheRoot;
 
     /**
      * References the tmp file used to write data on
      * @var string|null
      */
-    protected $tmp;
+    private $tmp;
 
     /**
      * References the tmp files issued previously (for garbage collection)
      * @var string[]
      */
-    protected $tmpfiles = [];
+    private $tmpfiles = [];
 
     /**
-     * @param string $root if not set will use filesystem temp directory
-     * @param string $prefix if not set will use the default prefix (lowercased adapter relative class name)
+     * References the number of times write tried to create a file
+     * max 3
+     *
+     * @var int|null
+     */
+    private $retry;
+
+    /**
+     * @param string|null $root if not set will use filesystem temp directory
+     * @param string|null $prefix if not set will use the default prefix (lowercased driver relative class name)
      */
     public function __construct(
             string $root = null,
@@ -141,6 +151,20 @@ abstract class FileSystem extends BaseDriver {
      */
     final protected function getCacheRoot(): string {
         return $this->cacheRoot;
+    }
+
+    /**
+     * Get hashed file fullpath corresponding to the key
+     *
+     * @param string $key
+     * @param string|null $extension with or without extension
+     * @return string
+     */
+    final protected function getFilename(string $key, string $extension = null): string {
+        if (!empty($extension)) $extension = str_starts_with($extension, '.') ? $extension : ".$extension";
+        else $extension = '';
+        $hash = $this->getHashedKey($key);
+        return $this->getCacheRoot() . self::DS . $hash[0] . $hash[1] . self::DS . $hash . $extension;
     }
 
     /**
@@ -257,6 +281,49 @@ abstract class FileSystem extends BaseDriver {
                 yield $file => $path;
             }
         }
+    }
+
+    /**
+     * Save contents into filename
+     *
+     * @suppress PhanPossiblyInfiniteRecursionSameParams
+     * @staticvar int $cnt
+     * @param string $filename
+     * @param string $contents
+     * @return bool
+     */
+    protected function write(string $filename, string $contents): bool {
+        $this->retry = $this->retry ?? 0;
+        try {
+            $this->setErrorHandler();
+            set_time_limit(60);
+
+            try {
+
+                if ($this->tmp === null) $this->tmpfiles[] = $this->tmp = $this->getCacheRoot() . self::DS . uniqid('', true);
+                if (!is_dir(dirname($filename))) $this->mkdir(dirname($filename));
+                if (file_put_contents($this->tmp, $contents) !== false) {
+                    $this->retry = 0;
+                    return
+                            rename($this->tmp, $filename) and
+                            $this->chmod($filename);
+                }
+                return false;
+            } catch (ErrorException $error) {
+                $this->log(LogLevel::DEBUG, 'Cache write error', [
+                    "classname" => static::class,
+                    "filename" => $filename,
+                    "retry" => $this->retry . "/3",
+                    "error" => $error
+                ]);
+                $this->tmp = null;
+            }
+        } finally { \restore_error_handler(); }
+        //retry 3 times
+        $this->retry++;
+        if ($this->retry < 3) return $this->write($filename, $contents);
+        $this->retry = 0;
+        return false;
     }
 
 }
