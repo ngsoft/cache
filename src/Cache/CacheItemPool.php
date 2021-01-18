@@ -8,10 +8,8 @@ use Cache\TagInterop\TaggableCacheItemInterface,
     DateInterval,
     DateTime,
     Generator,
-    JsonSerializable;
-use NGSOFT\Traits\{
-    LoggerAware, Unserializable
-};
+    JsonSerializable,
+    NGSOFT\Traits\Unserializable;
 use Psr\{
     Cache\CacheException as PSRCacheException, Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerInterface, Log\LogLevel, Log\NullLogger,
     SimpleCache\CacheInterface
@@ -28,7 +26,6 @@ use function get_debug_type;
  */
 class CacheItemPool implements Pool, Stringable, JsonSerializable {
 
-    use LoggerAware;
     use CacheUtils;
     use Unserializable;
 
@@ -439,36 +436,6 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
         } catch (TypeError $error) {
             throw new InvalidArgumentException(sprintf('Invalid $ttl provided. %s', $error->getMessage()));
         }
-    }
-
-    /**
-     * Logs exception and returns it (modified if needed)
-     *
-     * @suppress PhanTypeMismatchArgumentInternal
-     * @param Throwable $exception
-     * @param string|null $method
-     * @return Throwable
-     */
-    final protected function handleException(
-            Throwable $exception,
-            ?string $method = null
-    ) {
-        $level = LogLevel::ALERT;
-        if ($exception instanceof InvalidArgumentException) $level = LogLevel::WARNING;
-        $this->log($level, $exception->getMessage(), ['exception' => $exception]);
-        if (
-                $exception instanceof PSRCacheException and
-                $method
-        ) {
-
-            $exception = new CacheException(
-                    sprintf('Cache Exception thrown in %s::%s', static::class, $method),
-                    0,
-                    $exception
-            );
-        }
-
-        return $exception;
     }
 
     /** {@inheritdoc} */

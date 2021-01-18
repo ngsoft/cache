@@ -8,7 +8,7 @@ use Countable,
     Generator,
     IteratorAggregate;
 use NGSOFT\{
-    Cache\CacheDriver, Cache\CacheUtils, Cache\InvalidArgumentException, Traits\LoggerAware, Traits\Unserializable
+    Cache\CacheDriver, Cache\CacheUtils, Cache\InvalidArgumentException, Traits\Unserializable
 };
 use Traversable;
 use function get_debug_type;
@@ -18,7 +18,6 @@ use function get_debug_type;
  */
 class ChainCache implements CacheDriver, IteratorAggregate, Countable {
 
-    use LoggerAware;
     use CacheUtils;
     use Unserializable;
 

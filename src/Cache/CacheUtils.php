@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-use Cache\TagInterop\TaggableCacheItemPoolInterface,
-    NGSOFT\Traits\UnionType,
+use Cache\TagInterop\TaggableCacheItemPoolInterface;
+use NGSOFT\Traits\{
+    LoggerAware, UnionType
+};
+use PSR\Cache\CacheException as PSRCacheException,
+    Psr\Log\LogLevel,
+    Throwable,
     TypeError;
 use function get_debug_type;
 
@@ -15,6 +20,45 @@ use function get_debug_type;
 trait CacheUtils {
 
     use UnionType;
+    use LoggerAware;
+
+
+
+
+
+    ////////////////////////////   LoggerAware   ////////////////////////////
+
+    /**
+     * Logs exception and returns it (modified if needed)
+     *
+     * @suppress PhanTypeMismatchArgumentInternal
+     * @param Throwable $exception
+     * @param string|null $method
+     * @return Throwable
+     */
+    final protected function handleException(
+            Throwable $exception,
+            ?string $method = null
+    ) {
+        $level = LogLevel::ALERT;
+        if ($exception instanceof InvalidArgumentException) $level = LogLevel::WARNING;
+        $this->log($level, $exception->getMessage(), ['exception' => $exception]);
+        if (
+                $exception instanceof PSRCacheException and
+                $method
+        ) {
+
+            $exception = new CacheException(
+                    sprintf('Cache Exception thrown in %s::%s', static::class, $method),
+                    0,
+                    $exception
+            );
+        }
+
+        return $exception;
+    }
+
+    ////////////////////////////   Helpers   ////////////////////////////
 
     /**
      * @param mixed $name
@@ -182,6 +226,8 @@ trait CacheUtils {
 
         return $create($key, $value, $expire, $tags, $tagAware);
     }
+
+    ////////////////////////////   Debug Informations   ////////////////////////////
 
     /** {@inheritdoc} */
     public function __toString() {

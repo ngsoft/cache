@@ -354,7 +354,6 @@ abstract class FileSystem extends BaseDriver {
      * Save contents into filename
      *
      * @suppress PhanPossiblyInfiniteRecursionSameParams
-     * @staticvar int $cnt
      * @param string $filename
      * @param string $contents
      * @return bool
@@ -380,7 +379,7 @@ abstract class FileSystem extends BaseDriver {
                 $this->log(LogLevel::DEBUG, 'Cache write error', [
                     "driver" => static::class,
                     "filename" => $filename,
-                    "retry" => $this->retry . "/3",
+                    "retry" => ($this->retry + 1) . "/3",
                     "error" => $error
                 ]);
                 $this->tmp = null;

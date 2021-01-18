@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace NGSOFT\Cache;
 
 use ErrorException,
-    JsonSerializable;
-use NGSOFT\Traits\{
-    LoggerAware, Unserializable
-};
-use Stringable,
+    JsonSerializable,
+    NGSOFT\Traits\Unserializable,
+    Stringable,
     Throwable,
     Traversable;
 
@@ -22,7 +20,6 @@ use Stringable,
  */
 abstract class BaseDriver implements Stringable, JsonSerializable {
 
-    use LoggerAware;
     use CacheUtils;
     use Unserializable;
 
