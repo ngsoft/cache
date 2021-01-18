@@ -28,7 +28,27 @@ class OPHPCache extends FileSystem implements CacheDriver {
      */
     private const TEMPLATE_WITH_EXPIRATION = '<?php return microtime(true) > %u ? null: %s;';
 
-    ////////////////////////////   Implementation   ////////////////////////////
+    ////////////////////////////   API   ////////////////////////////
+
+    /**
+     * Checks if Zend OPCache is enabled
+     * the cache will continue to work if not
+     *
+     * @staticvar bool $supported
+     * @return bool
+     */
+    public static function isSupported(): bool {
+        static $supported;
+        if ($supported === null) {
+            $supported = false;
+            if (
+                    function_exists('opcache_invalidate') and
+                    filter_var(ini_get('opcache.enable'), FILTER_VALIDATE_BOOLEAN) and
+                    (!in_array(PHP_SAPI, ['cli', 'phpdbg'], true) or filter_var(ini_get('opcache.enable_cli'), FILTER_VALIDATE_BOOLEAN))
+            ) $supported = true;
+        }
+        return $supported;
+    }
 
     /** {@inheritdoc} */
     protected function getExtension(): string {
@@ -179,20 +199,10 @@ class OPHPCache extends FileSystem implements CacheDriver {
     /**
      * Checks if Zend OPCache is supported
      *
-     * @staticvar bool $supported
      * @return bool
      */
     public function isOPCacheEnabled(): bool {
-        static $supported;
-        if ($supported === null) {
-            $supported = false;
-            if (
-                    function_exists('opcache_invalidate') and
-                    filter_var(ini_get('opcache.enable'), FILTER_VALIDATE_BOOLEAN) and
-                    (!in_array(PHP_SAPI, ['cli', 'phpdbg'], true) or filter_var(ini_get('opcache.enable_cli'), FILTER_VALIDATE_BOOLEAN))
-            ) $supported = true;
-        }
-        return $supported;
+        return self::isSupported();
     }
 
     /**

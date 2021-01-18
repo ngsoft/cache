@@ -5,20 +5,39 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Drivers;
 
 use NGSOFT\Cache\{
-    BaseDriver, CacheDriver
+    BaseDriver, CacheDriver, CacheException
 };
-use Psr\SimpleCache\CacheException,
-    Traversable;
+use Traversable;
 
 class APCuDriver extends BaseDriver implements CacheDriver {
 
     public function __construct() {
 
         if (
-                !(function_exists('apcu_fetch') and
-                filter_var(ini_get('apc.enabled'), FILTER_VALIDATE_BOOLEAN)) or
-                (PHP_SAPI === 'cli' and (int) ini_get('apc.enable_cli') !== 1)
+                !self::isSupported()
         ) throw new CacheException('APCu not enabled.');
+    }
+
+    /**
+     * Checks if APCu is supported
+     *
+     * @staticvar bool $supported
+     * @return bool
+     */
+    public static function isSupported(): bool {
+
+        static $supported;
+
+        if ($supported === null) {
+            $supported = true;
+            if (
+                    !(function_exists('apcu_fetch') and
+                    filter_var(ini_get('apc.enabled'), FILTER_VALIDATE_BOOLEAN)) or
+                    (PHP_SAPI === 'cli' and (int) ini_get('apc.enable_cli') !== 1)
+            ) $supported = false;
+        }
+
+        return $supported;
     }
 
     ////////////////////////////   API   ////////////////////////////
@@ -42,7 +61,10 @@ class APCuDriver extends BaseDriver implements CacheDriver {
         return apcu_exists($key);
     }
 
-    /** {@inheritdoc} */
+    /**
+     * {@inheritdoc}
+     * @suppress PhanTypeMismatchArgumentInternal
+     */
     protected function doDelete(string ...$keys): bool {
         if (empty($keys)) return true;
         apcu_delete($keys);
@@ -54,7 +76,6 @@ class APCuDriver extends BaseDriver implements CacheDriver {
         if (empty($keys)) return;
         foreach ($keys as $key) {
             $value = apcu_fetch($key, $success);
-
             if ($success !== true) $value = null;
             yield $key => $value;
         }
