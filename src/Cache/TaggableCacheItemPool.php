@@ -256,4 +256,26 @@ class TaggableCacheItemPool extends CacheItemPool implements TaggableCacheItemPo
         return $val;
     }
 
+    ////////////////////////////   Debug   ////////////////////////////
+
+    /** {@inheritdoc} */
+    public function jsonSerialize() {
+
+        return [
+            static::class => [
+                CacheItemPoolInterface::class,
+                CacheInterface::class,
+                TaggableCacheItemPoolInterface::class,
+            ],
+            CacheItem::class => [
+                CacheItemInterface::class,
+                TaggableCacheItemInterface::class,
+                ItemInterface::class,
+            ],
+            'Version' => static::VERSION,
+            'Driver' => $this->driver,
+            'Tag Driver' => $this->tagDriver
+        ];
+    }
+
 }

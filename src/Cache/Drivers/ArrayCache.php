@@ -173,9 +173,4 @@ class ArrayCache extends BaseDriver implements CacheDriver {
         }
     }
 
-    /** {@inheritdoc} */
-    public function __debugInfo() {
-        return ['values' => $this->values];
-    }
-
 }
