@@ -4,7 +4,13 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
-class APCuDriver extends \NGSOFT\Cache\BaseDriver implements \NGSOFT\Cache\CacheDriver {
+use NGSOFT\Cache\{
+    BaseDriver, CacheDriver
+};
+use Psr\SimpleCache\CacheException,
+    Traversable;
+
+class APCuDriver extends BaseDriver implements CacheDriver {
 
     public function __construct() {
 
@@ -43,10 +49,12 @@ class APCuDriver extends \NGSOFT\Cache\BaseDriver implements \NGSOFT\Cache\Cache
         return count(apcu_exists($keys)) === 0;
     }
 
-    protected function doFetch(string ...$keys): \Traversable {
+    /** {@inheritdoc} */
+    protected function doFetch(string ...$keys): Traversable {
         if (empty($keys)) return;
         foreach ($keys as $key) {
             $value = apcu_fetch($key, $success);
+
             if ($success !== true) $value = null;
             yield $key => $value;
         }
