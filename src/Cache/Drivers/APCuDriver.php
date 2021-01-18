@@ -22,8 +22,13 @@ class APCuDriver extends \NGSOFT\Cache\BaseDriver implements \NGSOFT\Cache\Cache
         return apcu_clear_cache();
     }
 
+    /**
+     * APCu Auto removes expired items
+     *
+     * @return bool
+     */
     public function purge(): bool {
-
+        return true;
     }
 
     /** {@inheritdoc} */
