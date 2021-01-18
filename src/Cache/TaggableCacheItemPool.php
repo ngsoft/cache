@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-use Cache\TagInterop\TaggableCacheItemPoolInterface,
-    Psr\Log\LoggerInterface,
+use Cache\TagInterop\{
+    TaggableCacheItemInterface, TaggableCacheItemPoolInterface
+};
+use Psr\{
+    Cache\CacheItemInterface, Log\LoggerInterface, SimpleCache\CacheInterface
+};
+use Symfony\Contracts\Cache\ItemInterface,
     Throwable;
 
 /**
