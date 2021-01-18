@@ -103,6 +103,7 @@ abstract class BaseDriver implements Stringable, JsonSerializable {
     /** {@inheritdoc} */
     final public function save(array $keysAndValues, int $expiry = 0): bool {
         if (empty($keysAndValues)) return true;
+        if ($this->isExpired($expiry)) return $this->delete(...array_keys($keysAndValues));
         return $this->doSave(array_combine(array_map(fn($k) => $this->getStorageKey($k), array_keys($keysAndValues)), array_values($keysAndValues)), $expiry);
     }
 

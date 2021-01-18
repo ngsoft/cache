@@ -312,7 +312,7 @@ abstract class FileSystem extends BaseDriver {
                 return false;
             } catch (ErrorException $error) {
                 $this->log(LogLevel::DEBUG, 'Cache write error', [
-                    "classname" => static::class,
+                    "driver" => static::class,
                     "filename" => $filename,
                     "retry" => $this->retry . "/3",
                     "error" => $error
