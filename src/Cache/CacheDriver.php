@@ -37,7 +37,7 @@ interface CacheDriver extends LoggerAwareInterface {
      *
      * @return bool true if operation was successful, false if not supported or error
      */
-    public function removeExpired(): bool;
+    public function purge(): bool;
 
     /**
      * Confirms if the cache contains specified cache key.

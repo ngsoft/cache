@@ -41,5 +41,5 @@ interface Pool extends CacheInterface, CacheItemPoolInterface, LoggerAwareInterf
      *
      * @return bool true if operation was successful, false if not supported or error
      */
-    public function removeExpired(): bool;
+    public function purge(): bool;
 }

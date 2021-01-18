@@ -8,7 +8,7 @@ use Cache\TagInterop\{
     TaggableCacheItemInterface, TaggableCacheItemPoolInterface
 };
 use Psr\{
-    Cache\CacheItemInterface, Log\LoggerInterface, SimpleCache\CacheInterface
+    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerInterface, SimpleCache\CacheInterface
 };
 use Symfony\Contracts\Cache\ItemInterface,
     Throwable;

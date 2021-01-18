@@ -108,7 +108,7 @@ class ArrayCache extends BaseDriver implements CacheDriver {
     }
 
     /** {@inheritdoc} */
-    public function removeExpired(): bool {
+    public function purge(): bool {
 
         foreach ($this->expiries as $key => $expiry) {
             if ($this->isExpired($expiry)) unset($this->expiries[$key], $this->values[$key]);
@@ -184,10 +184,7 @@ class ArrayCache extends BaseDriver implements CacheDriver {
 
     /** {@inheritdoc} */
     public function __debugInfo() {
-        return [
-            $this->values,
-            $this->expiries
-        ];
+        return [];
     }
 
 }

@@ -81,8 +81,8 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
     }
 
     /** {@inheritdoc} */
-    public function removeExpired(): bool {
-        return $this->driver->removeExpired();
+    public function purge(): bool {
+        return $this->driver->purge();
     }
 
     /** {@inheritdoc} */

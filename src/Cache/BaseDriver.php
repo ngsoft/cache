@@ -43,7 +43,7 @@ abstract class BaseDriver implements Stringable, JsonSerializable {
     private const NAMESPACE_VERSION_KEY = 'NGSOFT_CACHE_DRIVER_NAMESPACE_VERSION[%s]';
 
     /** @var string */
-    protected $namepace = '';
+    protected $namespace = '';
 
     /**
      * Used to hold current namespace version
@@ -57,7 +57,7 @@ abstract class BaseDriver implements Stringable, JsonSerializable {
 
     /** {@inheritdoc} */
     final public function getNamespace(): string {
-        return $this->namepace;
+        return $this->namespace;
     }
 
     /** {@inheritdoc} */
@@ -65,7 +65,7 @@ abstract class BaseDriver implements Stringable, JsonSerializable {
         if (!empty($namespace) and (false !== strpbrk($namespace, '{}()/\@:'))) {
             throw new InvalidArgumentException(sprintf('Cache namespace "%s" contains reserved characters "%s".', $namespace, '{}()/\@:'));
         }
-        $this->namepace = $namespace;
+        $this->namespace = $namespace;
     }
 
     /** {@inheritdoc} */
@@ -249,7 +249,7 @@ abstract class BaseDriver implements Stringable, JsonSerializable {
      * @return string
      */
     private function getNamespaceKey(): string {
-        return sprintf(self::NAMESPACE_VERSION_KEY, $this->namepace);
+        return sprintf(self::NAMESPACE_VERSION_KEY, $this->getNamespace());
     }
 
     /**
