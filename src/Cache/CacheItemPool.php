@@ -52,6 +52,7 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
      * @param CacheDriver $driver The Cache Driver
      * @param int $defaultLifetime TTL to cache entries without expiry values. A value of 0 never expires (or at least until the cache flush it)
      * @param string $namespace the namespace to use
+     * @suppress PhanUndeclaredMethod
      */
     public function __construct(
             CacheDriver $driver,
@@ -62,7 +63,8 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
         $this->driver = $driver;
         $this->setLogger(new NullLogger());
         $this->setNamespace($namespace);
-        if ($driver instanceof ChainCache) {
+        //chain cache, doctrine ...
+        if (method_exists($driver, 'setDefaultLifetime')) {
             $driver->setDefaultLifetime($this->defaultLifetime);
         }
     }

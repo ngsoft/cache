@@ -165,7 +165,7 @@ class ChainCache implements CacheDriver, IteratorAggregate, Countable {
                     if ($id > 0) $items[$key] = $fetched[$key];
                 }
             }
-            // save new items to previous drivers
+            // save new items to previous drivers (downstream)
             if (count($items) > 0) {
                 foreach ($this->getReverseIterator($id) as $reverseDriver) {
                     $reverseDriver->save($items, $this->getDefaultLifetime());
