@@ -143,8 +143,8 @@ class OPHPCache extends FileSystem implements CacheDriver {
                 "filename" => $filename,
                 "error" => $error
             ]);
-            return false;
         } finally { \restore_error_handler(); }
+        return false;
     }
 
     /**
