@@ -14,7 +14,7 @@ use Psr\Log\LoggerInterface,
 /**
  * A Taggable Cache pool Implementation
  */
-class TaggableCacheItemPool extends CacheItemPool implements TaggableCacheItemPoolInterface {
+final class TaggableCacheItemPool extends CacheItemPool implements TaggableCacheItemPoolInterface {
 
     /**
      * Key Modifier for a stored tag

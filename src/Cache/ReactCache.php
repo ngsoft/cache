@@ -21,12 +21,13 @@ use function React\Promise\{
 };
 
 /**
- * React Cache Bridge to use all the drivers available
+ * React Cache Bridge to use all the drivers available,
+ * To use it you must require react/cache using composer
+ *
  *   With that you can use doctrine, laravel, or any PSR cache implementation with React/Promise based code
  *   That implementation rejects if values are incorrect types, cache keys or ttl are PSR invalid
- *
  */
-class ReactCache implements CacheInterface, LoggerAwareInterface, Stringable, JsonSerializable {
+final class ReactCache implements CacheInterface, LoggerAwareInterface, Stringable, JsonSerializable {
 
     use CacheUtils;
     use Unserializable;
@@ -57,7 +58,7 @@ class ReactCache implements CacheInterface, LoggerAwareInterface, Stringable, Js
         $this->driver = $driver;
         $this->setLogger(new NullLogger());
         $this->setNamespace($namespace);
-        //chain cache, doctrine ...
+        // chain, doctrine ...
         if (method_exists($driver, 'setDefaultLifetime')) {
             $driver->setDefaultLifetime($this->defaultLifetime);
         }
@@ -152,7 +153,7 @@ class ReactCache implements CacheInterface, LoggerAwareInterface, Stringable, Js
             // keep compatibility with cache pool
             $toSave = [];
             foreach ($values as $key => $value) {
-                $this->doCheck($value);
+                $this->doCheckValue($value);
                 $toSave[$key] = new CacheObject($key, $value, $expiry);
             }
             return resolve($this->driver->save($toSave, $expiry));
