@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Drivers;
 
 use NGSOFT\Cache\{
-    BaseDriver, CacheDriver, InvalidArgumentException, Pool
+    BaseDriver, CacheDriver, InvalidArgumentException, Pool, SimpleCachePool
 };
-use Psr\SimpleCache\CacheInterface;
+use Psr\SimpleCache\CacheInterface,
+    Traversable;
 
 /**
  * Driver for using a PSR16 Cache
- * Or proxying PSR6 Cache using SimpleCachePool
  */
 class SimpleCache extends BaseDriver implements CacheDriver {
 
-    /** @var CacheInterface */
+    /** @var CacheInterface|SimpleCachePool */
     protected $cacheProvider;
 
     /**
@@ -30,11 +30,54 @@ class SimpleCache extends BaseDriver implements CacheDriver {
             // to prevent infinite loops
             throw new InvalidArgumentException(sprintf(
                                     'Cannot use %s as %s, too much recursion.',
-                                    get_class($cacheProvider),
+                                    get_class($simpleCacheProvider),
                                     CacheInterface::class
             ));
         }
         $this->cacheProvider = $simpleCacheProvider;
+    }
+
+    ////////////////////////////   API   ////////////////////////////
+
+    /** {@inheritdoc} */
+    protected function doClear(): bool {
+
+        return $this->cacheProvider->clear();
+    }
+
+    /** {@inheritdoc} */
+    protected function doContains(string $key): bool {
+        return $this->cacheProvider->has($key);
+    }
+
+    /** {@inheritdoc} */
+    protected function doDelete(string ...$keys): bool {
+        if (empty($keys)) return true;
+        return $this->cacheProvider->deleteMultiple($keys);
+    }
+
+    /** {@inheritdoc} */
+    protected function doFetch(string ...$keys): Traversable {
+        if (empty($keys)) return;
+        foreach ($this->cacheProvider->getMultiple($keys, null) as $key => $value) {
+            yield $key => $value;
+        }
+    }
+
+    /** {@inheritdoc} */
+    protected function doSave(array $keysAndValues, int $expiry = 0): bool {
+        if (empty($keysAndValues)) return true;
+        $ttl = $expiry > 0 ? $expiry - time() : null;
+        return $this->cacheProvider->setMultiple($keysAndValues, $ttl);
+    }
+
+    /**
+     * Cannot know what method to call for that
+     * {@inheritdoc}
+     */
+    public function purge(): bool {
+
+        return false;
     }
 
 }

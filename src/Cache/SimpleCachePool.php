@@ -9,13 +9,14 @@ use NGSOFT\{
     Cache\CacheUtils, Cache\InvalidArgumentException, Traits\Unserializable
 };
 use Psr\{
-    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerAwareInterface, Log\LoggerInterface, SimpleCache\CacheInterface
+    Cache\CacheItemPoolInterface, Log\LoggerAwareInterface, Log\LoggerInterface, SimpleCache\CacheInterface
 };
 use Throwable;
 use function get_debug_type;
 
 /**
  * Adapter to use PSR6 Cache pool as a PSR 16 Cache
+ * Reverse adapter exists as Drivers\SimpleCache
  */
 class SimpleCachePool implements CacheInterface, LoggerAwareInterface {
 
@@ -186,7 +187,7 @@ class SimpleCachePool implements CacheInterface, LoggerAwareInterface {
             $this->doCheckTTL($ttl);
             if (!is_array($values)) $values = iterator_to_array($values);
             $ttl = $ttl ?? $this->getDefaultLifetime();
-            /** @var CacheItemInterface $item */
+            /** @var \Psr\Cache\CacheItemInterface $item */
             foreach ($this->pool->getItems(array_keys($values)) as $key => $item) {
                 $this->doCheckValue($values[$key]);
                 $item
