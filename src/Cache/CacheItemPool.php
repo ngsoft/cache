@@ -421,6 +421,7 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
         $this->doCheckTTL($ttl);
         if ($ttl === null) $expire = $this->getExpiryRealValue();
         elseif ($ttl instanceof DateInterval) $expire = (new DateTime())->add($ttl)->getTimestamp();
+        elseif ($ttl == 0) $expire = $ttl;
         else $expire = time() + $ttl;
         return $expire;
     }

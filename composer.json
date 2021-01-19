@@ -15,6 +15,7 @@
 
         "doctrine/cache": "A popular cache implementation that supports many different drivers such as redis, memcache, apc, mongodb and others.",
         "illuminate/cache": "The Illuminate Cache package.",
+        "react/cache": "Async, Promise-based cache interface.",
         "ext-Zend-OPcache": "Can Accelerate php file caching see: https://www.php.net/manual/en/opcache.installation.php"
     },
     "provide": {
