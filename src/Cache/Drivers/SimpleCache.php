@@ -11,17 +11,21 @@ use Psr\SimpleCache\CacheInterface;
 
 /**
  * Driver for using a PSR16 Cache
+ * Or proxying PSR6 Cache using SimpleCachePool
  */
 class SimpleCache extends BaseDriver implements CacheDriver {
 
     /** @var CacheInterface */
     protected $cacheProvider;
 
-    public function __construct(CacheInterface $cacheProvider) {
+    /**
+     * @param CacheInterface $simpleCacheProvider
+     * @throws InvalidArgumentException
+     */
+    public function __construct(CacheInterface $simpleCacheProvider) {
 
         if (
-        $cacheProvider instanceof Pool or
-        ($cacheProvider instanceof \NGSOFT\Cache\Utils\SimpleCachePool and )
+                $simpleCacheProvider instanceof Pool
         ) {
             // to prevent infinite loops
             throw new InvalidArgumentException(sprintf(
@@ -30,6 +34,7 @@ class SimpleCache extends BaseDriver implements CacheDriver {
                                     CacheInterface::class
             ));
         }
+        $this->cacheProvider = $simpleCacheProvider;
     }
 
 }

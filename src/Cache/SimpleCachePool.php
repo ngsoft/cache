@@ -2,22 +2,17 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Cache\Utils;
+namespace NGSOFT\Cache;
 
 use Generator;
 use NGSOFT\{
-    Cache\CacheException, Cache\CacheUtils, Cache\InvalidArgumentException, Traits\Unserializable
+    Cache\CacheUtils, Cache\InvalidArgumentException, Traits\Unserializable
 };
 use Psr\{
-    Cache\CacheException as PSR6CacheException, Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerAwareInterface, Log\LoggerInterface,
-    SimpleCache\CacheInterface
+    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerAwareInterface, Log\LoggerInterface, SimpleCache\CacheInterface
 };
 use Throwable;
 use function get_debug_type;
-
-interface_exists(PSR6CacheException::class);
-class_exists(CacheException::class);
-class_exists(InvalidArgumentException::class);
 
 /**
  * Adapter to use PSR6 Cache pool as a PSR 16 Cache
