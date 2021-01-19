@@ -21,6 +21,7 @@ use function get_debug_type;
 /**
  * A PSR-16 Cache
  * A PSR-6 Cache Pool
+ * If you don't use tags this the one you will be using
  */
 class CacheItemPool implements Pool, Stringable, JsonSerializable {
 
