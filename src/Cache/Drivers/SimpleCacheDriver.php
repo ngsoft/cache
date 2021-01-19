@@ -77,6 +77,7 @@ class SimpleCacheDriver extends BaseDriver implements CacheDriver {
     protected function doSave(array $keysAndValues, int $expiry = 0): bool {
         if (empty($keysAndValues)) return true;
         $ttl = $this->expiryToLifetime($expiry);
+        $ttl = $ttl == 0 ? null : $ttl;
         return $this->cacheProvider->setMultiple($keysAndValues, $ttl);
     }
 
