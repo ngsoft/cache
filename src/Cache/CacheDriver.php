@@ -18,7 +18,7 @@ interface CacheDriver extends LoggerAwareInterface {
 
     /**
      * Change the namespace for the current instance
-     * A namespace is a prefix assigned to the key
+     *   A namespace is a modifier assigned to the key
      *
      * @param string $namespace The prefix to use
      * @throws InvalidArgumentException if the namespace is invalid: '{}()/\@:' are found.
