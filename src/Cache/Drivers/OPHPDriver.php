@@ -10,7 +10,7 @@ use NGSOFT\Cache\{
 use Psr\Log\LogLevel,
     Throwable;
 
-class OPHPCache extends FileSystem implements CacheDriver {
+class OPHPDriver extends FileSystem implements CacheDriver {
 
     /**
      * File Modification time to add to enable opcache compilation

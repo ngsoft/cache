@@ -16,7 +16,7 @@ use function get_debug_type;
 /**
  * Chain Cache Implementation
  */
-class ChainCache implements CacheDriver, IteratorAggregate, Countable {
+class ChainDriver implements CacheDriver, IteratorAggregate, Countable {
 
     use CacheUtils;
     use Unserializable;

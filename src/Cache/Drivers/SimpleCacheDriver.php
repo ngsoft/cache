@@ -13,7 +13,7 @@ use Psr\SimpleCache\CacheInterface,
 /**
  * Driver for using a PSR16 Cache
  */
-class SimpleCache extends BaseDriver implements CacheDriver {
+class SimpleCacheDriver extends BaseDriver implements CacheDriver {
 
     /** @var CacheInterface|SimpleCachePool */
     protected $cacheProvider;

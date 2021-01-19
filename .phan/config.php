@@ -73,5 +73,6 @@ return [
         'PhanAccessReadOnlyMagicProperty',
         'PhanAccessMethodInternal',
         'PhanAccessMethodProtected',
+        'PhanRedefinedInheritedInterface',
     ]
 ];

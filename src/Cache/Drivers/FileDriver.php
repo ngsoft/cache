@@ -16,7 +16,7 @@ use Psr\Log\LogLevel;
  * But to store Images or other types of binary/text files it's way better
  *
  */
-class FileCache extends FileSystem implements CacheDriver {
+class FileDriver extends FileSystem implements CacheDriver {
 
     /** {@inheritdoc} */
     protected function getExtension(): string {

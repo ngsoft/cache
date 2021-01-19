@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Cache;
 
 use NGSOFT\Cache\Drivers\{
-    APCuDriver, ArrayCache, OPHPCache
+    APCuDriver, ArrayDriver, ChainDriver, OPHPDriver
 };
 
 /**
@@ -25,10 +25,10 @@ class PHPCache extends CacheItemPool {
             string $prefix = 'phpcache'
     ) {
 
-        $drivers = [new ArrayCache()];
+        $drivers = [new ArrayDriver()];
         if (APCuDriver::isSupported() and php_sapi_name() !== 'cli') $drivers[] = new APCuDriver();
-        $drivers[] = new OPHPCache($rootpath, $prefix);
-        $chain = new Drivers\ChainCache($drivers);
+        $drivers[] = new OPHPDriver($rootpath, $prefix);
+        $chain = new ChainDriver($drivers);
         parent::__construct($chain, $defaultLifetime ?? 0);
     }
 
