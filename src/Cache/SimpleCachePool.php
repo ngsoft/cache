@@ -23,6 +23,11 @@ class SimpleCachePool implements CacheInterface, LoggerAwareInterface {
     use CacheUtils;
     use Unserializable;
 
+    /**
+     * Version Information
+     */
+    public const VERSION = CacheItemPool::VERSION;
+
     /** @var CacheItemPoolInterface */
     private $pool;
 
@@ -219,9 +224,9 @@ class SimpleCachePool implements CacheInterface, LoggerAwareInterface {
 
         return [
             'Cache' => static::class,
-            'Implements' => array_values(class_implements($this)),
             'Version' => static::VERSION,
-            'Driver' => $this->driver
+            'Implements' => array_values(class_implements($this)),
+            CacheItemPoolInterface::class => $this->pool
         ];
     }
 
