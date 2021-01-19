@@ -189,7 +189,12 @@ class OPHPCache extends FileSystem implements CacheDriver {
         } elseif (is_scalar($data) or is_null($data)) return var_export($data, true);
         elseif (is_object($data)) {
             //a lot faster than unserialize
-            if (method_exists($data, '__set_state')) return var_export($data, true);
+            if (method_exists($data, '__set_state')) {
+                $str = var_export($data, true);
+                //sub objects that don't have __set_state method will trigger a cache miss
+                if (mb_substr_count($str, '__set_state') == 1) return $str;
+                //so to be sure we serialize
+            }
             if (!is_string($serialized = $this->safeSerialize($data))) return null;
             return sprintf('%s::unserialize(%s)', Serializer::class, var_export($serialized, true));
         }

@@ -53,6 +53,7 @@ class CacheObject {
     public static function __set_state($data) {
         static $obj;
         if (!$obj) $obj = new static('key');
+        //we gain some microseconds when cloning multiple times compared to instantiating
         $c = clone $obj;
         $c->key = $data['key'] ?? '';
         $c->value = $data['value'] ?? null;

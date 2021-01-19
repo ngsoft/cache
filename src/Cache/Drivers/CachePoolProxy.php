@@ -73,8 +73,7 @@ class CachePoolProxy extends BaseDriver implements CacheDriver {
         /** @var CacheItemInterface $item */
         foreach ($this->cacheProvider->getItems($keys) as $key => $item) {
             // keep the item to save it later
-            $hKey = $this->getHashedKey($key);
-            $this->issued[$hKey] = $item;
+            $this->issued[$this->getHashedKey($key)] = $item;
             yield $item->getKey() => $item->get();
         }
     }
@@ -89,10 +88,9 @@ class CachePoolProxy extends BaseDriver implements CacheDriver {
         /** @var CacheItemInterface $item */
         foreach ($keys as $key) {
             $hKey = $this->getHashedKey($key);
-            if (isset($this->issued[$hKey])) {
-                $item = $this->issued[$hKey];
-                unset($this->issued[$hKey]);
-            } else $item = $this->cacheProvider->getItem($key); // if key has been removed
+            //Key can have been removed
+            $item = $this->issued[$hKey] ?? $this->cacheProvider->getItem($key);
+            unset($this->issued[$hKey]);
             $this->cacheProvider->saveDeferred(
                     $item
                             ->set($keysAndValues[$key])
