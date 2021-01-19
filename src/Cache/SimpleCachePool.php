@@ -16,7 +16,7 @@ use function get_debug_type;
 
 /**
  * Adapter to use PSR6 Cache pool as a PSR 16 Cache
- * Reverse adapter exists as Drivers\SimpleCache
+ * Reverse adapter exists as Drivers\SimpleCacheDriver
  */
 final class SimpleCachePool implements CacheInterface, LoggerAwareInterface {
 
