@@ -110,9 +110,9 @@ class ChainCache implements CacheDriver, IteratorAggregate, Countable {
     }
 
     /** {@inheritdoc} */
-    public function deleteAll(): bool {
+    public function invalidateAll(): bool {
         $r = true;
-        foreach ($this->getIterator() as $driver) $r = $driver->deleteAll() && $r;
+        foreach ($this->getIterator() as $driver) $r = $driver->invalidateAll() && $r;
         return $r;
     }
 

@@ -68,7 +68,7 @@ abstract class BaseDriver implements Stringable, JsonSerializable {
     }
 
     /** {@inheritdoc} */
-    final public function deleteAll(): bool {
+    final public function invalidateAll(): bool {
         $key = $this->getNamespaceKey();
         $version = $this->getNamespaceVersion() + 1;
         if ($this->saveOne($key, $version)) {
@@ -223,11 +223,11 @@ abstract class BaseDriver implements Stringable, JsonSerializable {
     /**
      * Shortcut to fetch value directly from the cache
      *
-     * @param string $key
+     * @param string $key The cache key()
      * @param mixed $default
      * @return mixed
      */
-    protected function fetchOne(string $key, $default = null) {
+    final protected function fetchOne(string $key, $default = null) {
         foreach ($this->doFetch($key) as $value) {
             return $value !== null ? $value : $default;
         }
@@ -242,7 +242,7 @@ abstract class BaseDriver implements Stringable, JsonSerializable {
      * @param int $expiry Expiration Timestamp
      * @return bool true if item succesfully saved/removed
      */
-    protected function saveOne(string $key, $value, int $expiry = 0): bool {
+    final protected function saveOne(string $key, $value, int $expiry = 0): bool {
         $this->doCheckValue($value);
         return
                 $value !== null and

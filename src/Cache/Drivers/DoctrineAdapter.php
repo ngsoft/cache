@@ -64,14 +64,14 @@ class DoctrineAdapter implements CacheDriver {
     }
 
     /** {@inheritdoc} */
-    public function deleteAll(): bool {
+    public function invalidateAll(): bool {
         return $this->doctrineProvider instanceof ClearableCache ?
                 $this->doctrineProvider->deleteAll() :
                 false;
     }
 
     /**
-     * Not implemented in Doctrine Cache
+     * Not implemented in Doctrine Cache (They invalidate items using deleteAll()(that delete nothing, just change the issued key.), or flushAll() to remove all datas)
      *
      * @return bool
      */
@@ -89,6 +89,7 @@ class DoctrineAdapter implements CacheDriver {
         if ($this->doctrineProvider instanceof MultiOperationCache) {
             return $this->doctrineProvider->deleteMultiple($keys);
         }
+        // polyfill
         $r = true;
         foreach ($keys as $key) $r = $this->doctrineProvider->delete($key) && $r;
         return $r;
@@ -105,6 +106,7 @@ class DoctrineAdapter implements CacheDriver {
             }
             return;
         }
+        // polyfill
         foreach ($keys as $key) {
             $result = $this->doctrineProvider->fetch($key);
             yield $key => $result === false ? null : $result;
@@ -118,6 +120,7 @@ class DoctrineAdapter implements CacheDriver {
         if ($this->doctrineProvider instanceof MultiOperationCache) {
             return $this->doctrineProvider->saveMultiple($keysAndValues, $lifeTime);
         }
+        // polyfill
         $r = true;
         foreach ($keysAndValues as $key => $value) {
             $r = $this->doctrineProvider->save($key, $value, $lifeTime) && $r;

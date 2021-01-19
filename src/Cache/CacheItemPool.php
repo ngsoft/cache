@@ -80,9 +80,8 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
     ////////////////////////////   Pool   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function deleteAll(): bool {
-
-        return $this->driver->deleteAll();
+    public function invalidate(): bool {
+        return $this->driver->invalidateAll();
     }
 
     /** {@inheritdoc} */
@@ -423,6 +422,8 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
         else $expire = time() + $ttl;
         return $expire;
     }
+
+    ////////////////////////////   Debug Infos   ////////////////////////////
 
     /** {@inheritdoc} */
     public function __debugInfo() {

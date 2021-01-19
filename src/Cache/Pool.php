@@ -29,11 +29,12 @@ interface Pool extends CacheInterface, CacheItemPoolInterface, LoggerAwareInterf
     public function getNamespace(): string;
 
     /**
-     * Invalidates current namespace items
+     * Invalidates current namespace items, increasing the namespace version
+     *
      *
      * @return bool True if the items was successfully removed. False if there was an error.
      */
-    public function deleteAll(): bool;
+    public function invalidate(): bool;
 
     /**
      * Used to do the Garbage Collection

@@ -10,6 +10,7 @@ use Psr\Log\LoggerAwareInterface,
 /**
  * The Cache driver
  * Does not handle keys/tags names verifications (the cache pool must do that)
+ * You can interact with it directly but the fetched/saved datas won't be compatible with the cache pool
  *
  */
 interface CacheDriver extends LoggerAwareInterface {
@@ -30,6 +31,13 @@ interface CacheDriver extends LoggerAwareInterface {
      * @return string
      */
     public function getNamespace(): string;
+
+    /**
+     * Invalidates current namespace items, increasing the namespace version
+     *
+     * @return bool True if the items was successfully removed. False if there was an error.
+     */
+    public function invalidateAll(): bool;
 
     /**
      * Used to do the Garbage Collection
@@ -72,13 +80,6 @@ interface CacheDriver extends LoggerAwareInterface {
      * @return bool True if the items was successfully removed. False if there was an error.
      */
     public function delete(string ...$keys): bool;
-
-    /**
-     * Invalidates current namespace items
-     *
-     * @return bool True if the items was successfully removed. False if there was an error.
-     */
-    public function deleteAll(): bool;
 
     /**
      * Flushes all cache entries (globally).
