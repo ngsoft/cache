@@ -85,14 +85,14 @@ class CachePoolProxy extends BaseDriver implements CacheDriver {
         $keys = array_keys($keysAndValues);
         $ttl = $expiry > 0 ? $expiry - time() : null;
         // reload data to save, not the fastest way,
-        // here how we do it (as the item is never issued to the user)
+        // here how we do it (as the provider item is never issued to the user)
         /** @var CacheItemInterface $item */
         foreach ($keys as $key) {
             $hKey = $this->getHashedKey($key);
             if (isset($this->issued[$hKey])) {
                 $item = $this->issued[$hKey];
                 unset($this->issued[$hKey]);
-            } else $item = $this->cacheProvider->getItem($key);
+            } else $item = $this->cacheProvider->getItem($key); // if key has been removed
             $this->cacheProvider->saveDeferred(
                     $item
                             ->set($keysAndValues[$key])
