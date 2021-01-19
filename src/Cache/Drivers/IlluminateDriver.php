@@ -6,7 +6,7 @@ namespace NGSOFT\Cache\Drivers;
 
 use Illuminate\Contracts\Cache\Store;
 use NGSOFT\Cache\{
-    BaseDriver, CacheDriver, InvalidArgumentException
+    CacheDriver, InvalidArgumentException, Utils\BaseDriver
 };
 use Traversable;
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Drivers;
 
 use NGSOFT\Cache\{
-    BaseDriver, CacheDriver, InvalidArgumentException, Pool
+    CacheDriver, InvalidArgumentException, Pool, Utils\BaseDriver
 };
 use Psr\Cache\{
     CacheItemInterface, CacheItemPoolInterface

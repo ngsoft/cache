@@ -8,8 +8,10 @@ use Cache\TagInterop\TaggableCacheItemInterface,
     DateInterval,
     DateTime,
     Generator,
-    JsonSerializable,
-    NGSOFT\Traits\Unserializable;
+    JsonSerializable;
+use NGSOFT\{
+    Cache\Utils\CacheUtils, Traits\Unserializable
+};
 use Psr\{
     Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerInterface, Log\NullLogger, SimpleCache\CacheInterface
 };

@@ -6,7 +6,7 @@ namespace NGSOFT\Cache\Drivers;
 
 use ErrorException;
 use NGSOFT\Cache\{
-    CacheDriver, CacheObject, FileSystem
+    CacheDriver, CacheObject, Utils\FileSystem
 };
 use Psr\Log\LogLevel;
 

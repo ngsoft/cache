@@ -2,14 +2,16 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Cache;
+namespace NGSOFT\Cache\Utils;
 
 use Countable,
     Generator,
     IteratorAggregate,
-    JsonSerializable,
-    NGSOFT\Traits\Exportable,
-    Stringable;
+    JsonSerializable;
+use NGSOFT\{
+    Cache\CacheException, Cache\InvalidArgumentException, Traits\Exportable
+};
+use Stringable;
 
 /**
  * A Tag Item

@@ -8,7 +8,7 @@ use Doctrine\Common\Cache\{
     Cache, CacheProvider, ClearableCache, FlushableCache, MultiOperationCache
 };
 use NGSOFT\{
-    Cache\CacheDriver, Cache\CacheUtils, Traits\Unserializable
+    Cache\CacheDriver, Cache\Utils\CacheUtils, Traits\Unserializable
 };
 use Traversable;
 

@@ -6,7 +6,7 @@ namespace NGSOFT\Cache;
 
 use Generator;
 use NGSOFT\{
-    Cache\CacheUtils, Cache\InvalidArgumentException, Traits\Unserializable
+    Cache\InvalidArgumentException, Cache\Utils\CacheUtils, Traits\Unserializable
 };
 use Psr\{
     Cache\CacheItemPoolInterface, Log\LoggerAwareInterface, Log\LoggerInterface, SimpleCache\CacheInterface
@@ -187,7 +187,6 @@ class SimpleCachePool implements CacheInterface, LoggerAwareInterface {
             $this->doCheckTTL($ttl);
             if (!is_array($values)) $values = iterator_to_array($values);
             $ttl = $ttl ?? $this->getDefaultLifetime();
-            /** @var \Psr\Cache\CacheItemInterface $item */
             foreach ($this->pool->getItems(array_keys($values)) as $key => $item) {
                 $this->doCheckValue($values[$key]);
                 $item

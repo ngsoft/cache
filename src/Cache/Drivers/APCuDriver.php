@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Drivers;
 
 use NGSOFT\Cache\{
-    BaseDriver, CacheDriver, CacheException
+    CacheDriver, CacheException, Utils\BaseDriver
 };
 use Traversable;
 

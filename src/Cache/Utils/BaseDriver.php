@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Cache;
+namespace NGSOFT\Cache\Utils;
 
 use ErrorException,
-    JsonSerializable,
-    NGSOFT\Traits\Unserializable,
-    Stringable,
+    JsonSerializable;
+use NGSOFT\{
+    Cache\InvalidArgumentException, Traits\Unserializable
+};
+use Stringable,
     Throwable,
     Traversable;
 
@@ -135,7 +137,7 @@ abstract class BaseDriver implements Stringable, JsonSerializable {
     /**
      * Save Multiples entries using an array of keys and value pairs
      *
-     * @param array<string,CacheObject|mixed> $keysAndValues Namespaced(not hashed) key and values
+     * @param array<string,\NGSOFT\Cache\CacheObject|mixed> $keysAndValues Namespaced(not hashed) key and values
      * @param int $expiry the timestamp at which the item expires
      * @return bool true if 'all' entries were saved
      */
@@ -166,7 +168,7 @@ abstract class BaseDriver implements Stringable, JsonSerializable {
      * @param mixed $value
      * @return string|null
      */
-    protected function safeSerialize($value): ?string {
+    final protected function safeSerialize($value): ?string {
 
         if ($value === null) return null;
         try {
@@ -182,7 +184,7 @@ abstract class BaseDriver implements Stringable, JsonSerializable {
      * @param string $input
      * @return mixed|null
      */
-    protected function safeUnserialize($input) {
+    final protected function safeUnserialize($input) {
 
         if (!is_string($input)) return null;
         // prevents cache miss
@@ -210,7 +212,7 @@ abstract class BaseDriver implements Stringable, JsonSerializable {
      * @staticvar Closure $handler
      * @return void
      */
-    protected function setErrorHandler(): void {
+    final protected function setErrorHandler(): void {
         static $handler;
         if (!$handler) {
             $handler = static function ($type, $msg, $file, $line) {

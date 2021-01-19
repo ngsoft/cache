@@ -8,7 +8,7 @@ use Countable,
     Generator,
     IteratorAggregate;
 use NGSOFT\{
-    Cache\CacheDriver, Cache\CacheUtils, Cache\InvalidArgumentException, Traits\Unserializable
+    Cache\CacheDriver, Cache\InvalidArgumentException, Cache\Utils\CacheUtils, Traits\Unserializable
 };
 use Traversable;
 use function get_debug_type;

@@ -7,9 +7,11 @@ namespace NGSOFT\Cache;
 use Cache\TagInterop\TaggableCacheItemInterface,
     DateInterval,
     DateTime,
-    DateTimeInterface,
-    NGSOFT\Traits\Unserializable,
-    Psr\Cache\CacheItemInterface,
+    DateTimeInterface;
+use NGSOFT\{
+    Cache\Utils\CacheUtils, Traits\Unserializable
+};
+use Psr\Cache\CacheItemInterface,
     Symfony\Contracts\Cache\ItemInterface;
 use function get_debug_type;
 
@@ -27,26 +29,26 @@ class CacheItem implements CacheItemInterface, TaggableCacheItemInterface, ItemI
     public const VERSION = CacheItemPool::VERSION;
 
     /** @var string */
-    private $key;
+    protected $key;
 
     /** @var mixed */
-    private $value = null;
+    protected $value = null;
 
     /** @var int|null */
-    private $expiry = null;
+    protected $expiry = null;
 
     /** @var bool */
-    private $tagAware = false;
+    protected $tagAware = false;
 
     /**
      * @var string[] Tags saved with the entry
      */
-    private $tags = [];
+    protected $tags = [];
 
     /**
      * @var string[] New tags to be added
      */
-    private $newTags = [];
+    protected $newTags = [];
 
     /**
      * {@inheritdoc}

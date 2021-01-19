@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Cache;
+namespace NGSOFT\Cache\Utils;
 
 use ErrorException,
     FilesystemIterator,
     Generator;
 use NGSOFT\Cache\{
-    BaseDriver, CacheException, InvalidArgumentException
+    CacheException, InvalidArgumentException
 };
 use Psr\Log\LogLevel,
     RecursiveDirectoryIterator,

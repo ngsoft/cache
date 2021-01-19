@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Cache;
+namespace NGSOFT\Cache\Utils;
+
+use Generator,
+    NGSOFT\Cache\InvalidArgumentException;
 
 /**
  * A Key Item
@@ -43,7 +46,7 @@ class Key extends Tag {
     }
 
     /**
-     * @return \Generator|Tag[]
+     * @return Generator|Tag[]
      */
     public function getIterator() {
         foreach ($this->items as $item) {

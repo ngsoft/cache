@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Cache;
+namespace NGSOFT\Cache\Utils;
 
 use Cache\TagInterop\TaggableCacheItemPoolInterface,
     DateInterval;
-use NGSOFT\Traits\{
-    LoggerAware, UnionType
+use NGSOFT\{
+    Cache\CacheException, Cache\CacheItem, Cache\InvalidArgumentException, Traits\LoggerAware, Traits\UnionType
 };
 use Psr\{
     Cache\CacheException as PSR6CacheException, Log\LogLevel, SimpleCache\CacheException as PSR16CacheException
@@ -18,6 +18,8 @@ use function get_debug_type;
 
 /**
  * Reusable Methods for Cache Implementation
+ *
+ * @phan-file-suppress PhanAccessPropertyProtected
  */
 trait CacheUtils {
 
@@ -212,6 +214,7 @@ trait CacheUtils {
 
     /**
      * Creates a CacheItem
+     *
      * @staticvar \Closure $create
      * @staticvar CacheItem $item
      * @param string $key

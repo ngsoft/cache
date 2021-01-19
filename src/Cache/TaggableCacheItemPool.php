@@ -7,6 +7,9 @@ namespace NGSOFT\Cache;
 use Cache\TagInterop\{
     TaggableCacheItemInterface, TaggableCacheItemPoolInterface
 };
+use NGSOFT\Cache\Utils\{
+    Tag, TagList
+};
 use Psr\{
     Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerInterface, SimpleCache\CacheInterface
 };
