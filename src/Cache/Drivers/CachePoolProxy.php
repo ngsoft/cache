@@ -82,7 +82,7 @@ class CachePoolProxy extends BaseDriver implements CacheDriver {
     protected function doSave(array $keysAndValues, int $expiry = 0): bool {
         if (empty($keysAndValues)) return true;
         $keys = array_keys($keysAndValues);
-        $ttl = $expiry > 0 ? $expiry - time() : null;
+        $ttl = $this->expiryToLifetime($expiry);
         // reload data to save, not the fastest way,
         // here how we do it (as the provider item is never issued to the user)
         /** @var CacheItemInterface $item */
