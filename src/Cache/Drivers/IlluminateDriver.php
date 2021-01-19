@@ -31,4 +31,30 @@ class IlluminateDriver extends BaseDriver implements CacheDriver {
         $this->cacheStore = $cacheStore;
     }
 
+    ////////////////////////////   API   ////////////////////////////
+
+    protected function doClear(): bool {
+
+    }
+
+    protected function doContains(string $key): bool {
+
+    }
+
+    protected function doDelete(string ...$keys): bool {
+
+    }
+
+    protected function doFetch(string ...$keys): \Traversable {
+
+    }
+
+    protected function doSave(array $keysAndValues, int $expiry = 0): bool {
+
+    }
+
+    public function purge(): bool {
+
+    }
+
 }

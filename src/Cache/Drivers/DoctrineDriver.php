@@ -16,7 +16,7 @@ use Traversable;
  * To use Doctrine Cache Drivers
  *
  */
-class DoctrineAdapter implements CacheDriver {
+class DoctrineDriver implements CacheDriver {
 
     use CacheUtils;
     use Unserializable;
@@ -116,7 +116,7 @@ class DoctrineAdapter implements CacheDriver {
     /** {@inheritdoc} */
     public function save(array $keysAndValues, int $expiry = 0): bool {
         if (empty($keysAndValues)) return true;
-        $lifeTime = max(0, $this->expiryToLifetime($expiry));
+        $lifeTime = $this->expiryToLifetime($expiry);
         if ($this->doctrineProvider instanceof MultiOperationCache) {
             return $this->doctrineProvider->saveMultiple($keysAndValues, $lifeTime);
         }

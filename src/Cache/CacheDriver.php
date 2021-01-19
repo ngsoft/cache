@@ -69,7 +69,7 @@ interface CacheDriver extends LoggerAwareInterface {
      * If the cache item is expired it must be removed
      *
      * @param array $keysAndValues The cache item(s) to save.
-     * @param int $expiry the timestamp at which the item expires
+     * @param int $expiry the timestamp at which the item expires (it is not a TTL, its an abolute number)
      * @return bool True if the items were successfully persisted/removed. False if there was an error.
      */
     public function save(array $keysAndValues, int $expiry = 0): bool;
