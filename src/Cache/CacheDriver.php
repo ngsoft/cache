@@ -9,8 +9,9 @@ use Psr\Log\LoggerAwareInterface,
 
 /**
  * The Cache driver
- * Does not handle keys/tags names verifications (the cache pool must do that)
- * You can interact with it directly but the fetched/saved datas won't be compatible with the cache pool
+ *   Does not handle keys/tags names verifications (the cache pool must do that)
+ *   You can interact with it directly but the fetched/saved raw datas won't be compatible with the cache pool (CacheObject)
+ *   Note that this is a multioperation driver interface.
  *
  */
 interface CacheDriver extends LoggerAwareInterface {
@@ -33,7 +34,7 @@ interface CacheDriver extends LoggerAwareInterface {
     public function getNamespace(): string;
 
     /**
-     * Invalidates current namespace items, increasing the namespace version
+     * Invalidates current namespace items, increasing the namespace version.
      *
      * @return bool True if the items was successfully removed. False if there was an error.
      */
