@@ -176,16 +176,11 @@ class ArrayDriver extends BaseDriver implements CacheDriver {
 
     /** {@inheritdoc} */
     public function __clone() {
-// clone the fixed arrays for tag aware
+        // clone the fixed arrays
         if ($this->capacity > 0) {
             $this->values = clone $this->values;
             $this->expiries = clone $this->expiries;
         }
-    }
-
-    /** {@inheritdoc} */
-    public function __debugInfo() {
-        return [];
     }
 
 }

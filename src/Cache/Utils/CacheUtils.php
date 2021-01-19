@@ -22,7 +22,6 @@ interface_exists(CacheDriver::class);
 
 class_exists(InvalidArgumentException::class);
 class_exists(CacheException::class);
-class_exists(CacheItem::class);
 class_exists(LogLevel::class);
 class_exists(CacheObject::class);
 

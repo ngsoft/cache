@@ -37,6 +37,11 @@ class SimpleCacheDriver extends BaseDriver implements CacheDriver {
         $this->cacheProvider = $simpleCacheProvider;
     }
 
+    /** {@inheritdoc} */
+    public function jsonSerialize() {
+        return get_class($this->cacheProvider);
+    }
+
     ////////////////////////////   API   ////////////////////////////
 
     /** {@inheritdoc} */

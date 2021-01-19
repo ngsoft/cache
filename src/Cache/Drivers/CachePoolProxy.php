@@ -48,6 +48,11 @@ class CachePoolProxy extends BaseDriver implements CacheDriver {
         $this->cacheProvider = $cacheProvider;
     }
 
+    /** {@inheritdoc} */
+    public function jsonSerialize() {
+        return get_class($this->cacheProvider);
+    }
+
     ////////////////////////////   API   ////////////////////////////
 
     /** {@inheritdoc} */

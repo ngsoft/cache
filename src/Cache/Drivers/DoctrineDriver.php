@@ -7,16 +7,18 @@ namespace NGSOFT\Cache\Drivers;
 use Doctrine\Common\Cache\{
     Cache, CacheProvider, ClearableCache, FlushableCache, MultiOperationCache
 };
+use JsonSerializable;
 use NGSOFT\{
     Cache\CacheDriver, Cache\Utils\CacheUtils, Traits\Unserializable
 };
-use Traversable;
+use Stringable,
+    Traversable;
 
 /**
  * To use Doctrine Cache Drivers
  *
  */
-class DoctrineDriver implements CacheDriver {
+class DoctrineDriver implements CacheDriver, Stringable, JsonSerializable {
 
     use CacheUtils;
     use Unserializable;
@@ -36,6 +38,11 @@ class DoctrineDriver implements CacheDriver {
             Cache $doctrineProvider
     ) {
         $this->doctrineProvider = $doctrineProvider;
+    }
+
+    /** {@inheritdoc} */
+    public function jsonSerialize() {
+        return get_class($this->doctrineProvider);
     }
 
     ////////////////////////////   API   ////////////////////////////

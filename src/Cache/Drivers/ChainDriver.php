@@ -6,17 +6,19 @@ namespace NGSOFT\Cache\Drivers;
 
 use Countable,
     Generator,
-    IteratorAggregate;
+    IteratorAggregate,
+    JsonSerializable;
 use NGSOFT\{
     Cache\CacheDriver, Cache\InvalidArgumentException, Cache\Utils\CacheUtils, Traits\Unserializable
 };
-use Traversable;
+use Stringable,
+    Traversable;
 use function get_debug_type;
 
 /**
  * Chain Cache Implementation
  */
-class ChainDriver implements CacheDriver, IteratorAggregate, Countable {
+class ChainDriver implements CacheDriver, IteratorAggregate, Countable, Stringable, JsonSerializable {
 
     use CacheUtils;
     use Unserializable;
@@ -57,8 +59,8 @@ class ChainDriver implements CacheDriver, IteratorAggregate, Countable {
 
     /** @return Generator|CacheDriver[] */
     public function getIterator() {
-        foreach ($this->drivers as $driver) {
-            yield $driver;
+        foreach ($this->drivers as $id => $driver) {
+            yield $id => $driver;
         }
     }
 

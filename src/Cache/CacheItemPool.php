@@ -20,6 +20,8 @@ use Stringable,
     Throwable;
 use function get_debug_type;
 
+class_exists(CacheItem::class);
+
 /**
  * A PSR-16 Cache
  * A PSR-6 Cache Pool
@@ -452,7 +454,7 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
                 ItemInterface::class,
             ],
             'Version' => static::VERSION,
-            'Driver Loaded' => $this->driver
+            'Driver' => $this->driver
         ];
     }
 

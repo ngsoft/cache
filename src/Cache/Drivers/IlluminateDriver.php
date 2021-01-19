@@ -30,6 +30,11 @@ class IlluminateDriver extends BaseDriver implements CacheDriver {
         $this->cacheStore = $cacheStore;
     }
 
+    /** {@inheritdoc} */
+    public function jsonSerialize() {
+        return get_class($this->cacheStore);
+    }
+
     ////////////////////////////   API   ////////////////////////////
 
     /** {@inheritdoc} */
