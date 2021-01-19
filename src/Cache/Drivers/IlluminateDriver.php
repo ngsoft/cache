@@ -11,7 +11,7 @@ use NGSOFT\Cache\{
 use Traversable;
 
 /**
- * A Driver that makes PSR Caching compatible with Laravel Caching
+ * A Driver that makes PSR-6 Caching compatible with Laravel Caching
  * It don't use the Facade, instead it uses illuminate/cache directly
  *
  * you can also use Illuminate\Cache\Repository with SimpleCacheDriver(but that is too many abstraction layers)
@@ -42,6 +42,7 @@ class IlluminateDriver extends BaseDriver implements CacheDriver {
         return $this->cacheStore->get($key) !== null;
     }
 
+    /** {@inheritdoc} */
     protected function doDelete(string ...$keys): bool {
         if (empty($keys)) return true;
         $r = true;
@@ -66,7 +67,7 @@ class IlluminateDriver extends BaseDriver implements CacheDriver {
     /** {@inheritdoc} */
     protected function doSave(array $keysAndValues, int $expiry = 0): bool {
         $ttl = $this->expiryToLifetime($expiry);
-        // some drivers supports putMany with $ttl=0 to forever, some don't
+        // some drivers supports putMany with $ttl=0 =~ forever, some don't
         if ($ttl > 0) return $this->cacheStore->putMany($keysAndValues, $ttl);
         $r = true;
         foreach ($keysAndValues as $key => $value) {
