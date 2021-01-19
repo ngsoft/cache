@@ -200,10 +200,9 @@ trait CacheUtils {
      * @return bool
      */
     protected function isExpired(int $expire = null): bool {
-
         $expire = $expire ?? 0;
         return
-                $expire > 0 and
+                $expire != 0 and
                 microtime(true) > $expire;
     }
 

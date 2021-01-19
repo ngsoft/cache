@@ -116,6 +116,7 @@ class DoctrineDriver implements CacheDriver {
     /** {@inheritdoc} */
     public function save(array $keysAndValues, int $expiry = 0): bool {
         if (empty($keysAndValues)) return true;
+        if ($this->isExpired($expiry)) return $this->delete(...array_values($keysAndValues));
         $lifeTime = $this->expiryToLifetime($expiry);
         if ($this->doctrineProvider instanceof MultiOperationCache) {
             return $this->doctrineProvider->saveMultiple($keysAndValues, $lifeTime);
