@@ -52,7 +52,7 @@ class CachePoolProxy extends BaseDriver implements CacheDriver {
     public function jsonSerialize() {
         return [
             static::class => [
-                CacheItemPoolInterface::class => get_class($this->cacheProvider),
+                CacheItemPoolInterface::class => get_class($this->cacheProvider)
             ]
         ];
     }
@@ -81,6 +81,7 @@ class CachePoolProxy extends BaseDriver implements CacheDriver {
         if (empty($keys)) return;
         /** @var CacheItemInterface $item */
         foreach ($this->cacheProvider->getItems($keys) as $key => $item) {
+
             // keep the item to save it later
             $this->issued[$this->getHashedKey($key)] = $item;
             yield $item->getKey() => $item->get();
@@ -92,6 +93,7 @@ class CachePoolProxy extends BaseDriver implements CacheDriver {
         if (empty($keysAndValues)) return true;
         $keys = array_keys($keysAndValues);
         $ttl = $this->expiryToLifetime($expiry);
+        $ttl = $ttl == 0 ? null : $ttl;
         // reload data to save, not the fastest way,
         // here how we do it (as the provider item is never issued to the user)
         /** @var CacheItemInterface $item */
