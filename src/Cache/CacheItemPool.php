@@ -432,7 +432,9 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
 
     /** {@inheritdoc} */
     public function __debugInfo() {
-        return $this->jsonSerialize();
+        return [
+            'Informations' => $this->__toString()
+        ];
     }
 
     /** {@inheritdoc} */
@@ -444,15 +446,7 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
     public function jsonSerialize() {
 
         return [
-            static::class => [
-                CacheItemPoolInterface::class,
-                CacheInterface::class,
-            ],
-            CacheItem::class => [
-                CacheItemInterface::class,
-                TaggableCacheItemInterface::class,
-                ItemInterface::class,
-            ],
+            'Cache' => static::class,
             'Version' => static::VERSION,
             'Driver' => $this->driver
         ];

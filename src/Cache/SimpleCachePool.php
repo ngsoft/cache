@@ -200,4 +200,28 @@ class SimpleCachePool implements CacheInterface, LoggerAwareInterface {
         }
     }
 
+    ////////////////////////////   Debug Infos   ////////////////////////////
+
+    /** {@inheritdoc} */
+    public function __debugInfo() {
+        return [
+            'Informations' => $this->__toString()
+        ];
+    }
+
+    /** {@inheritdoc} */
+    public function __toString() {
+        return json_encode($this, JSON_PRETTY_PRINT);
+    }
+
+    /** {@inheritdoc} */
+    public function jsonSerialize() {
+
+        return [
+            'Cache' => static::class,
+            'Version' => static::VERSION,
+            'Driver' => $this->driver
+        ];
+    }
+
 }

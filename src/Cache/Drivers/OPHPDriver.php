@@ -39,6 +39,15 @@ class OPHPDriver extends FileSystem implements CacheDriver {
 
     ////////////////////////////   API   ////////////////////////////
 
+    /** {@inheritdoc} */
+    public function jsonSerialize() {
+        return [
+            static::class => [
+                'Cache Directory' => $this->getCacheRoot(),
+                'Zend OPCache' => $this->isOPCacheEnabled(),
+        ]];
+    }
+
     /**
      * Checks if Zend OPCache is enabled
      * the cache will continue to work if not

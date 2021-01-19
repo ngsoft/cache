@@ -351,6 +351,50 @@ abstract class FileSystem extends BaseDriver {
     }
 
     /**
+     * Get Human readable bytes size
+     *
+     * @link https://laracasts.com/discuss/channels/laravel/human-readable-file-size-and-time?page=1#reply=115796
+     * @staticvar array $units
+     * @param float $bytes
+     * @param int $decimals
+     * @return string
+     */
+    final protected function humanFileSize(float $bytes, int $decimals = 2): string {
+        static $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+        $decimals = max(0, $decimals);
+        for ($i = 0; $bytes > 1024; $i++) {
+            $bytes /= 1024;
+        }
+        return round($bytes, $decimals) . ' ' . $units[$i];
+    }
+
+    /**
+     * Get storage free space in bytes
+     *
+     * @return float
+     */
+    final protected function getFreeSpace(): float {
+        $free = disk_free_space($this->getCacheRoot());
+        if (false === $free) return 0.0;
+        return $free;
+    }
+
+    /**
+     * Get storage file usage in bytes
+     *
+     * @return float
+     */
+    protected function getUsage(): float {
+        $usage = 0.0;
+        foreach ($this - $this->scanFiles($this->getCacheRoot(), $this->getExtension()) as $path) {
+            $size = @filesize($path);
+            $usage += $size !== false ? $size : 0;
+        }
+
+        return $usage;
+    }
+
+    /**
      * Save contents into filename
      *
      * @suppress PhanPossiblyInfiniteRecursionSameParams

@@ -269,16 +269,7 @@ class TaggableCacheItemPool extends CacheItemPool implements TaggableCacheItemPo
     public function jsonSerialize() {
 
         return [
-            static::class => [
-                CacheItemPoolInterface::class,
-                CacheInterface::class,
-                TaggableCacheItemPoolInterface::class,
-            ],
-            CacheItem::class => [
-                CacheItemInterface::class,
-                TaggableCacheItemInterface::class,
-                ItemInterface::class,
-            ],
+            'Cache' => static::class,
             'Version' => static::VERSION,
             'Driver' => $this->driver,
             'Tag Driver' => $this->tagDriver

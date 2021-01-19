@@ -227,7 +227,9 @@ class ReactCache implements CacheInterface, LoggerAwareInterface, Stringable, Js
 
     /** {@inheritdoc} */
     public function __debugInfo() {
-        return $this->jsonSerialize();
+        return [
+            'Informations' => $this->__toString()
+        ];
     }
 
     /** {@inheritdoc} */
@@ -239,11 +241,9 @@ class ReactCache implements CacheInterface, LoggerAwareInterface, Stringable, Js
     public function jsonSerialize() {
 
         return [
-            static::class => [
-                CacheInterface::class,
-            ],
+            'Cache' => static::class,
             'Version' => static::VERSION,
-            'Driver Loaded' => $this->driver
+            'Driver' => $this->driver
         ];
     }
 
