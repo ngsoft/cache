@@ -21,7 +21,7 @@ use function get_debug_type;
 /**
  * A PSR-16 Cache
  * A PSR-6 Cache Pool
- * If you don't use tags this the one you will be using
+ * If you don't use tags this the one you will be using to increase performances (as the taggable one needs to load the tags each time an item is saved/deleted)
  */
 class CacheItemPool implements Pool, Stringable, JsonSerializable {
 

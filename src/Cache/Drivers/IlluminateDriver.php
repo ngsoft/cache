@@ -12,36 +12,23 @@ use Psr\Cache\{
     CacheItemInterface, CacheItemPoolInterface
 };
 
+/**
+ * A Driver that makes PSR Caching compatible with Laravel Caching
+ * It don't use the Facade, instead it uses illuminate/cache directly
+ *
+ * @link https://packagist.org/packages/illuminate/cache
+ */
 class IlluminateDriver extends BaseDriver implements CacheDriver {
 
-    /** @var CacheItemPoolInterface */
-    protected $cacheProvider;
+    /** @var Store */
+    protected $cacheStore;
 
     /**
-     * Keep track of the issued items
-     * Preventing loading them multiple times
-     *
-     * @var CacheItemInterface[]
-     */
-    protected $issued = [];
-
-    /**
-     * @param CacheItemPoolInterface $cacheProvider
+     * @param Store $cacheStore
      * @throws InvalidArgumentException
      */
-    public function __construct(CacheItemPoolInterface $cacheProvider) {
-
-        if (
-                $cacheProvider instanceof Pool
-        ) {
-            // to prevent infinite loops
-            throw new InvalidArgumentException(sprintf(
-                                    'Cannot use %s as %s, too much recursion.',
-                                    get_class($cacheProvider),
-                                    CacheItemPoolInterface::class
-            ));
-        }
-        $this->cacheProvider = $cacheProvider;
+    public function __construct(Store $cacheStore) {
+        $this->cacheStore = $cacheStore;
     }
 
 }

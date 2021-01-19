@@ -6,6 +6,10 @@ namespace NGSOFT\Cache;
 
 /**
  * A CacheObject
+ *
+ * These are the values that are stored in the cache using the CachePool
+ *  I created that method of storage to make it future proof as if it need other metadatas (for other features),
+ *  I just need to add a property, also it makes it easier to lazy-load the datas
  */
 class CacheObject {
 
