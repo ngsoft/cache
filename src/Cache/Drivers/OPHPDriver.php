@@ -46,7 +46,7 @@ class OPHPDriver extends FileSystem implements CacheDriver {
                 'Cache Directory' => $this->getCacheRoot(),
                 'File Usage' => $this->getHumanFileSize($this->getUsage()),
                 'Free Space' => $this->getHumanFileSize($this->getFreeSpace()),
-                'Zend OPCache' => $this->isOPCacheEnabled(),
+                'Zend OPCache' => $this->isOPCacheEnabled() ? 'enabled' : 'disabled',
         ]];
     }
 
