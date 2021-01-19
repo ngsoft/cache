@@ -13,7 +13,7 @@ use Psr\Cache\{
 use Traversable;
 
 /**
- * Use another Cache Pool as Driver (ChainCache or Namespace Support, I don't know why else it would be used...)
+ * Use another Cache Pool as Driver (React, ChainCache or Namespace Support, I don't know why else it would be used...)
  * If provided cache pool has others features(tags for example), they will not be used
  */
 class CachePoolProxy extends BaseDriver implements CacheDriver {
