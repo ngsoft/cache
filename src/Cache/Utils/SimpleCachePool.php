@@ -41,6 +41,13 @@ class SimpleCachePool implements CacheInterface, LoggerAwareInterface {
             CacheItemPoolInterface $pool,
             int $defaultLifetime = 0
     ) {
+
+        if ($pool instanceof CacheInterface) {
+            throw new InvalidArgumentException(sprintf(
+                                    'Pool %s is already a PSR16 Cache.',
+                                    get_class($pool)
+            ));
+        }
         $this->defaultLifetime = max(0, $defaultLifetime);
         $this->pool = $pool;
     }
