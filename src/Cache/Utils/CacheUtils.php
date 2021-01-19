@@ -7,14 +7,24 @@ namespace NGSOFT\Cache\Utils;
 use Cache\TagInterop\TaggableCacheItemPoolInterface,
     DateInterval;
 use NGSOFT\{
-    Cache\CacheException, Cache\CacheItem, Cache\InvalidArgumentException, Traits\LoggerAware, Traits\UnionType
+    Cache\CacheDriver, Cache\CacheException, Cache\CacheItem, Cache\CacheObject, Cache\InvalidArgumentException, Traits\LoggerAware, Traits\UnionType
 };
 use Psr\{
-    Cache\CacheException as PSR6CacheException, Log\LogLevel, SimpleCache\CacheException as PSR16CacheException
+    Cache\CacheException as PSR6CacheException, Log\LoggerAwareInterface, Log\LogLevel, SimpleCache\CacheException as PSR16CacheException
 };
 use Throwable,
     TypeError;
 use function get_debug_type;
+
+//preload classes for better performances (loading there as a almost all classes uses that trait)
+interface_exists(LoggerAwareInterface::class);
+interface_exists(CacheDriver::class);
+
+class_exists(InvalidArgumentException::class);
+class_exists(CacheException::class);
+class_exists(CacheItem::class);
+class_exists(LogLevel::class);
+class_exists(CacheObject::class);
 
 /**
  * Reusable Methods for Cache Implementation

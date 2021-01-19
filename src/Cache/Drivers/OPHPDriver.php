@@ -11,6 +11,14 @@ use Psr\Log\LogLevel,
     Throwable;
 use function mb_substr_count;
 
+class_exists(Serializer::class);
+
+/**
+ * The Filesystem OPCache Driver
+ * Uses PHP Code to cache data
+ *
+ *   replacement for rip NGSOFT\Tools\Cache\PHPCache
+ */
 class OPHPDriver extends FileSystem implements CacheDriver {
 
     /**

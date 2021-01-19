@@ -1,7 +1,10 @@
 {
     "name": "ngsoft/cache",
-    "description": "A PSR-6/PSR-16 Cache Implementation .",
-    "keywords": ["phpcache", "psr-6", "psr-16", "cache", "caching", "opcache", "tags"],
+    "description": "A PSR-6/PSR-16/React Cache Implementation .",
+    "keywords": [
+        "phpcache", "psr-6", "psr-16", "cache", "caching", "opcache", "tags",
+        "react", "promise", "doctrine", "illuminate"
+    ],
     "license": "MIT",
     "authors": [{
             "name": "Aymeric Anger",
