@@ -219,6 +219,7 @@ class SimpleCachePool implements CacheInterface, LoggerAwareInterface {
 
         return [
             'Cache' => static::class,
+            'Implements' => class_implements($this),
             'Version' => static::VERSION,
             'Driver' => $this->driver
         ];

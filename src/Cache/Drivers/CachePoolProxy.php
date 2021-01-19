@@ -50,7 +50,11 @@ class CachePoolProxy extends BaseDriver implements CacheDriver {
 
     /** {@inheritdoc} */
     public function jsonSerialize() {
-        return get_class($this->cacheProvider);
+        return [
+            static::class => [
+                CacheItemPoolInterface::class => get_class($this->cacheProvider),
+            ]
+        ];
     }
 
     ////////////////////////////   API   ////////////////////////////

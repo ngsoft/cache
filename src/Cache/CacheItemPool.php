@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-use Cache\TagInterop\TaggableCacheItemInterface,
-    DateInterval,
+use DateInterval,
     DateTime,
     Generator,
     JsonSerializable;
@@ -13,10 +12,9 @@ use NGSOFT\{
     Cache\Utils\CacheUtils, Traits\Unserializable
 };
 use Psr\{
-    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerInterface, Log\NullLogger, SimpleCache\CacheInterface
+    Cache\CacheItemInterface, Log\LoggerInterface, Log\NullLogger
 };
 use Stringable,
-    Symfony\Contracts\Cache\ItemInterface,
     Throwable;
 use function get_debug_type;
 
@@ -447,6 +445,7 @@ class CacheItemPool implements Pool, Stringable, JsonSerializable {
 
         return [
             'Cache' => static::class,
+            'Implements' => class_implements($this),
             'Version' => static::VERSION,
             'Driver' => $this->driver
         ];

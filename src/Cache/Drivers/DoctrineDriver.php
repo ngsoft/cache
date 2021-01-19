@@ -42,7 +42,12 @@ class DoctrineDriver implements CacheDriver, Stringable, JsonSerializable {
 
     /** {@inheritdoc} */
     public function jsonSerialize() {
-        return get_class($this->doctrineProvider);
+        return [
+            static::class => [
+                "Provider" => get_class($this->doctrineProvider),
+                "Stats" => $this->doctrineProvider->getStats()
+            ]
+        ];
     }
 
     ////////////////////////////   API   ////////////////////////////

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Drivers;
 
 use NGSOFT\Cache\{
-    CacheDriver, InvalidArgumentException, Pool, SimpleCachePool, Utils\BaseDriver
+    CacheDriver, InvalidArgumentException, Pool, Utils\BaseDriver
 };
 use Psr\SimpleCache\CacheInterface,
     Traversable;
@@ -15,7 +15,7 @@ use Psr\SimpleCache\CacheInterface,
  */
 class SimpleCacheDriver extends BaseDriver implements CacheDriver {
 
-    /** @var CacheInterface|SimpleCachePool */
+    /** @var CacheInterface */
     protected $cacheProvider;
 
     /**
@@ -39,7 +39,11 @@ class SimpleCacheDriver extends BaseDriver implements CacheDriver {
 
     /** {@inheritdoc} */
     public function jsonSerialize() {
-        return get_class($this->cacheProvider);
+        return [
+            static::class => [
+                CacheInterface::class => get_class($this->cacheProvider),
+            ]
+        ];
     }
 
     ////////////////////////////   API   ////////////////////////////

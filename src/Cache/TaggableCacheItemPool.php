@@ -4,16 +4,11 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-use Cache\TagInterop\{
-    TaggableCacheItemInterface, TaggableCacheItemPoolInterface
-};
+use Cache\TagInterop\TaggableCacheItemPoolInterface;
 use NGSOFT\Cache\Utils\{
     Tag, TagList
 };
-use Psr\{
-    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerInterface, SimpleCache\CacheInterface
-};
-use Symfony\Contracts\Cache\ItemInterface,
+use Psr\Log\LoggerInterface,
     Throwable;
 
 /**
@@ -270,6 +265,7 @@ class TaggableCacheItemPool extends CacheItemPool implements TaggableCacheItemPo
 
         return [
             'Cache' => static::class,
+            'Implements' => class_implements($this),
             'Version' => static::VERSION,
             'Driver' => $this->driver,
             'Tag Driver' => $this->tagDriver
