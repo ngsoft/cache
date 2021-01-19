@@ -99,6 +99,16 @@ abstract class FileSystem extends BaseDriver {
         }
     }
 
+    /** {@inheritdoc} */
+    public function jsonSerialize() {
+        return [
+            static::class => [
+                'Cache Directory' => $this->getCacheRoot(),
+                'File Usage' => $this->getHumanFileSize($this->getUsage()),
+                'Free Space' => $this->getHumanFileSize($this->getFreeSpace()),
+        ]];
+    }
+
     /**
      * Prepares filesystem to store files
      *
@@ -359,7 +369,7 @@ abstract class FileSystem extends BaseDriver {
      * @param int $decimals
      * @return string
      */
-    final protected function humanFileSize(float $bytes, int $decimals = 2): string {
+    final protected function getHumanFileSize(float $bytes, int $decimals = 2): string {
         static $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
         $decimals = max(0, $decimals);
         for ($i = 0; $bytes > 1024; $i++) {
@@ -386,7 +396,7 @@ abstract class FileSystem extends BaseDriver {
      */
     protected function getUsage(): float {
         $usage = 0.0;
-        foreach ($this - $this->scanFiles($this->getCacheRoot(), $this->getExtension()) as $path) {
+        foreach ($this->scanFiles($this->getCacheRoot(), $this->getExtension()) as $path) {
             $size = @filesize($path);
             $usage += $size !== false ? $size : 0;
         }

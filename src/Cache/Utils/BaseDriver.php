@@ -297,4 +297,11 @@ abstract class BaseDriver implements Stringable, JsonSerializable {
         return hash('MD5', static::class . $key);
     }
 
+    ////////////////////////////   Debug Informations   ////////////////////////////
+
+    /** {@inheritdoc} */
+    public function jsonSerialize() {
+        return [static::class => []];
+    }
+
 }
