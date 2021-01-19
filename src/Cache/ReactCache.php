@@ -242,7 +242,7 @@ class ReactCache implements CacheInterface, LoggerAwareInterface, Stringable, Js
 
         return [
             'Cache' => static::class,
-            'Implements' => class_implements($this),
+            'Implements' => array_values(class_implements($this)),
             'Version' => static::VERSION,
             'Driver' => $this->driver
         ];

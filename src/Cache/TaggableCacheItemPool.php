@@ -265,7 +265,7 @@ class TaggableCacheItemPool extends CacheItemPool implements TaggableCacheItemPo
 
         return [
             'Cache' => static::class,
-            'Implements' => class_implements($this),
+            'Implements' => array_values(class_implements($this)),
             'Version' => static::VERSION,
             'Driver' => $this->driver,
             'Tag Driver' => $this->tagDriver
