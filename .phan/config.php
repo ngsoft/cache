@@ -74,5 +74,6 @@ return [
         'PhanAccessMethodInternal',
         'PhanAccessMethodProtected',
         'PhanRedefinedInheritedInterface',
+        'PhanRedefinedClassReference',
     ]
 ];

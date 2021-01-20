@@ -32,7 +32,7 @@ interface Pool extends CacheInterface, CacheItemPoolInterface, LoggerAwareInterf
      * Invalidates current namespace items, increasing the namespace version
      *
      *
-     * @return bool True if the items was successfully removed. False if there was an error.
+     * @return bool true if operation was successful.
      */
     public function invalidate(): bool;
 
