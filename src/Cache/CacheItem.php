@@ -4,21 +4,19 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-use Cache\TagInterop\TaggableCacheItemInterface,
-    DateInterval,
+use DateInterval,
     DateTime,
     DateTimeInterface;
 use NGSOFT\{
-    Cache\Utils\CacheUtils, Traits\Unserializable
+    Cache, Cache\Utils\CacheUtils, Traits\Unserializable
 };
-use Psr\Cache\CacheItemInterface,
-    Symfony\Contracts\Cache\ItemInterface;
+use Psr\Cache\CacheItemInterface;
 use function get_debug_type;
 
 /**
  * A Basic Cache Item
  */
-class CacheItem implements CacheItemInterface, \NGSOFT\Cache {
+class CacheItem implements CacheItemInterface, Cache {
 
     use CacheUtils;
     use Unserializable;
@@ -92,7 +90,7 @@ class CacheItem implements CacheItemInterface, \NGSOFT\Cache {
      * @internal private
      * @return int|null Timestamp
      */
-    public function getExpiration(): ?int {
+    public function getExpiry(): ?int {
         return $this->expiry;
     }
 

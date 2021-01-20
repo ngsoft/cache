@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Utils;
 
-use Cache\TagInterop\TaggableCacheItemPoolInterface,
-    DateInterval;
+use DateInterval;
 use NGSOFT\{
-    Cache\CacheDriver, Cache\CacheException, Cache\CacheItem, Cache\CacheObject, Cache\InvalidArgumentException, Traits\LoggerAware, Traits\UnionType
+    Cache\CacheException, Cache\CacheItem, Cache\InvalidArgumentException, Traits\LoggerAware, Traits\UnionType
 };
 use Psr\{
     Cache\CacheException as PSR6CacheException, Log\LoggerAwareInterface, Log\LogLevel, SimpleCache\CacheException as PSR16CacheException
@@ -212,7 +211,7 @@ trait CacheUtils {
      */
     protected function expiryToLifetime(int $expiry): int {
         return
-                $expiry > 0 ?
+                $expiry != 0 ?
                 $expiry - time() :
                 0;
     }
@@ -224,24 +223,21 @@ trait CacheUtils {
      * @staticvar CacheItem $item
      * @param string $key
      * @param mixed $value
-     * @param int|null $expire
      * @return CacheItem
      */
-    protected function createItem(string $key, $value = null, int $expire = null): CacheItem {
+    protected function createItem(string $key, $value = null): CacheItem {
         static $create, $item;
         if (!$item) {
             $item = new CacheItem('CacheItem');
-            $create = static function (string $key, $value, int $expire = null) use ($item): CacheItem {
+            $create = static function (string $key, $value) use ($item): CacheItem {
                 $c = clone $item;
                 $c->key = $key;
-                $c->expiry = $expire;
-                // checks valid data
-                $c->set($value);
+                $c->value = $value;
                 return $c;
             };
             $create = $create->bindTo(null, CacheItem::class);
         }
-        return $create($key, $value, $expire);
+        return $create($key, $value);
     }
 
     ////////////////////////////   Debug Informations   ////////////////////////////
