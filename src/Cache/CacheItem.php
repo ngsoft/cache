@@ -18,15 +18,10 @@ use function get_debug_type;
 /**
  * A Basic Cache Item
  */
-class CacheItem implements CacheItemInterface, TaggableCacheItemInterface, ItemInterface {
+class CacheItem implements CacheItemInterface, \NGSOFT\Cache {
 
     use CacheUtils;
     use Unserializable;
-
-    /**
-     * Version Information
-     */
-    public const VERSION = CacheItemPool::VERSION;
 
     /** @var string */
     protected $key;
@@ -36,19 +31,6 @@ class CacheItem implements CacheItemInterface, TaggableCacheItemInterface, ItemI
 
     /** @var int|null */
     protected $expiry = null;
-
-    /** @var bool */
-    protected $tagAware = false;
-
-    /**
-     * @var string[] Tags saved with the entry
-     */
-    protected $tags = [];
-
-    /**
-     * @var string[] New tags to be added
-     */
-    protected $newTags = [];
 
     /**
      * {@inheritdoc}
@@ -105,48 +87,6 @@ class CacheItem implements CacheItemInterface, TaggableCacheItemInterface, ItemI
                 !$this->isExpired($this->expiry);
     }
 
-    /** {@inheritdoc} */
-    public function getPreviousTags() {
-        return $this->tags;
-    }
-
-    /**
-     * {@inheritdoc}
-     * @return CacheItem
-     */
-    public function setTags(array $tags): TaggableCacheItemInterface {
-        $this->tag($tags);
-        return $this;
-    }
-
-    /**
-     * {@inheritdoc}
-     * @return ItemInterface|CacheItem
-     */
-    public function tag($tags): ItemInterface {
-        if (!is_iterable($tags)) {
-            $tags = [$tags];
-        }
-        if (count($tags) == 0) return $this;
-
-        if (!$this->tagAware) throw new CacheException('Cache Pool is not Tag Aware, you cannot assign tags.');
-
-        foreach ($tags as $tag) {
-            $tag = $this->getValidTag($tag);
-            $this->newTags[$tag] = $tag;
-        }
-        return $this;
-    }
-
-    /** {@inheritdoc} */
-    public function getMetadata(): array {
-        return [
-            self::METADATA_CTIME => null,
-            self::METADATA_EXPIRY => $this->expiry,
-            self::METADATA_TAGS => $this->tags
-        ];
-    }
-
     /**
      * Exports Expiry Value
      * @internal private
@@ -154,29 +94,6 @@ class CacheItem implements CacheItemInterface, TaggableCacheItemInterface, ItemI
      */
     public function getExpiration(): ?int {
         return $this->expiry;
-    }
-
-    /**
-     * Set the expiration timestamp
-     * Why is it not in expiresAt() ?
-     *
-     * @internal private
-     * @param int $time Timestamp
-     * @return CacheItem
-     */
-    public function setExpiration(int $time): self {
-        // prevents negative values (as 1 is already expired)
-        $this->expiry = max(0, $time);
-        return $this;
-    }
-
-    /**
-     * Exports newly added tags
-     * @internal private
-     * @return string[]
-     */
-    public function getNewTags(): array {
-        return $this->newTags;
     }
 
     /**
@@ -189,13 +106,10 @@ class CacheItem implements CacheItemInterface, TaggableCacheItemInterface, ItemI
 
     /** {@inheritdoc} */
     public function __debugInfo() {
-        return $this->getMetadata();
-    }
-
-    /** {@inheritdoc} */
-    public function __clone() {
-        $this->tags = $this->newTags;
-        $this->newTags = [];
+        return [
+            'key' => $this->getKey(),
+            'hit' => $this->isHit()
+        ];
     }
 
 }

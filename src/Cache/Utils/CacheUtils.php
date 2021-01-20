@@ -18,12 +18,9 @@ use function get_debug_type;
 
 //preload classes for better performances (loading there as a almost all classes uses that trait)
 interface_exists(LoggerAwareInterface::class);
-interface_exists(CacheDriver::class);
-
 class_exists(InvalidArgumentException::class);
 class_exists(CacheException::class);
 class_exists(LogLevel::class);
-class_exists(CacheObject::class);
 
 /**
  * Reusable Methods for Cache Implementation
@@ -228,31 +225,23 @@ trait CacheUtils {
      * @param string $key
      * @param mixed $value
      * @param int|null $expire
-     * @param string[] $tags
-     * @param bool|null $tagAware Determines if pool is tag aware
      * @return CacheItem
      */
-    protected function createItem(string $key, $value = null, int $expire = null, array $tags = [], bool $tagAware = null): CacheItem {
+    protected function createItem(string $key, $value = null, int $expire = null): CacheItem {
         static $create, $item;
         if (!$item) {
             $item = new CacheItem('CacheItem');
-            $create = static function (string $key, $value, int $expire = null, array $tags = [], bool $tagAware = false) use ($item): CacheItem {
+            $create = static function (string $key, $value, int $expire = null) use ($item): CacheItem {
                 $c = clone $item;
                 $c->key = $key;
-                $c->tags = $tags;
                 $c->expiry = $expire;
-                $c->tagAware = $tagAware;
                 // checks valid data
                 $c->set($value);
                 return $c;
             };
-
             $create = $create->bindTo(null, CacheItem::class);
         }
-        //auto determine if tag aware
-        if ($tagAware === null) $tagAware = $this instanceof TaggableCacheItemPoolInterface;
-
-        return $create($key, $value, $expire, $tags, $tagAware);
+        return $create($key, $value, $expire);
     }
 
     ////////////////////////////   Debug Informations   ////////////////////////////

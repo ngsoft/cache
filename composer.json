@@ -2,7 +2,7 @@
     "name": "ngsoft/cache",
     "description": "A PSR-6/PSR-16/React cache implementation that supports PHP OPCache, APCu, Doctrine, Illuminate or any PSR-6/16 compatible and can chain them all.",
     "keywords": [
-        "phpcache", "psr-6", "psr-16", "cache", "caching", "opcache", "tags",
+        "phpcache", "psr-6", "psr-16", "cache", "caching", "opcache",
         "react", "promise", "doctrine", "illuminate", "chain", "apcu"
     ],
     "license": "MIT",
@@ -36,8 +36,7 @@
         "ngsoft/tools": "^2",
         "psr/cache": "^1",
         "psr/simple-cache": "^1",
-        "cache/tag-interop": "^1",
-        "symfony/cache-contracts": ">=2.1"
+        "react/promise": ">=2.8"
 
     },
     "autoload": {
