@@ -135,7 +135,7 @@ final class ReactCache implements CacheInterface, LoggerAwareInterface, Stringab
             $result = [];
             foreach ($this->driver->fetch(...array_values($keys)) as $key => $value) {
                 if ($value instanceof CacheObject) $result[$key] = $value->value === null ? $default : $value->value;
-                else $result[$key] = $value === null ? $default : $value;
+                else $result[$key] = $default;
             }
             return resolve($result);
         } catch (Throwable $error) {
