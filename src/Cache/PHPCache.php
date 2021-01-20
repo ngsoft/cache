@@ -25,9 +25,9 @@ class PHPCache extends CacheItemPool {
             string $prefix = 'phpcache'
     ) {
 
-        $drivers = [new ArrayDriver()];
-        if (APCuDriver::isSupported() and php_sapi_name() !== 'cli') $drivers[] = new APCuDriver();
-        $drivers[] = new OPHPDriver($rootpath, $prefix);
+        $drivers = [new ArrayDriver()]; //useful to cache the already fetched data
+        if (APCuDriver::isSupported() and php_sapi_name() !== 'cli') $drivers[] = new APCuDriver(); // disabled in cli mode as it works a an array cache
+        $drivers[] = new OPHPDriver($rootpath, $prefix); // in 2nd/third position as it is the less faster (it serves to warm APCu, as it can flush data before expired)
         $chain = new ChainDriver($drivers);
         parent::__construct($chain, $defaultLifetime ?? 0);
     }

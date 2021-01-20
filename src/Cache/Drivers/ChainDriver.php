@@ -66,8 +66,9 @@ class ChainDriver implements CacheDriver, IteratorAggregate, Countable, Stringab
 
     /** @return Generator|CacheDriver[] */
     public function getReverseIterator(int $current = null) {
-        $current = $current ?? count($this->drivers) - 1;
-        if (!isset($this->drivers[$current])) return;
+        if ($current === null) {
+            $current = count($this->drivers);
+        } elseif (!isset($this->drivers[$current])) return;
         for ($j = $current - 1; $j > -1; $j--) {
             yield $j => $this->drivers[$j];
         }
