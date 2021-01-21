@@ -4,48 +4,69 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-use GuzzleHttp\Promise\PromiseInterface,
-    Psr\Log\LoggerAwareInterface,
+use Psr\Log\LoggerAwareInterface,
     Traversable;
 
-interface_exists(PromiseInterface::class);
-
 /**
- * A slightly modified version of SimpleCache Interface using guzzlehttp/promises as engine
+ * A slightly modified version of SimpleCache Interface
  */
 interface Driver extends LoggerAwareInterface {
 
     /**
+     * Change the namespace for the current instance
+     *   A namespace is a modifier assigned to the key
+     *
+     * @param string $namespace The prefix to use
+     * @throws InvalidArgumentException if the namespace is invalid: '{}()/\@:' are found.
+     * @return void
+     */
+    public function setNamespace(string $namespace): void;
+
+    /**
+     * Get the currently assigned namespace
+     *
+     * @return string
+     */
+    public function getNamespace(): string;
+
+    /**
+     * Invalidates current namespace items, increasing the namespace version.
+     *
+     * @return bool true if the process was successful, false otherwise.
+     */
+    public function invalidateNamespace(): bool;
+
+    /**
      * Wipes clean the entire cache's keys.
      *
-     * @return PromiseInterface<bool>   Resolves true on success, false otherwise
+     * @return bool   true on success, false otherwise
      */
-    public function clear(): PromiseInterface;
+    public function clear(): bool;
 
     /**
      * Determines whether an item is present in the cache.
      *
      * @param string $key The cache item key.
      *
-     * @return PromiseInterface<bool>   Resolves true on success, false otherwise
+     * @return bool  true on success, false otherwise
      */
-    public function has(string $key): PromiseInterface;
+    public function has(string $key): bool;
 
     /**
      * Fetches a value from the cache.
      *
      * @param string $key The unique key of this item in the cache.
      *
-     * @return PromiseInterface Resolves the value on cache hit, rejects on cache miss
+     * @return mixed|null null on cache miss
      */
-    public function get(string $key): PromiseInterface;
+    public function get(string $key);
 
     /**
      * Obtains multiple cache items by their unique keys.
      *
      * @param string ...$listOfKeys A list of keys that can obtained in a single operation.
      *
-     * @return Traversable<string,PromiseInterface> An Iterator indexed by key => PromiseInterface that resoves the value on success, else rejects.
+     * @return Traversable An Iterator indexed by key => value.
      */
     public function getMultiple(string ...$listOfKeys): Traversable;
 
@@ -56,9 +77,9 @@ interface Driver extends LoggerAwareInterface {
      * @param mixed     $value          The value of the item to store, must be serializable.
      * @param int       $lifeTime       The TTL to use, a value of 0 never expires, a negative value removes the values from the storage.
      *
-     * @return PromiseInterface<bool>   Resolves true on success, false otherwise
+     * @return bool   true on success, false otherwise
      */
-    public function set(string $key, $value, int $lifeTime = 0): PromiseInterface;
+    public function set(string $key, $value, int $lifeTime = 0): bool;
 
     /**
      * Persists a set of key => value pairs in the cache, with an optional TTL.
@@ -66,26 +87,26 @@ interface Driver extends LoggerAwareInterface {
      * @param iterable  $values     A list of key => value pairs for a multiple-set operation.
      * @param int       $lifeTime   The TTL to use, a value of 0 never expires, a negative value removes the values from the storage.
      *
-     * @return PromiseInterface<bool>     Resolves true on success(even if object removed), false otherwise.
+     * @return bool     true on success(even if object removed), false otherwise.
      *
      */
-    public function setMultiple(iterable $values, int $lifeTime = 0): PromiseInterface;
+    public function setMultiple(iterable $values, int $lifeTime = 0): bool;
 
     /**
      * Delete an item from the cache by its unique key.
      *
      * @param string $key The unique cache key of the item to delete.
      *
-     * @return PromiseInterface Resolves true on success, false otherwise.
+     * @return bool true on success, false otherwise.
      */
-    public function delete(string $key): PromiseInterface;
+    public function delete(string $key): bool;
 
     /**
      * Deletes multiple cache items in a single operation.
      *
      * @param string ...$listOfKeys A list of keys to be deleted.
      *
-     * @return PromiseInterface<bool>     Resolves true on success, false otherwise.
+     * @return bool true on success, false otherwise.
      */
-    public function deleteMultiple(string ...$listOfKeys): PromiseInterface;
+    public function deleteMultiple(string ...$listOfKeys): bool;
 }
