@@ -16,10 +16,8 @@ use Throwable,
 use function get_debug_type;
 
 //preload classes for better performances (loading there as a almost all classes uses that trait)
-interface_exists(LoggerAwareInterface::class);
 class_exists(InvalidArgumentException::class);
 class_exists(CacheException::class);
-class_exists(LogLevel::class);
 
 /**
  * Reusable Methods for Cache Implementation
