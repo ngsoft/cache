@@ -69,47 +69,13 @@ trait CacheUtils {
      * @return string
      */
     protected function getValidKey($name): string {
-        return static::getValidName($name);
-    }
-
-    /**
-     * @param mixed $name
-     * @return string
-     */
-    protected function getValidTag($name): string {
-        return static::getValidName($name, 'tag');
-    }
-
-    /**
-     * Get the valid representation for the given name, also validate
-     * @param mixed $name
-     * @param string $type tag or key
-     * @return string
-     * @throws InvalidArgumentException if given name is invalid
-     */
-    protected static function getValidName($name, string $type = 'key'): string {
-        if (
-                $type == 'tag' and
-                !is_string($name) and
-                !(is_object($name) and method_exists($name, '__toString'))
-        ) {
-            throw new InvalidArgumentException(sprintf(
-                                    'Cache tag must be string or object that implements __toString(), "%s" given.',
-                                    is_object($name) ? get_class($name) : get_debug_type($name)
-            ));
-        } elseif (
-                $type == 'key' and
-                !is_string($name)
-        ) {
+        if (!is_string($name)) {
             throw new InvalidArgumentException(sprintf(
                                     'Cache %s must be string, "%s" given.',
                                     $type,
                                     get_debug_type($name)
             ));
         }
-
-        $name = (string) $name;
-
         if ('' === $name) {
             throw new InvalidArgumentException(sprintf('Cache %s length must be greater than zero.', $type));
         }
@@ -121,7 +87,6 @@ trait CacheUtils {
                                     '{}()/\@:'
             ));
         }
-
         return $name;
     }
 
@@ -135,7 +100,7 @@ trait CacheUtils {
         if (!is_iterable($keys)) {
             throw new InvalidArgumentException(sprintf('Invalid argument $keys, iterable expected, %s given.', get_debug_type($keys)));
         }
-        foreach ($keys as $key) $this->getValidName($key);
+        foreach ($keys as $key) $this->getValidKey($key);
     }
 
     /**
@@ -163,23 +128,6 @@ trait CacheUtils {
             $this->checkType($ttl, 'null', 'int', DateInterval::class);
         } catch (TypeError $error) {
             throw new InvalidArgumentException(sprintf('Invalid $ttl provided. %s', $error->getMessage()));
-        }
-    }
-
-    /**
-     * Check value against specified types
-     *
-     * @param mixed $value
-     * @param string ...$types
-     * @throws InvalidArgumentException
-     */
-    protected function doCheck($value, string ...$types) {
-
-        try {
-
-            $this->checkType($value, ...$types);
-        } catch (TypeError $error) {
-            throw new InvalidArgumentException($error->getMessage());
         }
     }
 
