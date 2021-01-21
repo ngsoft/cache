@@ -35,7 +35,7 @@ final class SimpleCachePool implements CacheInterface, LoggerAwareInterface {
 
     /**
      * @param CacheItemPoolInterface $pool The CacheItemPool
-     * @param int $defaultLifetime Default TTL to use when using null as ttl
+     * @param int $defaultLifetime Default TTL to use when using null as ttl (a value of 0 never expires)
      */
     public function __construct(
             CacheItemPoolInterface $pool,

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Events;
 
 /**
- * Dispatche on Cache Hit
+ * Dispatched on Cache Hit
  */
 class CacheHit extends CacheEvent {
 
