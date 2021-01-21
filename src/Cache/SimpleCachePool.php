@@ -4,20 +4,22 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-use Generator;
+use Generator,
+    JsonSerializable;
 use NGSOFT\{
     Cache, Cache\InvalidArgumentException, Cache\Utils\CacheUtils, Traits\Unserializable
 };
 use Psr\{
     Cache\CacheItemPoolInterface, Log\LoggerAwareInterface, Log\LoggerInterface, SimpleCache\CacheInterface
 };
-use Throwable;
+use Stringable,
+    Throwable;
 use function get_debug_type;
 
 /**
  * Adapter to use PSR6 Cache pool as a PSR 16 Cache
  */
-final class SimpleCachePool implements CacheInterface, LoggerAwareInterface {
+final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Stringable, JsonSerializable {
 
     use CacheUtils;
     use Unserializable;
