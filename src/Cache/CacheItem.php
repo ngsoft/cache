@@ -10,13 +10,16 @@ use DateInterval,
 use NGSOFT\{
     Cache, Cache\Utils\CacheUtils, Traits\Unserializable
 };
-use Psr\Cache\CacheItemInterface;
+use Psr\{
+    Cache\CacheItemInterface, Log\LoggerAwareInterface
+};
+use Throwable;
 use function get_debug_type;
 
 /**
  * A Basic Cache Item
  */
-class CacheItem implements CacheItemInterface, Cache {
+class CacheItem implements CacheItemInterface, Cache, LoggerAwareInterface {
 
     use CacheUtils;
     use Unserializable;
@@ -35,11 +38,15 @@ class CacheItem implements CacheItemInterface, Cache {
      * @return CacheItem
      */
     public function expiresAfter($time) {
-        if ($time === null) $this->expiry = null;
-        elseif ($time instanceof DateInterval) $this->expiry = (new DateTime())->add($time)->getTimestamp();
-        elseif (is_int($time)) $this->expiry = time() + $time;
-        else throw new InvalidArgumentException(sprintf('Expiration date must be an integer, a DateInterval or null, "%s" given.', get_debug_type($time)));
-        return $this;
+        try {
+            if ($time === null) $this->expiry = null;
+            elseif ($time instanceof DateInterval) $this->expiry = (new DateTime())->add($time)->getTimestamp();
+            elseif (is_int($time)) $this->expiry = time() + $time;
+            else throw new InvalidArgumentException(sprintf('Expiration date must be an integer, a DateInterval or null, "%s" given.', get_debug_type($time)));
+            return $this;
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
     }
 
     /**
@@ -47,11 +54,15 @@ class CacheItem implements CacheItemInterface, Cache {
      * @return CacheItem
      */
     public function expiresAt($expiration) {
-        if ($expiration instanceof DateTimeInterface) {
-            $this->expiry = $expiration->getTimestamp();
-        } elseif ($expiration === null) $this->expiry = null;
-        else throw new InvalidArgumentException(sprintf('Expiration date must implement DateTimeInterface or be null, "%s" given.', get_debug_type($expiration)));
-        return $this;
+        try {
+            if ($expiration instanceof DateTimeInterface) {
+                $this->expiry = $expiration->getTimestamp();
+            } elseif ($expiration === null) $this->expiry = null;
+            else throw new InvalidArgumentException(sprintf('Expiration date must implement DateTimeInterface or be null, "%s" given.', get_debug_type($expiration)));
+            return $this;
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
     }
 
     /**

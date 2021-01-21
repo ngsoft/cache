@@ -9,7 +9,7 @@ use NGSOFT\{
     Cache\CacheException, Cache\CacheItem, Cache\InvalidArgumentException, Traits\LoggerAware, Traits\UnionType
 };
 use Psr\{
-    Cache\CacheException as PSR6CacheException, Log\LoggerAwareInterface, Log\LogLevel, SimpleCache\CacheException as PSR16CacheException
+    Cache\CacheException as PSR6CacheException, Log\LoggerAwareInterface, Log\LoggerInterface, Log\LogLevel, SimpleCache\CacheException as PSR16CacheException
 };
 use Throwable,
     TypeError;
@@ -32,9 +32,6 @@ trait CacheUtils {
     use LoggerAware;
 
 
-
-
-
     ////////////////////////////   LoggerAware   ////////////////////////////
 
     /**
@@ -51,18 +48,15 @@ trait CacheUtils {
     ) {
         $level = LogLevel::ALERT;
         if ($exception instanceof InvalidArgumentException) $level = LogLevel::WARNING;
-        $this->log($level, $exception->getMessage(), ['exception' => $exception]);
+
         if (
                 ($exception instanceof PSR6CacheException or
                 $exception instanceof PSR16CacheException) and
                 $method
         ) {
-
-            $exception = new CacheException(
-                    sprintf('Cache Exception thrown in %s::%s', static::class, $method),
-                    0,
-                    $exception
-            );
+            $this->log($level, sprintf('Cache Exception thrown in %s::%s', static::class, $method), [
+                'exception' => $exception
+            ]);
         }
 
         return $exception;
@@ -229,15 +223,16 @@ trait CacheUtils {
         static $create, $item;
         if (!$item) {
             $item = new CacheItem('CacheItem');
-            $create = static function (string $key, $value) use ($item): CacheItem {
+            $create = static function (string $key, $value, LoggerInterface $logger = null) use ($item): CacheItem {
                 $c = clone $item;
                 $c->key = $key;
                 $c->value = $value;
+                $logger and $c->setLogger($logger);
                 return $c;
             };
             $create = $create->bindTo(null, CacheItem::class);
         }
-        return $create($key, $value);
+        return $create($key, $value, $this->logger);
     }
 
     ////////////////////////////   Debug Informations   ////////////////////////////

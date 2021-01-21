@@ -9,32 +9,9 @@ use Psr\Log\LoggerAwareInterface,
 
 /**
  * A slightly modified version of SimpleCache Interface
+ * Why not make a v2 with typehinting?
  */
 interface Driver extends LoggerAwareInterface {
-
-    /**
-     * Change the namespace for the current instance
-     *   A namespace is a modifier assigned to the key
-     *
-     * @param string $namespace The prefix to use
-     * @throws InvalidArgumentException if the namespace is invalid: '{}()/\@:' are found.
-     * @return void
-     */
-    public function setNamespace(string $namespace): void;
-
-    /**
-     * Get the currently assigned namespace
-     *
-     * @return string
-     */
-    public function getNamespace(): string;
-
-    /**
-     * Invalidates current namespace items, increasing the namespace version.
-     *
-     * @return bool true if the process was successful, false otherwise.
-     */
-    public function invalidateNamespace(): bool;
 
     /**
      * Wipes clean the entire cache's keys.
@@ -64,11 +41,11 @@ interface Driver extends LoggerAwareInterface {
     /**
      * Obtains multiple cache items by their unique keys.
      *
-     * @param string ...$listOfKeys A list of keys that can obtained in a single operation.
+     * @param iterable $keys A list of keys that can obtained in a single operation.
      *
      * @return Traversable An Iterator indexed by key => value.
      */
-    public function getMultiple(string ...$listOfKeys): Traversable;
+    public function getMultiple(iterable $keys): Traversable;
 
     /**
      * Persists data in the cache, uniquely referenced by a key with an optional expiration TTL time.
@@ -84,13 +61,13 @@ interface Driver extends LoggerAwareInterface {
     /**
      * Persists a set of key => value pairs in the cache, with an optional TTL.
      *
-     * @param iterable  $values     A list of key => value pairs for a multiple-set operation.
+     * @param array     $values     A list of key => value pairs for a multiple-set operation.
      * @param int       $lifeTime   The TTL to use, a value of 0 never expires, a negative value removes the values from the storage.
      *
      * @return bool     true on success(even if object removed), false otherwise.
      *
      */
-    public function setMultiple(iterable $values, int $lifeTime = 0): bool;
+    public function setMultiple(array $values, int $lifeTime = 0): bool;
 
     /**
      * Delete an item from the cache by its unique key.
@@ -99,14 +76,14 @@ interface Driver extends LoggerAwareInterface {
      *
      * @return bool true on success, false otherwise.
      */
-    public function delete(string $key): bool;
+    public function delete(string $key, string ...$additionalKeys): bool;
 
     /**
      * Deletes multiple cache items in a single operation.
      *
-     * @param string ...$listOfKeys A list of keys to be deleted.
+     * @param array $keys A list of keys to be deleted.
      *
      * @return bool true on success, false otherwise.
      */
-    public function deleteMultiple(string ...$listOfKeys): bool;
+    public function deleteMultiple(array $keys): bool;
 }
