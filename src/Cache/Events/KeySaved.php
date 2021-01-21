@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Events;
 
+/**
+ * Dispatched when a CacheItem is saved
+ */
 class KeySaved extends CacheEvent {
 
     /** @var mixed */
