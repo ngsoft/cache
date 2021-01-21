@@ -52,22 +52,22 @@ interface Driver extends LoggerAwareInterface {
      *
      * @param string    $key            The key of the item to store.
      * @param mixed     $value          The value of the item to store, must be serializable.
-     * @param int       $lifeTime       The TTL to use, a value of 0 never expires, a negative value removes the values from the storage.
+     * @param int       $expiry         The timestamp at which the item will expire (a value of 0 never expires).
      *
      * @return bool   true on success, false otherwise
      */
-    public function set(string $key, $value, int $lifeTime = 0): bool;
+    public function set(string $key, $value, int $expiry = 0): bool;
 
     /**
      * Persists a set of key => value pairs in the cache, with an optional TTL.
      *
      * @param array     $values     A list of key => value pairs for a multiple-set operation.
-     * @param int       $lifeTime   The TTL to use, a value of 0 never expires, a negative value removes the values from the storage.
+     * @param int       $expiry     The timestamp at which the item will expire (a value of 0 never expires).
      *
      * @return bool     true on success(even if object removed), false otherwise.
      *
      */
-    public function setMultiple(array $values, int $lifeTime = 0): bool;
+    public function setMultiple(array $values, int $expiry = 0): bool;
 
     /**
      * Delete an item from the cache by its unique key.
@@ -76,7 +76,7 @@ interface Driver extends LoggerAwareInterface {
      *
      * @return bool true on success, false otherwise.
      */
-    public function delete(string $key, string ...$additionalKeys): bool;
+    public function delete(string $key): bool;
 
     /**
      * Deletes multiple cache items in a single operation.

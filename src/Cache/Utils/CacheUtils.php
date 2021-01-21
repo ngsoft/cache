@@ -8,8 +8,8 @@ use DateInterval;
 use NGSOFT\{
     Cache\CacheException, Cache\CacheItem, Cache\InvalidArgumentException, Traits\LoggerAware, Traits\UnionType
 };
-use Psr\{
-    Cache\CacheException as PSR6CacheException, Log\LoggerInterface, Log\LogLevel, SimpleCache\CacheException as PSR16CacheException
+use Psr\Log\{
+    LoggerInterface, LogLevel
 };
 use Throwable,
     TypeError;
@@ -48,8 +48,7 @@ trait CacheUtils {
         if ($exception instanceof InvalidArgumentException) $level = LogLevel::WARNING;
 
         if (
-                ($exception instanceof PSR6CacheException or
-                $exception instanceof PSR16CacheException) and
+                $exception instanceof CacheException and
                 $method
         ) {
             $this->log($level, sprintf('Cache Exception thrown in %s::%s', static::class, $method), [

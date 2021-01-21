@@ -10,17 +10,13 @@ use NGSOFT\Cache\{
 
 /**
  * Adds the ability to manipulate Namespaces
- *
  */
 abstract class NamespaceAble {
 
-    /** @var Driver */
-    protected $driver;
-
     /**
      * Namespaces are used to prevent conflicts between differents applications that can use the same cache keys
-     * A clear in a namespace will increment its version, so to remove the entries, use removeExpired()
-     * Modifiers stands for Namespace[Key][NamespaceVersion]
+     *
+     * Modifiers stands for Namespace_Key_NamespaceVersion
      */
     private const NAMESPACE_MODIFIER = '%s_%s_%u';
 
@@ -40,6 +36,9 @@ abstract class NamespaceAble {
 
     /** @var string */
     private $namespace;
+
+    /** @var Driver */
+    protected $driver;
 
     /** @param string $namespace */
     public function __construct(
@@ -87,19 +86,22 @@ abstract class NamespaceAble {
 
     /**
      * Invalidates current namespace items, increasing the namespace version.
+     * If no namespace is set it will do nothing (and return false)
      *
      * @return bool true if the process was successful, false otherwise.
      */
     final public function invalidateNamespace(): bool {
-
-        $key = $this->getNamespaceKey();
-        $version = $this->getNamespaceVersion() + 1;
-        if ($this->driver->set($key, $version)) {
-            $this->namespace_version = $version;
-            return true;
+        if (!empty($this->namespace)) {
+            $version = $this->getNamespaceVersion() + 1;
+            if ($this->driver->set($this->getNamespaceKey(), $version)) {
+                $this->namespace_version = $version;
+                return true;
+            }
         }
         return false;
     }
+
+    ////////////////////////////   Helpers   ////////////////////////////
 
     /**
      * Get the namespaced key (This is the key used in the storage, not the one in the cache item)
@@ -109,17 +111,16 @@ abstract class NamespaceAble {
      * @return string
      */
     final protected function getStorageKey(string $key): string {
-        return sprintf(self::NAMESPACE_MODIFIER, $this->getNamespace(), $key, $this->getNamespaceVersion());
+        if (empty($this->namespace)) return $key;
+        return sprintf(self::NAMESPACE_MODIFIER, $this->namespace, $key, $this->getNamespaceVersion());
     }
-
-    ////////////////////////////   Utils   ////////////////////////////
 
     /**
      * Get the cache key for the namespace
      * @return string
      */
     private function getNamespaceKey(): string {
-        return sprintf(self::NAMESPACE_VERSION_KEY, $this->getNamespace());
+        return sprintf(self::NAMESPACE_VERSION_KEY, $this->namespace);
     }
 
     /**
@@ -128,9 +129,9 @@ abstract class NamespaceAble {
      */
     private function getNamespaceVersion(): int {
         if ($this->namespace_version === null) {
-            $key = $this->getNamespaceKey();
-            if (is_int($val = $this->driver->get($key))) $this->namespace_version = $val;
-            else $this->namespace_version = 1;
+            if (!is_int($val = $this->driver->get($this->getNamespaceKey()))) {
+                $this->namespace_version = 1;
+            } else $this->namespace_version = $val;
         }
         return $this->namespace_version;
     }
