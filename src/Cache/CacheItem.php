@@ -121,4 +121,31 @@ class CacheItem implements CacheItemInterface, Cache, LoggerAwareInterface {
         ];
     }
 
+    /**
+     * Finds objects recursively inside an array and clones them
+     * @param array $array
+     * @return array
+     */
+    private function cloneRecursive(array $array): array {
+        $result = [];
+        foreach ($array as $key => $value) {
+            if (is_object($value)) $result[$key] = clone $value;
+            elseif (is_array($value)) $result[$key] = $this->cloneRecursive($value);
+            else $result[$key] = $value;
+        }
+        return $result;
+    }
+
+    /**
+     * If in deferred with an Object(s) inside
+     * to not modify the original objects
+     */
+    public function __clone() {
+        if (is_object($this->value)) {
+            $this->value = clone $this->value;
+        } elseif (is_array($this->value)) {
+            $this->value = $this->cloneRecursive($this->value);
+        }
+    }
+
 }

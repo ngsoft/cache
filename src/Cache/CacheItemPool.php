@@ -7,7 +7,7 @@ namespace NGSOFT\Cache;
 use Generator,
     JsonSerializable;
 use NGSOFT\{
-    Cache, Cache\Utils\CacheUtils, Cache\Utils\NamespaceAble, Events\EventDispatcherAware, Traits\Unserializable
+    Cache, Cache\Events\KeyDeleted, Cache\Events\KeySaved, Cache\Utils\CacheUtils, Cache\Utils\NamespaceAble, Events\EventDispatcherAware, Traits\Unserializable
 };
 use Psr\{
     Cache\CacheItemInterface, Cache\CacheItemPoolInterface, EventDispatcher\EventDispatcherInterface, Log\LoggerAwareInterface
@@ -86,12 +86,21 @@ final class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolI
                 }
                 $expiry = $item->getExpiry() ?? $this->getExpiryRealValue();
                 $toSave[$expiry] = $toSave[$expiry] ?? [];
-                $toSave[$expiry] [$key] = $item->get();
+                // namespaced key to give the driver
+                $toSave[$expiry] [$this->getStorageKey($key)] = $item->get();
             }
             foreach ($toSave as $expiry => $values) {
-                $r = $this->driver->setMultiple($knv, $expiry) && $r;
+                //psr-14 only if we have a dispatcher
+                //no need to loop for nothing
+                if (
+                        ($result = $this->getDriver()->setMultiple($values, $expiry)) and
+                        $this->getEventDispatcher()
+                ) {
+                    foreach ($values as $key => $value) $this->dispatch(new KeySaved($key, $value));
+                }
+                $r = $result && $r;
             }
-            if (count($toRemove) > 0) $r = $this->driver->deleteMultiple($toRemove) && $r;
+            if (count($toRemove) > 0) $r = $this->deleteItems($toRemove) && $r;
             return $r;
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
@@ -104,9 +113,9 @@ final class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolI
      */
     public function deleteItem($key) {
         try {
+            // if driver supports multi-operations it will be better (and to not copy/paste code)
             return $this->deleteItems([$key]);
         } catch (Throwable $error) {
-            //keeps a consistent stack trace
             throw $this->handleException($error, __FUNCTION__);
         }
     }
@@ -118,14 +127,22 @@ final class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolI
     public function deleteItems(array $keys) {
         if (empty($keys)) return true;
         try {
-            $this->doCheckKeys($keys);
             $keys = array_values(array_unique($keys));
+            $keysToRemove = [];
             foreach ($keys as $key) {
                 $this->getValidKey($key);
                 unset($this->deferred[$key]);
+                //namespaced key to pass to driver
+                $keysToRemove[] = $this->getStorageKey($key);
             }
-            $this->commit();
-            return $this->driver->delete(...$keys);
+            //same as previously
+            if (
+                    ( $result = $this->driver->deleteMultiple($keys))
+                    and $this->getEventDispatcher()
+            ) {
+                foreach ($keys as $key) $this->dispatch(new KeyDeleted($key));
+            }
+            return $result;
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
@@ -137,13 +154,12 @@ final class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolI
      */
     public function getItem($key): CacheItemInterface {
         try {
-            $key = $this->getValidKey($key);
-            if (isset($this->deferred[$key])) {
-                return clone $this->deferred[$key];
+            // driver singles are there for providers that don't support multi-operations
+            // and to use the driver directly if needed
+            foreach ($this->getItems([$key]) as $item) {
+                return $item;
             }
-            foreach ($this->driver->fetch($key) as $value) {
-                if ($value instanceof CacheObject) return $this->createItem($key, $value->value, $value->expiry, $value->tags);
-            }
+            //phan won't stop about it
             return $this->createItem($key);
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
@@ -156,27 +172,22 @@ final class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolI
      */
     public function getItems(array $keys = []) {
         try {
+            // yield in a function... function returns \Generator
+            // even if we do that
             if (empty($keys)) return;
-            $this->doCheckKeys($keys);
             $keys = array_values(array_unique($keys));
+            $this->doCheckKeys($keys);
+            $missing = array_combine($keys, $keys);
+            $items = [];
+            // if item already in defered we don't need to ask the driver for an old value
             if (count($this->deferred) > 0) {
-                $items = [];
-                $missing = array_combine($keys, $keys);
                 foreach ($keys as $key) {
                     if (isset($this->deferred[$key])) {
+                        //we get a copy (to not save the wrong datas)
                         $items[$key] = clone $this->deferred[$key];
                         unset($missing[$key]);
                     }
                 }
-                $missing = array_values($missing);
-                foreach ($this->driver->fetch(...$missing) as $key => $value) {
-                    if ($value instanceof CacheObject) $items[$key] = $this->createItem($key, $value->value, $value->expiry, $value->tags);
-                    else $items[$key] = $this->createItem($key);
-                }
-                foreach ($keys as $key) {
-                    yield $key => $items[$key];
-                }
-                return;
             }
 
             foreach ($this->driver->fetch(...$keys) as $key => $value) {
