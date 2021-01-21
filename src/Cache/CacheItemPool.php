@@ -41,15 +41,13 @@ final class CacheItemPool extends NGSOFT\Cache\Utils\NamespaceAble implements Ca
             int $defaultLifetime = 0,
             string $namespace = ''
     ) {
-
-
         $this->defaultLifetime = max(0, $defaultLifetime);
-
-        //$this->setNamespace($namespace);
         //chain cache, doctrine ...
         if (method_exists($driver, 'setDefaultLifetime')) {
             $driver->setDefaultLifetime($this->defaultLifetime);
         }
+
+        parent::__construct($driver, $namespace);
     }
 
     /** {@inheritdoc} */

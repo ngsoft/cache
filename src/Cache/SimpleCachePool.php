@@ -17,7 +17,8 @@ use Stringable,
 use function get_debug_type;
 
 /**
- * Adapter to use PSR6 Cache pool as a PSR 16 Cache
+ * Adapter to use any PSR6 Cache pool as a PSR 16 Cache
+ * If you use CacheItemPool you have to set the namespace directly using $simplecachepool->getCachePool()->setNamespace();
  */
 final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Stringable, JsonSerializable {
 
