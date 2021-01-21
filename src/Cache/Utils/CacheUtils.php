@@ -9,7 +9,7 @@ use NGSOFT\{
     Cache\CacheException, Cache\CacheItem, Cache\InvalidArgumentException, Traits\LoggerAware, Traits\UnionType
 };
 use Psr\{
-    Cache\CacheException as PSR6CacheException, Log\LoggerAwareInterface, Log\LoggerInterface, Log\LogLevel, SimpleCache\CacheException as PSR16CacheException
+    Cache\CacheException as PSR6CacheException, Log\LoggerInterface, Log\LogLevel, SimpleCache\CacheException as PSR16CacheException
 };
 use Throwable,
     TypeError;
@@ -69,18 +69,16 @@ trait CacheUtils {
     protected function getValidKey($name): string {
         if (!is_string($name)) {
             throw new InvalidArgumentException(sprintf(
-                                    'Cache %s must be string, "%s" given.',
-                                    $type,
+                                    'Cache key must be string, "%s" given.',
                                     get_debug_type($name)
             ));
         }
         if ('' === $name) {
-            throw new InvalidArgumentException(sprintf('Cache %s length must be greater than zero.', $type));
+            throw new InvalidArgumentException('Cache key length must be greater than zero.');
         }
         if (false !== strpbrk($name, '{}()/\@:')) {
             throw new InvalidArgumentException(sprintf(
-                                    'Cache %s "%s" contains reserved characters "%s".',
-                                    $type,
+                                    'Cache key "%s" contains reserved characters "%s".',
                                     $name,
                                     '{}()/\@:'
             ));
