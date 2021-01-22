@@ -16,6 +16,7 @@ use Psr\{
 use Stringable,
     Throwable;
 
+// preload (for better performances)
 class_exists(CacheItem::class);
 
 /**
