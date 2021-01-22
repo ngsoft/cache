@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Drivers;
 
 use NGSOFT\{
-    Cache\Driver, Cache\InvalidArgumentException, Cache\SimpleCachePool, Cache\Utils\CacheUtils, Traits\Unserializable
+    Cache\CacheItemPool, Cache\Driver, Cache\InvalidArgumentException, Cache\SimpleCachePool, Cache\Utils\CacheUtils, Traits\Unserializable
 };
 use Psr\SimpleCache\CacheInterface,
     Traversable;
@@ -28,12 +28,14 @@ final class SimpleCacheDriver implements Driver {
     public function __construct(CacheInterface $simpleCacheProvider) {
 
         if (
-                $simpleCacheProvider instanceof SimpleCachePool
+                $simpleCacheProvider instanceof SimpleCachePool and
+                $simpleCacheProvider->getCachePool() instanceof CacheItemPool
         ) {
             // to prevent infinite loops
             throw new InvalidArgumentException(sprintf(
-                                    'Cannot use %s as %s, too much recursion.',
+                                    'Cannot use %s + %s as %s, too much recursion.',
                                     get_class($simpleCacheProvider),
+                                    get_class($simpleCacheProvider->getCachePool()),
                                     CacheInterface::class
             ));
         }
