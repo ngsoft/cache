@@ -166,7 +166,7 @@ final class OPCacheDriver extends FileSystem implements Driver {
      * @param int|null $expiry
      * @return string|null
      */
-    public function toPHPCode($value, int $expiry = null): ?string {
+    private function toPHPCode($value, int $expiry = null): ?string {
         if (!is_string($contents = $this->var_exporter($value))) return null;
         if ($expiry > 0) $result = sprintf(self::TEMPLATE_WITH_EXPIRATION, $expiry, $contents);
         else $result = sprintf(self::TEMPLATE, $contents);
@@ -180,7 +180,7 @@ final class OPCacheDriver extends FileSystem implements Driver {
      * @param mixed $data
      * @return string|null PHP Code or null if some data cannot be exported (a cache must load 'all' datas or none)
      */
-    protected function var_exporter($data): ?string {
+    private function var_exporter($data): ?string {
         if (is_array($data)) {
             $toExport = '[';
             foreach ($data as $key => $value) {
@@ -209,7 +209,7 @@ final class OPCacheDriver extends FileSystem implements Driver {
      *
      * @return bool
      */
-    public function isOPCacheEnabled(): bool {
+    private function isOPCacheEnabled(): bool {
         return self::isSupported();
     }
 
@@ -219,7 +219,7 @@ final class OPCacheDriver extends FileSystem implements Driver {
      * @param string $filename
      * @return bool
      */
-    protected function compile(string $filename): bool {
+    private function compile(string $filename): bool {
 
         if (
                 !$this->isOPCacheEnabled() or
@@ -237,7 +237,7 @@ final class OPCacheDriver extends FileSystem implements Driver {
      * @param string $filename
      * @return bool
      */
-    protected function invalidate(string $filename): bool {
+    private function invalidate(string $filename): bool {
         if (
                 !$this->isOPCacheEnabled() or
                 !is_file($filename)
