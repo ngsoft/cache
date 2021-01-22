@@ -1,0 +1,82 @@
+<?php
+
+declare(strict_types=1);
+
+namespace NGSOFT\Cache\Utils;
+
+use NGSOFT\Cache\Driver;
+
+abstract class BaseDriver implements Driver {
+
+    use CacheUtils;
+
+    /**
+     * Char codes used by hash method
+     */
+    protected const HASH_CHARCODES = '0123456789abcdef';
+
+    ////////////////////////////   Multi Operations (for drivers that don't supports it, override them if they do)   ////////////////////////////
+
+    /** {@inheritdoc} */
+    public function deleteMultiple(array $keys): bool {
+        $r = true;
+        foreach ($keys as $key) $r = $this->delete($key) && $r;
+        return $r;
+    }
+
+    /** {@inheritdoc} */
+    public function getMultiple(iterable $keys): \Traversable {
+        foreach ($keys as $key) yield $key => $this->get($key);
+    }
+
+    /** {@inheritdoc} */
+    public function setMultiple(array $values, int $expiry = 0): bool {
+        $r = true;
+        foreach ($values as $key => $value) $r = $this->set($key, $value, $expiry) && $r;
+        return $r;
+    }
+
+    ////////////////////////////   Utils   ////////////////////////////
+
+    /**
+     * Prevents Thowable inside classes __sleep or __serialize methods to interrupt operarations
+     *
+     * @param mixed $input
+     * @return string|null
+     */
+    final protected function safeSerialize($input): ?string {
+        return Serializer::serialize($input);
+    }
+
+    /**
+     * Prevents Thowable inside classes __wakeup or __unserialize methods to interrupt operarations
+     * Also the warning for wrong input
+     *
+     * @param string $input
+     * @return mixed|null
+     */
+    final protected function safeUnserialize($input) {
+        return Serializer::unserialize($input);
+    }
+
+    /**
+     * Get a 32 Chars hashed key
+     *
+     * @param string $key
+     * @return string
+     */
+    final protected function getHashedKey(string $key): string {
+        // classname added to prevent conflicts on similar drivers
+        // MD5 as we need speed and some filesystems are limited in length
+        return hash('MD5', static::class . $key);
+    }
+
+    ////////////////////////////   Debug   ////////////////////////////
+
+    /** {@inheritdoc} */
+    public function jsonSerialize() {
+
+        return [static::class => []];
+    }
+
+}

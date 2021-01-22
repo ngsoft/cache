@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Utils;
 
-use DateInterval;
+use DateInterval,
+    ErrorException;
 use NGSOFT\{
     Cache\CacheException, Cache\CacheItem, Cache\InvalidArgumentException, Traits\LoggerAware, Traits\UnionType
 };
@@ -60,6 +61,23 @@ trait CacheUtils {
     }
 
     ////////////////////////////   Helpers   ////////////////////////////
+
+    /**
+     * Convenient Function used to convert php errors, warning, ... as ErrorException
+     *
+     * @suppress PhanTypeMismatchArgumentInternal
+     * @staticvar Closure $handler
+     * @return void
+     */
+    protected function setErrorHandler(): void {
+        static $handler;
+        if (!$handler) {
+            $handler = static function ($type, $msg, $file, $line) {
+                throw new ErrorException($msg, 0, $type, $file, $line);
+            };
+        }
+        set_error_handler($handler);
+    }
 
     /**
      * @param mixed $name

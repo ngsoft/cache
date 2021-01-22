@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-use Psr\Log\LoggerAwareInterface,
+use JsonSerializable,
+    Psr\Log\LoggerAwareInterface,
+    Stringable,
     Traversable;
 
 /**
  * A slightly modified version of SimpleCache Interface
- * Why not make a v2 with typehinting?
+ * Please make a v2 compatible PHP 7+ (not php 5.2)
  */
-interface Driver extends LoggerAwareInterface {
+interface Driver extends LoggerAwareInterface, Stringable, JsonSerializable {
 
     /**
      * Wipes clean the entire cache's keys.
@@ -54,7 +56,7 @@ interface Driver extends LoggerAwareInterface {
      * @param mixed     $value          The value of the item to store, must be serializable.
      * @param int       $expiry         The timestamp at which the item will expire (a value of 0 never expires).
      *
-     * @return bool   true on success, false otherwise
+     * @return bool   true on success(even if object removed), false otherwise
      */
     public function set(string $key, $value, int $expiry = 0): bool;
 
