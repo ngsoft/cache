@@ -11,7 +11,7 @@ use NGSOFT\{
     Events\EventDispatcherAware, Traits\Unserializable
 };
 use Psr\{
-    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, EventDispatcher\EventDispatcherInterface, Log\LoggerAwareInterface
+    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, EventDispatcher\EventDispatcherInterface, Log\LoggerAwareInterface, Log\LoggerInterface
 };
 use Stringable,
     Throwable;
@@ -60,6 +60,14 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
     /** {@inheritdoc} */
     public function __destruct() {
         $this->commit();
+    }
+
+    ////////////////////////////   LoggerAware   ////////////////////////////
+
+    /** {@inheritdoc} */
+    public function setLogger(LoggerInterface $logger) {
+        $this->logger = $logger;
+        $this->driver->setLogger($logger);
     }
 
     ////////////////////////////   PSR-6   ////////////////////////////

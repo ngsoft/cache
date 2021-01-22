@@ -7,7 +7,6 @@ namespace NGSOFT\Cache\Utils;
 use NGSOFT\Cache\{
     Driver, InvalidArgumentException
 };
-use Psr\Log\LoggerInterface;
 
 /**
  * Adds the ability to manipulate Namespaces
@@ -120,14 +119,6 @@ abstract class NamespaceAble {
             }
         }
         return false;
-    }
-
-    ////////////////////////////   LoggerAware   ////////////////////////////
-
-    /** {@inheritdoc} */
-    public function setLogger(LoggerInterface $logger) {
-        $this->logger = $logger;
-        $this->driver->setLogger($logger);
     }
 
     ////////////////////////////   Helpers   ////////////////////////////

@@ -80,6 +80,9 @@ final class FileDriver extends FileSystem implements Driver {
                     }
                     flock($handle, LOCK_UN);
                     fclose($handle);
+
+                    // prevent further failed reads
+                    if ($success == false) $this->unlink($filename);
                 }
             } catch (ErrorException $error) {
 
@@ -111,7 +114,7 @@ final class FileDriver extends FileSystem implements Driver {
                 $ct = $this->getContentType($value) and
                 ($serialized = $this->encode($value)) !== null
         ) {
-            //we just add a line on top of the contents 0|string
+            //we just add a line on top of the contents eg: 0|string
             return sprintf("%u|%s\n%s", $expiry, $ct, $serialized);
         }
         return null;
@@ -124,7 +127,6 @@ final class FileDriver extends FileSystem implements Driver {
      * @return string|null
      */
     private function getContentType($input): ?string {
-        if ($input instanceof CacheObject) return CacheObject::class;
         if (is_string($input)) return 'string';
         if (is_scalar($input)) return 'scalar';
         if (is_object($input) or is_array($input)) return 'serializable';
