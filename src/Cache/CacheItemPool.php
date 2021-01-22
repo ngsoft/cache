@@ -68,14 +68,6 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
      * {@inheritdoc}
      * @return bool
      */
-    public function clear(): bool {
-        return $this->getDriver()->clear();
-    }
-
-    /**
-     * {@inheritdoc}
-     * @return bool
-     */
     public function commit() {
         try {
             if (empty($this->deferred)) return true;

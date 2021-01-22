@@ -62,12 +62,22 @@ abstract class NamespaceAble {
 
     /**
      * Removes expired item entries if driver supports it
-     * 
+     *
      *
      * @return bool true if operation was successful, false if not supported or error
      */
     public function purge(): bool {
         return $this->driver->purge();
+    }
+
+    /**
+     * Wipes clean the entire cache's keys.
+     *
+     * @return bool   true on success, false otherwise
+     */
+    public function clear() {
+        $this->namespace_version = null;
+        return $this->getDriver()->clear();
     }
 
     /**

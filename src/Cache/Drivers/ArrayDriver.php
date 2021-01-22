@@ -80,6 +80,7 @@ final class ArrayDriver extends BaseDriver implements Driver {
         foreach ($this->expiries as $hKey => $expiry) {
             if ($this->isExpired($expiry)) unset($this->expiries[$hKey], $this->values[$hKey]);
         }
+        return true;
     }
 
     /** {@inheritdoc} */

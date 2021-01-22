@@ -81,7 +81,7 @@ abstract class FileSystem extends BaseDriver {
 
     /**
      * @param string|null $root if not set will use filesystem temp directory
-     * @param string|null $prefix if not set will use the default prefix (lowercased driver relative class name)
+     * @param string|null $prefix the directory under the root directory if not set will use the default prefix (lowercased driver relative class name)
      */
     public function __construct(
             string $root = null,
@@ -175,7 +175,7 @@ abstract class FileSystem extends BaseDriver {
     abstract protected function read(string $filename, &$value = null): bool;
 
     /** {@inheritdoc} */
-    protected function doClear(): bool {
+    protected function clear(): bool {
         $r = true;
         foreach ($this->scanFiles($this->getCacheRoot(), $this->getExtension()) as $file) {
             $r = $this->unlink($file) && $r;
