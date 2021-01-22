@@ -206,7 +206,10 @@ abstract class FileSystem extends BaseDriver {
     /** {@inheritdoc} */
     public function delete(string $key): bool {
         $filename = $this->getFilename($key, $this->getExtension());
-        if (is_file($filename)) return $this->unlink($filename);
+        if (is_file($filename)) {
+            if ($r = $this->unlink($filename)) $this->rmdir(dirname($filename));
+            return $r;
+        }
         return true;
     }
 

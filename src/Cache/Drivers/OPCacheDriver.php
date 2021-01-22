@@ -100,7 +100,8 @@ final class OPCacheDriver extends FileSystem implements Driver {
         $filename = $this->getFilename($key, $this->getExtension());
         if (is_file($filename)) {
             $this->invalidate($filename);
-            return $this->unlink($filename);
+            if ($r = $this->unlink($filename)) $this->rmdir(dirname($filename));
+            return $r;
         }
         return true;
     }
