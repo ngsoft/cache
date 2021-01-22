@@ -19,6 +19,13 @@ abstract class BaseDriver implements Driver {
      */
     protected const HASH_CHARCODES = '0123456789abcdef';
 
+    ////////////////////////////   GC (Override if possible)   ////////////////////////////
+
+    /** {@inheritdoc} */
+    public function purge(): bool {
+        return false;
+    }
+
     ////////////////////////////   Multi Operations (for drivers that don't support it, override them if they do)   ////////////////////////////
 
     /** {@inheritdoc} */

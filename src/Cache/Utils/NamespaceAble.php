@@ -61,6 +61,16 @@ abstract class NamespaceAble {
     }
 
     /**
+     * Removes expired item entries if driver supports it
+     * 
+     *
+     * @return bool true if operation was successful, false if not supported or error
+     */
+    public function purge(): bool {
+        return $this->driver->purge();
+    }
+
+    /**
      * Change the namespace for the current instance
      *   A namespace is a modifier assigned to the key
      *

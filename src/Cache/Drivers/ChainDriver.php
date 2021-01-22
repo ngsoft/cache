@@ -104,6 +104,13 @@ final class ChainDriver implements Driver, IteratorAggregate, Countable {
     }
 
     /** {@inheritdoc} */
+    public function purge(): bool {
+        $r = true;
+        foreach ($this->getIterator() as $driver) $r = $driver->purge() && $r;
+        return $r;
+    }
+
+    /** {@inheritdoc} */
     public function clear(): bool {
         $r = true;
         foreach ($this->getIterator() as $driver) $r = $driver->clear() && $r;

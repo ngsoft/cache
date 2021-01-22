@@ -16,6 +16,13 @@ use JsonSerializable,
 interface Driver extends LoggerAwareInterface, Stringable, JsonSerializable {
 
     /**
+     * Removes expired item entries if driver supports it
+     *
+     * @return bool true if operation was successful, false if not supported or error
+     */
+    public function purge(): bool;
+
+    /**
      * Wipes clean the entire cache's keys.
      *
      * @return bool   true on success, false otherwise

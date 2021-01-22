@@ -74,6 +74,15 @@ final class ArrayDriver extends BaseDriver implements Driver {
     }
 
     /** {@inheritdoc} */
+    public function purge(): bool {
+        // clean up expired entries
+        // can happen on long running scripts
+        foreach ($this->expiries as $hKey => $expiry) {
+            if ($this->isExpired($expiry)) unset($this->expiries[$hKey], $this->values[$hKey]);
+        }
+    }
+
+    /** {@inheritdoc} */
     public function delete(string $key): bool {
         $key = $this->getHashedKey($key);
         unset($this->expiries[$key], $this->values[$key]);
@@ -82,11 +91,8 @@ final class ArrayDriver extends BaseDriver implements Driver {
 
     /** {@inheritdoc} */
     public function has(string $key): bool {
-        // clean up expired entries
-        // can happen on long running scripts
-        foreach ($this->expiries as $hKey => $expiry) {
-            if ($this->isExpired($expiry)) unset($this->expiries[$hKey], $this->values[$hKey]);
-        }
+        // more memory efficient
+        $this->purge();
         return !$this->isExpired($this->expiries[$this->getHashedKey($key)] ?? 1);
     }
 
