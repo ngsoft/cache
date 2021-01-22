@@ -22,14 +22,15 @@
         "psr/simple-cache-implementation": "^1.0"
     },
     "conflict": {
-        "illuminate/cache": "<5.8"
+        "illuminate/cache": "<5.8",
+        "amphp/cache ": "<1.0"
     },
     "require-dev": {
         "react/cache": ">=1.1",
         "doctrine/cache": "^1.10",
         "illuminate/cache": ">=5.8",
         "symfony/cache": ">=5.2",
-        "guzzlehttp/promises": ">=1.4"
+        "amphp/cache ": ">=1.4"
 
     },
     "require": {
