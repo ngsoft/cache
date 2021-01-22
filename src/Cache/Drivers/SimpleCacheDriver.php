@@ -42,6 +42,15 @@ final class SimpleCacheDriver implements Driver {
         $this->cacheProvider = $simpleCacheProvider;
     }
 
+    /** {@inheritdoc} */
+    public function jsonSerialize() {
+        return [
+            static::class => [
+                CacheInterface::class => get_class($this->cacheProvider),
+            ]
+        ];
+    }
+
     ////////////////////////////   API   ////////////////////////////
 
     /** {@inheritdoc} */
