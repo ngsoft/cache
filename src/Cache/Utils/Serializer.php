@@ -92,6 +92,7 @@ final class Serializer {
         try {
             self::setErrorHandler();
             $result = \unserialize($input);
+            // we already checked if a false has been serialized: so that's unserialize that failed
             return $result === false ? null : $result;
         } catch (Throwable $ex) { return null; } finally { \restore_error_handler(); }
     }
