@@ -4,7 +4,19 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
-final class OPCacheDriver extends \NGSOFT\Cache\Utils\FileSystem implements \NGSOFT\Cache\Driver {
+use NGSOFT\Cache\{
+    Driver, Utils\FileSystem, Utils\Serializer
+};
+use Psr\Log\LogLevel,
+    Throwable;
+use function mb_substr_count;
+
+/**
+ * The Filesystem OPCache Driver
+ * Uses PHP Code to cache data
+ *
+ */
+final class OPCacheDriver extends FileSystem implements Driver {
 
     /**
      * File Modification time to add to enable opcache compilation
@@ -60,6 +72,53 @@ final class OPCacheDriver extends \NGSOFT\Cache\Utils\FileSystem implements \NGS
         return $supported;
     }
 
+    /** {@inheritdoc} */
+    public function purge(): bool {
+        $r = true;
+        foreach ($this->scanFiles($this->getCacheRoot(), $this->getExtension()) as $file) {
+            if (!$this->read($file)) {
+                $this->invalidate($file);
+                $r = $this->unlink($file) && $r;
+            }
+        }
+        return $r;
+    }
+
+    /** {@inheritdoc} */
+    public function clear(): bool {
+        $r = true;
+        foreach ($this->scanFiles($this->getCacheRoot(), $this->getExtension()) as $file) {
+            $this->invalidate($file);
+            $r = $this->unlink($file) && $r;
+        }
+        foreach ($this->scanDirs($this->getCacheRoot()) as $dir) $this->rmdir($dir);
+        return $r;
+    }
+
+    /** {@inheritdoc} */
+    public function delete(string $key): bool {
+        $filename = $this->getFilename($key, $this->getExtension());
+        if (is_file($filename)) {
+            $this->invalidate($filename);
+            return $this->unlink($filename);
+        }
+        return true;
+    }
+
+    /** {@inheritdoc} */
+    public function set(string $key, $value, int $expiry = 0): bool {
+        if ($this->isExpired($expiry)) return $this->delete($key);
+        $filename = $this->getFilename($key, $this->getExtension());
+        if (
+                null !== ($contents = $this->toPHPCode($value, $expiry)) and
+                $this->write($filename, $contents)
+        ) {
+            $this->compile($filename);
+            return true;
+        }
+        return false;
+    }
+
     ////////////////////////////   Utils   ////////////////////////////
 
     /**
@@ -108,16 +167,7 @@ final class OPCacheDriver extends \NGSOFT\Cache\Utils\FileSystem implements \NGS
      * @return string|null
      */
     public function toPHPCode($value, int $expiry = null): ?string {
-        $expiry = max(0, $expiry ?? 0);
-        if ($this->isExpired($expiry)) return null;
-        $contents = null;
-        if (
-                $value instanceof CacheObject and
-                $contents = $this->var_exporter($value->toArray())
-        ) {
-            $contents = sprintf('%s::__set_state(%s)', CacheObject::class, $contents);
-        } else $contents = $this->var_exporter($value);
-        if (!is_string($contents)) return null;
+        if (!is_string($contents = $this->var_exporter($value))) return null;
         if ($expiry > 0) $result = sprintf(self::TEMPLATE_WITH_EXPIRATION, $expiry, $contents);
         else $result = sprintf(self::TEMPLATE, $contents);
         return $result;

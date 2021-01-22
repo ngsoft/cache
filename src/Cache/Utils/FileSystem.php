@@ -12,8 +12,7 @@ use NGSOFT\Cache\{
 };
 use Psr\Log\LogLevel,
     RecursiveDirectoryIterator,
-    RuntimeException,
-    Traversable;
+    RuntimeException;
 use function mb_strlen,
              str_ends_with,
              str_starts_with;
@@ -157,7 +156,7 @@ abstract class FileSystem extends BaseDriver {
         $this->cacheRoot = $rootDir;
     }
 
-    ////////////////////////////   Implementation   ////////////////////////////
+    ////////////////////////////   Abstract Methods   ////////////////////////////
 
     /**
      * Defines Filename Extension
@@ -174,40 +173,15 @@ abstract class FileSystem extends BaseDriver {
      */
     abstract protected function read(string $filename, &$value = null): bool;
 
-    /** {@inheritdoc} */
-    protected function clear(): bool {
-        $r = true;
-        foreach ($this->scanFiles($this->getCacheRoot(), $this->getExtension()) as $file) {
-            $r = $this->unlink($file) && $r;
-        }
-        foreach ($this->scanDirs($this->getCacheRoot()) as $dir) $this->rmdir($dir);
-        return $r;
-    }
+
+
+
+
+    ////////////////////////////   API   ////////////////////////////
 
     /** {@inheritdoc} */
-    protected function doContains(string $key): bool {
+    public function has(string $key): bool {
         return $this->read($this->getFilename($key, $this->getExtension()));
-    }
-
-    /** {@inheritdoc} */
-    protected function doDelete(string ...$keys): bool {
-        if (empty($keys)) return true;
-        $r = true;
-        foreach ($keys as $key) {
-            $filename = $this->getFilename($key, $this->getExtension());
-            if (is_file($filename)) $r = $this->unlink($filename) && $r;
-        }
-        return $r;
-    }
-
-    /** {@inheritdoc} */
-    protected function doFetch(string ...$keys): Traversable {
-        if (empty($keys)) return;
-        foreach ($keys as $key) {
-            if ($this->read($this->getFilename($key, $this->getExtension()), $value)) {
-                yield $key => $value;
-            } else yield $key => null;
-        }
     }
 
     /** {@inheritdoc} */
@@ -217,6 +191,31 @@ abstract class FileSystem extends BaseDriver {
             if (!$this->read($file)) $r = $this->unlink($file) && $r;
         }
         return $r;
+    }
+
+    /** {@inheritdoc} */
+    public function clear(): bool {
+        $r = true;
+        foreach ($this->scanFiles($this->getCacheRoot(), $this->getExtension()) as $file) {
+            $r = $this->unlink($file) && $r;
+        }
+        foreach ($this->scanDirs($this->getCacheRoot()) as $dir) $this->rmdir($dir);
+        return $r;
+    }
+
+    /** {@inheritdoc} */
+    public function delete(string $key): bool {
+        $filename = $this->getFilename($key, $this->getExtension());
+        if (is_file($filename)) return $this->unlink($filename);
+        return true;
+    }
+
+    /** {@inheritdoc} */
+    public function get(string $key) {
+        if ($this->read($this->getFilename($key, $this->getExtension()), $value)) {
+            return $value;
+        }
+        return null;
     }
 
     ////////////////////////////   Utils   ////////////////////////////
