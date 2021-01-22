@@ -21,7 +21,7 @@ class_exists(CacheItem::class);
 /**
  * A PSR-6 Cache Pool that Supports:
  *  - Namespaces (Namespace invalidation a la Doctrine)
- *  - PSR-14 Events (if you provide a PSR-14 Event Dispatcher eg: symfony/event-dispatcher)
+ *  - PSR-14 Events (if you provide a PSR-14 Event Dispatcher using $pool->setEventDispatcher() eg: symfony/event-dispatcher)
  *  - Drivers that supports the most useful providers (Doctrine, Symfony(via PSR-6 proxy(if using ChainDriver)), Illuminate, Promise based(Amp/React), any PSR-6/16 implementation)
  */
 class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterface, LoggerAwareInterface, EventDispatcherInterface, Stringable, JsonSerializable {
@@ -84,6 +84,7 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
             $this->deferred = $toSave = $toRemove = $assoc = [];
             //group items by expiries
             foreach ($items as $key => $item) {
+                // expired? null value?
                 if (!$item->isHit()) {
                     $toRemove[] = $key;
                     continue;
@@ -145,7 +146,7 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
             }
             //same as previously
             if (
-                    ( $result = $this->driver->deleteMultiple($keysToRemove))
+                    ( $result = $this->getDriver()->deleteMultiple($keysToRemove))
                     and $this->getEventDispatcher()
             ) {
                 foreach ($keys as $key) $this->dispatch(new KeyDeleted($key));
@@ -184,13 +185,12 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
             // even if we do that
             if (empty($keys)) return;
             $keys = array_values(array_unique($keys));
-            //we need to check there to combine strings
-            $this->doCheckKeys($keys);
             $missing = $items = [];
             // if item already in deferred we don't need to ask the driver for an old value
             foreach ($keys as $key) {
+                $this->getValidKey($key);
                 if (isset($this->deferred[$key])) {
-                    //we get a copy (to not save the wrong datas)
+                    //we get a copy (to not save the wrong datas, if that item is saved it will overwrite the old one (it's why save() commits))
                     $items[$key] = clone $this->deferred[$key];
                 } else $missing[$this->getStorageKey($key)] = $key; // associate real/user key
             }
@@ -224,7 +224,7 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
         try {
             $this->getValidKey($key);
             if (isset($this->deferred[$key])) $this->commit();
-            return $this->driver->has($this->getStorageKey($key));
+            return $this->getDriver()->has($this->getStorageKey($key));
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
@@ -270,7 +270,7 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
      * @param int|null $expiry
      * @return int
      */
-    protected function getExpiryRealValue(int $expiry = null): int {
+    private function getExpiryRealValue(int $expiry = null): int {
         if ($expiry === null) $expiry = $this->defaultLifetime > 0 ? (time() + $this->defaultLifetime) : 0;
         return $expiry;
     }
@@ -296,7 +296,7 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
             'Cache' => static::class,
             'Version' => static::VERSION,
             'Implements' => array_values(class_implements($this)),
-            'Driver' => $this->driver
+            'Driver' => $this->getDriver()
         ];
     }
 
