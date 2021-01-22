@@ -30,6 +30,7 @@ abstract class BaseDriver implements Driver {
 
     /** {@inheritdoc} */
     public function deleteMultiple(array $keys): bool {
+        if (empty($keys)) return true;
         $r = true;
         $keys = array_values(array_unique($keys));
         foreach ($keys as $key) $r = $this->delete($key) && $r;
@@ -44,8 +45,9 @@ abstract class BaseDriver implements Driver {
 
     /** {@inheritdoc} */
     public function setMultiple(array $values, int $expiry = 0): bool {
-        $r = true;
+        if (empty($values)) return true;
         if ($this->isExpired($expiry)) return $this->deleteMultiple(array_keys($values));
+        $r = true;
         foreach ($values as $key => $value) $r = $this->set($key, $value, $expiry) && $r;
         return $r;
     }

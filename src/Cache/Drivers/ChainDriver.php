@@ -126,6 +126,7 @@ final class ChainDriver implements Driver, IteratorAggregate, Countable {
 
     /** {@inheritdoc} */
     public function deleteMultiple(array $keys): bool {
+        if (empty($keys)) return true;
         $r = true;
         $keys = array_values(array_unique($keys));
         foreach ($this->getIterator() as $driver) $r = $driver->deleteMultiple($keys) && $r;
@@ -149,6 +150,8 @@ final class ChainDriver implements Driver, IteratorAggregate, Countable {
 
     /** {@inheritdoc} */
     public function setMultiple(array $values, int $expiry = 0): bool {
+        if (empty($values)) return true;
+        if ($this->isExpired($expiry)) return $this->deleteMultiple(array_keys($values));
         $r = true;
         foreach ($this->getIterator() as $driver) $r = $driver->setMultiple($values, $expiry) && $r;
         return $r;
@@ -163,8 +166,8 @@ final class ChainDriver implements Driver, IteratorAggregate, Countable {
 
     /** {@inheritdoc} */
     public function getMultiple(array $keys): Traversable {
-        // previously that was easy, now ...
         if (empty($keys)) return;
+        // previously that was easy, now ...
         $keys = array_values(array_unique($keys));
         $missing = array_combine($keys, $keys);
         $values = [];
