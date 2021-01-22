@@ -36,7 +36,7 @@ final class ArrayDriver extends BaseDriver implements Driver {
 
     /**
      * @param bool $storeSerialized Serialize the values before storing them
-     * @param int $capacity Maximum items that can be stored in the cache, a value of 0 disables that feature
+     * @param int $capacity Maximum items that can be stored in the cache, a value of 0 disables that feature(unlimited)
      * @param int $maxLifeTime Maximum number of seconds an item can stay in the cache,  a value of 0 disables that feature
      */
     public function __construct(

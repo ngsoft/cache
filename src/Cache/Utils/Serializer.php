@@ -60,7 +60,7 @@ final class Serializer {
     }
 
     /**
-     * Prevents Thowable inside classes __sleep or __serialize methods to interrupt operarations
+     * Prevents Thowable inside classes __sleep or __serialize methods to interrupt operations
      *
      * @param mixed $input
      * @return string|null
@@ -74,7 +74,7 @@ final class Serializer {
     }
 
     /**
-     * Prevents Thowable inside classes __wakeup or __unserialize methods to interrupt operarations
+     * Prevents Thowable inside classes __wakeup or __unserialize methods to interrupt operations
      * Also the warning for wrong input
      *
      * @param string $input

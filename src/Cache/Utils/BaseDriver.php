@@ -19,7 +19,7 @@ abstract class BaseDriver implements Driver {
      */
     protected const HASH_CHARCODES = '0123456789abcdef';
 
-    ////////////////////////////   Multi Operations (for drivers that don't supports it, override them if they do)   ////////////////////////////
+    ////////////////////////////   Multi Operations (for drivers that don't support it, override them if they do)   ////////////////////////////
 
     /** {@inheritdoc} */
     public function deleteMultiple(array $keys): bool {
@@ -38,6 +38,7 @@ abstract class BaseDriver implements Driver {
     /** {@inheritdoc} */
     public function setMultiple(array $values, int $expiry = 0): bool {
         $r = true;
+        if ($this->isExpired($expiry)) return $this->deleteMultiple(array_keys($values));
         foreach ($values as $key => $value) $r = $this->set($key, $value, $expiry) && $r;
         return $r;
     }
@@ -45,7 +46,7 @@ abstract class BaseDriver implements Driver {
     ////////////////////////////   Utils   ////////////////////////////
 
     /**
-     * Prevents Thowable inside classes __sleep or __serialize methods to interrupt operarations
+     * Prevents Thowable inside classes __sleep or __serialize methods to interrupt operations
      *
      * @param mixed $input
      * @return string|null
@@ -55,7 +56,7 @@ abstract class BaseDriver implements Driver {
     }
 
     /**
-     * Prevents Thowable inside classes __wakeup or __unserialize methods to interrupt operarations
+     * Prevents Thowable inside classes __wakeup or __unserialize methods to interrupt operations
      * Also the warning for wrong input
      *
      * @param string $input
