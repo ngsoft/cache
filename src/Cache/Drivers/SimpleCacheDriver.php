@@ -82,6 +82,7 @@ final class SimpleCacheDriver implements Driver {
     /** {@inheritdoc} */
     public function getMultiple(array $keys): Traversable {
         if (empty($keys)) return;
+        // we don't know if implementation returns an iterator or an array
         foreach ($this->cacheProvider->getMultiple($keys) as $key => $value) {
             yield $key => $value;
         }

@@ -80,6 +80,8 @@ final class OPCacheDriver extends FileSystem implements Driver {
             if (!$this->read($file)) {
                 $this->invalidate($file);
                 $r = $this->unlink($file) && $r;
+                // GC
+                $this->rmdir(dirname($file));
             }
         }
         return $r;
@@ -168,9 +170,9 @@ final class OPCacheDriver extends FileSystem implements Driver {
      * @param int|null $expiry
      * @return string|null
      */
-    private function toPHPCode($value, int $expiry = null): ?string {
+    private function toPHPCode($value, int $expiry): ?string {
         if (!is_string($contents = $this->var_exporter($value))) return null;
-        if ($expiry > 0) $result = sprintf(self::TEMPLATE_WITH_EXPIRATION, $expiry, $contents);
+        if ($expiry !== 0) $result = sprintf(self::TEMPLATE_WITH_EXPIRATION, $expiry, $contents);
         else $result = sprintf(self::TEMPLATE, $contents);
         return $result;
     }
