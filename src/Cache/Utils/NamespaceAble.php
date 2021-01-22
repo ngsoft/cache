@@ -35,7 +35,7 @@ abstract class NamespaceAble {
     private $namespace_version = null;
 
     /** @var string */
-    private $namespace;
+    private $namespace = '';
 
     /** @var Driver */
     protected $driver;

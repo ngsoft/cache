@@ -48,6 +48,16 @@ final class ArrayDriver extends BaseDriver implements Driver {
         $this->clear();
     }
 
+    /** {@inheritdoc} */
+    public function jsonSerialize() {
+
+        return [static::class => [
+                'store_serialized' => $this->storeSerialized,
+                'max_capacity' => $this->capacity === 0 ? 'none' : $this->capacity,
+                'entries' => count($this->values)
+        ]];
+    }
+
     ////////////////////////////   API   ////////////////////////////
 
     /** {@inheritdoc} */
@@ -62,7 +72,6 @@ final class ArrayDriver extends BaseDriver implements Driver {
 
     /** {@inheritdoc} */
     public function delete(string $key): bool {
-        var_dump([__FUNCTION__ => $key]);
         $key = $this->getHashedKey($key);
         unset($this->expiries[$key], $this->values[$key]);
         return true;
@@ -70,7 +79,6 @@ final class ArrayDriver extends BaseDriver implements Driver {
 
     /** {@inheritdoc} */
     public function has(string $key): bool {
-        var_dump([__FUNCTION__ => $key]);
         // clean up expired entries
         // can happen on long running scripts
         foreach ($this->expiries as $hKey => $expiry) {
@@ -81,7 +89,6 @@ final class ArrayDriver extends BaseDriver implements Driver {
 
     /** {@inheritdoc} */
     public function get(string $key) {
-        var_dump([__FUNCTION__ => $key]);
         return
                 $this->has($key) ?
                 ( $this->storeSerialized ?
@@ -92,8 +99,6 @@ final class ArrayDriver extends BaseDriver implements Driver {
 
     /** {@inheritdoc} */
     public function set(string $key, $value, int $expiry = 0): bool {
-
-        var_dump([__FUNCTION__ => $key]);
         $expiry = $expiry === 0 ? PHP_INT_MAX : $expiry;
         if ($this->maxLifeTime > 0) $expiry = min($expiry, time() + $this->maxLifeTime);
         // expiry can be negative or < now
