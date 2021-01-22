@@ -20,12 +20,14 @@ abstract class BaseDriver implements Driver {
     /** {@inheritdoc} */
     public function deleteMultiple(array $keys): bool {
         $r = true;
+        $keys = array_values(array_unique($keys));
         foreach ($keys as $key) $r = $this->delete($key) && $r;
         return $r;
     }
 
     /** {@inheritdoc} */
-    public function getMultiple(iterable $keys): \Traversable {
+    public function getMultiple(array $keys): \Traversable {
+        $keys = array_values(array_unique($keys));
         foreach ($keys as $key) yield $key => $this->get($key);
     }
 

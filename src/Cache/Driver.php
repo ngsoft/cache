@@ -43,11 +43,11 @@ interface Driver extends LoggerAwareInterface, Stringable, JsonSerializable {
     /**
      * Obtains multiple cache items by their unique keys.
      *
-     * @param iterable $keys A list of keys that can obtained in a single operation.
+     * @param array $keys A list of keys that can obtained in a single operation.
      *
      * @return Traversable An Iterator indexed by key => value.
      */
-    public function getMultiple(iterable $keys): Traversable;
+    public function getMultiple(array $keys): Traversable;
 
     /**
      * Persists data in the cache, uniquely referenced by a key with an optional expiration TTL time.

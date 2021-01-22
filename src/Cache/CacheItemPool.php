@@ -21,7 +21,7 @@ class_exists(CacheItem::class);
 
 /**
  * A PSR-6 Cache Pool that Supports:
- *  - Namespaces (Namespace invalidation a la Doctrine)
+ *  - Namespaces (+Namespace invalidation)
  *  - PSR-14 Events (if you provide a PSR-14 Event Dispatcher using $pool->setEventDispatcher() eg: symfony/event-dispatcher)
  *  - Drivers that supports the most useful providers (Doctrine, Symfony(via PSR-6 proxy(if using ChainDriver)), Illuminate, Promise based(Amp/React), any PSR-6/16 implementation)
  */
