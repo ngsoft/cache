@@ -70,6 +70,7 @@ class CacheItem implements CacheItemInterface, Cache, LoggerAwareInterface {
      * @return CacheItem
      */
     public function set($value) {
+        // we need something serializable (not resources ...)
         $this->doCheckValue($value);
         $this->value = $value;
         return $this;

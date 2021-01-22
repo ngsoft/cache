@@ -22,7 +22,7 @@ class_exists(CacheItem::class);
  * A PSR-6 Cache Pool that Supports:
  *  - Namespaces (Namespace invalidation a la Doctrine)
  *  - PSR-14 Events (if you provide a PSR-14 Event Dispatcher eg: symfony/event-dispatcher)
- *  - Drivers that supports the most useful providers (Doctrine, Symfony, Illuminate, Promise based(Amp/React), any PSR-6/16 implementation)
+ *  - Drivers that supports the most useful providers (Doctrine, Symfony(via PSR-6 proxy(if using ChainDriver)), Illuminate, Promise based(Amp/React), any PSR-6/16 implementation)
  */
 class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterface, LoggerAwareInterface, EventDispatcherInterface, Stringable, JsonSerializable {
 
@@ -121,7 +121,7 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
      */
     public function deleteItem($key) {
         try {
-            // if driver supports multi-operations it will be better (and to not copy/paste code)
+            // to not copy/paste code...
             return $this->deleteItems([$key]);
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
@@ -162,7 +162,7 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
      */
     public function getItem($key): CacheItemInterface {
         try {
-            // driver singles are there for providers that don't support multi-operations
+            // driver singles are there for providers that don't support multi-operations (and other cache implementations (Amp/Doctrine))
             // and to use the driver directly if needed
             foreach ($this->getItems([$key]) as $item) {
                 return $item;
@@ -180,33 +180,26 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
      */
     public function getItems(array $keys = []) {
         try {
-            // yield in a function... function returns \Generator
+            // 'yield' in a function: function returns: \Generator
             // even if we do that
             if (empty($keys)) return;
             $keys = array_values(array_unique($keys));
+            //we need to check there to combine strings
             $this->doCheckKeys($keys);
-            $missing = array_combine($keys, $keys);
-            $items = $keysToRetrieve = [];
-            // if item already in defered we don't need to ask the driver for an old value
-            if (count($this->deferred) > 0) {
-                foreach ($keys as $key) {
-                    if (isset($this->deferred[$key])) {
-                        //we get a copy (to not save the wrong datas)
-                        $items[$key] = clone $this->deferred[$key];
-                        unset($missing[$key]);
-                    }
-                }
+            $missing = $items = [];
+            // if item already in deferred we don't need to ask the driver for an old value
+            foreach ($keys as $key) {
+                if (isset($this->deferred[$key])) {
+                    //we get a copy (to not save the wrong datas)
+                    $items[$key] = clone $this->deferred[$key];
+                } else $missing[$this->getStorageKey($key)] = $key; // associate real/user key
             }
-            // that can happen
             if (count($missing) > 0) {
-                foreach ($missing as $key) {
-                    //associate namespaced keys with original keys
-                    $keysToRetrieve[$this->getStorageKey($key)] = $key;
-                }
-                foreach ($this->getDriver()->getMultiple(array_keys($keysToRetrieve)) as $nKey => $value) {
+                foreach ($this->getDriver()->getMultiple(array_keys($missing)) as $nKey => $value) {
+                    $key = $missing[$nKey];
                     // we don't need to know the expiry as it will be overwritten on save
                     // and user has no way to know
-                    $items[$keysToRetrieve[$nKey]] = $this->createItem($key, $value);
+                    $items[$key] = $this->createItem($key, $value);
                 }
             }
             // now we issue the items
@@ -229,9 +222,9 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
      */
     public function hasItem($key): bool {
         try {
-            $key = $this->getValidKey($key);
+            $this->getValidKey($key);
             if (isset($this->deferred[$key])) $this->commit();
-            return $this->driver->contains($this->getStorageKey($key));
+            return $this->driver->has($this->getStorageKey($key));
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
@@ -254,6 +247,7 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
      * @return bool
      */
     public function saveDeferred(CacheItemInterface $item) {
+        // as we have no way to know expiry on third party items, we have to do that
         if (!($item instanceof CacheItem)) {
             throw $this->handleException(
                             new InvalidArgumentException(sprintf(
