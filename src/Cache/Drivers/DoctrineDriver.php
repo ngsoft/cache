@@ -12,6 +12,9 @@ use NGSOFT\{
 };
 use Traversable;
 
+/**
+ * To use Doctrine Cache Providers
+ */
 final class DoctrineDriver implements Driver {
 
     use CacheUtils;
