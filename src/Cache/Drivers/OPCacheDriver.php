@@ -44,6 +44,7 @@ final class OPCacheDriver extends FileSystem implements Driver {
         return [
             static::class => [
                 'Cache Directory' => $this->getCacheRoot(),
+                'File Count' => count(iterator_to_array($this->scanFiles($this->getCacheRoot(), $this->getExtension()))),
                 'File Usage' => $this->getHumanFileSize($this->getUsage()),
                 'Free Space' => $this->getHumanFileSize($this->getFreeSpace()),
                 'Zend OPCache' => $this->isOPCacheEnabled() ? 'enabled' : 'disabled',

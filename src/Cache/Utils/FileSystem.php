@@ -103,6 +103,7 @@ abstract class FileSystem extends BaseDriver {
         return [
             static::class => [
                 'Cache Directory' => $this->getCacheRoot(),
+                'File Count' => count(iterator_to_array($this->scanFiles($this->getCacheRoot(), $this->getExtension()))),
                 'File Usage' => $this->getHumanFileSize($this->getUsage()),
                 'Free Space' => $this->getHumanFileSize($this->getFreeSpace()),
         ]];
