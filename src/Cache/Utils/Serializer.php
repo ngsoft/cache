@@ -8,7 +8,7 @@ use ErrorException,
     Throwable;
 
 /**
- * Static Serializer to use with the cache entries
+ * Static Serializer to use with the cache entries (OPCache Mainly)
  */
 final class Serializer {
 
@@ -93,6 +93,7 @@ final class Serializer {
             self::setErrorHandler();
             $result = \unserialize($input);
             // we already checked if a false has been serialized: so that's unserialize that failed
+            // (we must already be inside the catch block but we don't know for sure)
             return $result === false ? null : $result;
         } catch (Throwable $ex) { return null; } finally { \restore_error_handler(); }
     }
