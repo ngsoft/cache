@@ -170,6 +170,7 @@ trait CacheUtils {
                 $c = clone $item;
                 $c->key = $key;
                 $c->value = $value;
+                // to log exceptions
                 $logger and $c->setLogger($logger);
                 return $c;
             };

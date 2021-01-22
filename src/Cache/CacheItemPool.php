@@ -7,7 +7,8 @@ namespace NGSOFT\Cache;
 use Generator,
     JsonSerializable;
 use NGSOFT\{
-    Cache, Cache\Events\KeyDeleted, Cache\Events\KeySaved, Cache\Utils\CacheUtils, Cache\Utils\NamespaceAble, Events\EventDispatcherAware, Traits\Unserializable
+    Cache, Cache\Events\CacheHit, Cache\Events\CacheMiss, Cache\Events\KeyDeleted, Cache\Events\KeySaved, Cache\Utils\CacheUtils, Cache\Utils\NamespaceAble,
+    Events\EventDispatcherAware, Traits\Unserializable
 };
 use Psr\{
     Cache\CacheItemInterface, Cache\CacheItemPoolInterface, EventDispatcher\EventDispatcherInterface, Log\LoggerAwareInterface
@@ -18,9 +19,12 @@ use Stringable,
 class_exists(CacheItem::class);
 
 /**
- * A PSR-6 CachePool
+ * A PSR-6 Cache Pool that Supports:
+ *  - Namespaces (Namespace invalidation a la Doctrine)
+ *  - PSR-14 Events (if you provide a PSR-14 Event Dispatcher eg: symfony/event-dispatcher)
+ *  - Drivers that supports the most useful providers (Doctrine, Symfony, Illuminate, Promise based(Amp/React), any PSR-6/16 implementation)
  */
-final class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterface, LoggerAwareInterface, EventDispatcherInterface, Stringable, JsonSerializable {
+class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterface, LoggerAwareInterface, EventDispatcherInterface, Stringable, JsonSerializable {
 
     use CacheUtils;
     use Unserializable;
@@ -77,7 +81,7 @@ final class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolI
 
             $r = true;
             $items = $this->deferred;
-            $this->deferred = $toSave = $toRemove = [];
+            $this->deferred = $toSave = $toRemove = $assoc = [];
             //group items by expiries
             foreach ($items as $key => $item) {
                 if (!$item->isHit()) {
@@ -87,7 +91,10 @@ final class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolI
                 $expiry = $item->getExpiry() ?? $this->getExpiryRealValue();
                 $toSave[$expiry] = $toSave[$expiry] ?? [];
                 // namespaced key to give the driver
-                $toSave[$expiry] [$this->getStorageKey($key)] = $item->get();
+                $nKey = $this->getStorageKey($key);
+                $toSave[$expiry] [$nKey] = $item->get();
+                // keep a link between real/user key (for Events)
+                $assoc[$nKey] = $key;
             }
             foreach ($toSave as $expiry => $values) {
                 //psr-14 only if we have a dispatcher
@@ -96,8 +103,9 @@ final class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolI
                         ($result = $this->getDriver()->setMultiple($values, $expiry)) and
                         $this->getEventDispatcher()
                 ) {
-                    foreach ($values as $key => $value) $this->dispatch(new KeySaved($key, $value));
+                    foreach ($values as $nKey => $value) $this->dispatch(new KeySaved($assoc[$nKey], $value));
                 }
+                // keeps the false (if any)
                 $r = $result && $r;
             }
             if (count($toRemove) > 0) $r = $this->deleteItems($toRemove) && $r;
@@ -137,7 +145,7 @@ final class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolI
             }
             //same as previously
             if (
-                    ( $result = $this->driver->deleteMultiple($keys))
+                    ( $result = $this->driver->deleteMultiple($keysToRemove))
                     and $this->getEventDispatcher()
             ) {
                 foreach ($keys as $key) $this->dispatch(new KeyDeleted($key));
@@ -178,7 +186,7 @@ final class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolI
             $keys = array_values(array_unique($keys));
             $this->doCheckKeys($keys);
             $missing = array_combine($keys, $keys);
-            $items = [];
+            $items = $keysToRetrieve = [];
             // if item already in defered we don't need to ask the driver for an old value
             if (count($this->deferred) > 0) {
                 foreach ($keys as $key) {
@@ -189,10 +197,26 @@ final class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolI
                     }
                 }
             }
-
-            foreach ($this->driver->fetch(...$keys) as $key => $value) {
-                if ($value instanceof CacheObject) yield $key => $this->createItem($key, $value->value, $value->expiry, $value->tags);
-                else yield $key => $this->createItem($key);
+            // that can happen
+            if (count($missing) > 0) {
+                foreach ($missing as $key) {
+                    //associate namespaced keys with original keys
+                    $keysToRetrieve[$this->getStorageKey($key)] = $key;
+                }
+                foreach ($this->getDriver()->getMultiple(array_keys($keysToRetrieve)) as $nKey => $value) {
+                    // we don't need to know the expiry as it will be overwritten on save
+                    // and user has no way to know
+                    $items[$keysToRetrieve[$nKey]] = $this->createItem($key, $value);
+                }
+            }
+            // now we issue the items
+            foreach ($items as $key => $item) {
+                //psr-14 support
+                if ($this->getEventDispatcher()) {
+                    if (!$item->isHit()) $this->dispatch(new CacheMiss($key));
+                    else $this->dispatch(new CacheHit($key, $item->get()));
+                }
+                yield $key => $item;
             }
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
@@ -207,7 +231,7 @@ final class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolI
         try {
             $key = $this->getValidKey($key);
             if (isset($this->deferred[$key])) $this->commit();
-            return $this->driver->contains($key);
+            return $this->driver->contains($this->getStorageKey($key));
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
