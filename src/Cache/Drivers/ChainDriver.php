@@ -10,8 +10,12 @@ use Countable,
 use NGSOFT\{
     Cache\Driver, Cache\InvalidArgumentException, Cache\Utils\CacheUtils, Traits\Unserializable
 };
+use Traversable;
 use function get_debug_type;
 
+/**
+ * Chain Cache Implementation
+ */
 final class ChainDriver implements Driver, IteratorAggregate, Countable {
 
     use CacheUtils;
@@ -151,7 +155,7 @@ final class ChainDriver implements Driver, IteratorAggregate, Countable {
     }
 
     /** {@inheritdoc} */
-    public function getMultiple(array $keys): \Traversable {
+    public function getMultiple(array $keys): Traversable {
         // previously that was easy, now ...
         if (empty($keys)) return;
         $keys = array_values(array_unique($keys));

@@ -9,6 +9,9 @@ use NGSOFT\{
 };
 use Throwable;
 
+/**
+ * A Basic Cache of Cache
+ */
 final class ArrayDriver extends BaseDriver implements Driver {
 
     /**

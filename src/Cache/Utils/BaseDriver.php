@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Utils;
 
-use NGSOFT\Cache\Driver;
+use NGSOFT\{
+    Cache\Driver, Traits\Unserializable
+};
+use Traversable;
 
 abstract class BaseDriver implements Driver {
 
     use CacheUtils;
+    use Unserializable;
 
     /**
      * Char codes used by hash method
@@ -26,7 +30,7 @@ abstract class BaseDriver implements Driver {
     }
 
     /** {@inheritdoc} */
-    public function getMultiple(array $keys): \Traversable {
+    public function getMultiple(array $keys): Traversable {
         $keys = array_values(array_unique($keys));
         foreach ($keys as $key) yield $key => $this->get($key);
     }
