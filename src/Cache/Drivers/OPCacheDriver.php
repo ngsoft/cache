@@ -167,7 +167,7 @@ final class OPCacheDriver extends FileSystem implements Driver {
      * Creates a php template that can be included
      *
      * @param mixed $value
-     * @param int|null $expiry
+     * @param int $expiry
      * @return string|null
      */
     private function toPHPCode($value, int $expiry): ?string {
