@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
+use NGSOFT\Cache\{
+    CacheException, Driver, Utils\BaseDriver
+};
+
 /**
  * APCu Driver Implementation
  */
-final class APCuDriver extends \NGSOFT\Cache\Utils\BaseDriver implements \NGSOFT\Cache\Driver {
+final class APCuDriver extends BaseDriver implements Driver {
 
     public function __construct() {
 
