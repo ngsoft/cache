@@ -20,15 +20,10 @@ use function get_debug_type;
  * Adapter to use any PSR6 Cache pool as a PSR 16 Cache
  * If you use CacheItemPool you have to set the namespace directly using $simplecachepool->getCachePool()->setNamespace();
  */
-final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Stringable, JsonSerializable {
+final class SimpleCachePool implements Cache, CacheInterface, LoggerAwareInterface, Stringable, JsonSerializable {
 
     use CacheUtils;
     use Unserializable;
-
-    /**
-     * Version Information
-     */
-    public const VERSION = Cache::VERSION;
 
     /** @var CacheItemPoolInterface */
     private $pool;

@@ -16,7 +16,7 @@ use NGSOFT\Cache\{
  * you can also use Illuminate\Cache\Repository with SimpleCacheDriver(but that is too many abstraction layers)
  * @link https://packagist.org/packages/illuminate/cache
  */
-class IlluminateDriver extends BaseDriver implements Driver {
+final class IlluminateDriver extends BaseDriver implements Driver {
 
     /** @var Store */
     protected $cacheStore;

@@ -23,7 +23,7 @@ class_exists(CacheItem::class);
  * A PSR-6 Cache Pool that Supports:
  *  - Namespaces (+Namespace invalidation)
  *  - PSR-14 Events (if you provide a PSR-14 Event Dispatcher using $pool->setEventDispatcher() eg: symfony/event-dispatcher)
- *  - Drivers that supports the most useful providers (Doctrine, Symfony(via PSR-6 proxy(if using ChainDriver)), Illuminate, Promise based(Amp/React), any PSR-6/16 implementation)
+ *  - Drivers that supports the most useful providers (Doctrine, Symfony(via PSR-6 proxy(if using ChainDriver)), Illuminate, any PSR-6/16 implementation)
  */
 class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterface, LoggerAwareInterface, EventDispatcherInterface, Stringable, JsonSerializable {
 
@@ -207,8 +207,11 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
             foreach ($items as $key => $item) {
                 //psr-14 support
                 if ($this->getEventDispatcher()) {
-                    if (!$item->isHit()) $this->dispatch(new CacheMiss($key));
-                    else $this->dispatch(new CacheHit($key, $item->get()));
+                    if ($item->isHit()) {
+                        // to not modify original data
+                        $c = clone $item;
+                        $this->dispatch(new CacheHit($key, $c->get()));
+                    } else $this->dispatch(new CacheMiss($key));
                 }
                 yield $key => $item;
             }
