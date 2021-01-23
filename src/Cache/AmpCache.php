@@ -68,7 +68,7 @@ class AmpCache extends NamespaceAble implements Cache {
         if ($ttl === null) $expiry = 0;
         elseif (0 > $ttl) {
             throw new \Error("Invalid cache TTL ({$ttl}; integer >= 0 or null required");
-        } else $expiry = time() + $ttl; // time() + 0 expires in 1 second, would have been better to replace 0 with a default value
+        } else $expiry = time() + $ttl; // time() + 0 expires in 1 second, would have been better to replace null with a default value, and 0 to unlimited
         $nkey = $this->getStorageKey($key);
 
         if (!$this->driver->set($nkey, $value, $expiry)) {

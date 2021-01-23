@@ -1,6 +1,6 @@
 {
     "name": "ngsoft/cache",
-    "description": "A PSR-6/PSR-16/Doctrine/React cache implementation that supports OPCache, APCu, Doctrine, Illuminate or any PSR-6/16 compatible and can chain them all.",
+    "description": "A PSR-6/PSR-16/Doctrine/React/Amp cache implementation that supports OPCache, APCu, Doctrine, Illuminate or any PSR-6/16 implementations and can chain them all.",
     "keywords": [
         "psr-6", "psr-16", "psr-3", "psr-14", "cache", "caching", "opcache", "phpfilecache",
         "react", "amp", "promise", "doctrine", "illuminate", "chain", "apcu"
@@ -15,6 +15,7 @@
         "doctrine/cache": "A popular cache implementation that supports many different drivers such as redis, memcache, apc, mongodb and others.",
         "illuminate/cache": "The Illuminate Cache package.",
         "react/cache": "Async, Promise-based cache interface.",
+        "amphp/cache": "A promise-aware caching API for Amp.",
         "ext-Zend-OPcache": "Can Accelerate php file caching see: https://www.php.net/manual/en/opcache.installation.php"
     },
     "provide": {

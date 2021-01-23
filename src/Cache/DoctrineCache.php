@@ -112,7 +112,7 @@ final class DoctrineCache extends NamespaceAble implements Cache, FlushableCache
             'Cache' => static::class,
             'Version' => CacheItemPool::VERSION,
             'Implements' => array_values(class_implements($this)),
-            'Driver' => $this->getDriver()
+            'Driver' => (string) $this->getDriver()
         ];
     }
 
