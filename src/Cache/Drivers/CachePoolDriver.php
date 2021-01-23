@@ -15,7 +15,7 @@ use Traversable;
 /**
  * Driver for using a PSR6 Cache
  */
-class CachePoolDriver extends BaseDriver implements Driver {
+final class CachePoolDriver extends BaseDriver implements Driver {
 
     /** @var CacheItemPoolInterface */
     protected $cacheProvider;
