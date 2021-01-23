@@ -38,4 +38,35 @@ final class APCuDriver extends \NGSOFT\Cache\Utils\BaseDriver implements \NGSOFT
         return $supported;
     }
 
+    ////////////////////////////   API   ////////////////////////////
+
+    /** {@inheritdoc} */
+    public function clear(): bool {
+        return apcu_clear_cache();
+    }
+
+    /** {@inheritdoc} */
+    public function delete(string $key): bool {
+        return apcu_delete($key);
+    }
+
+    /** {@inheritdoc} */
+    public function get(string $key) {
+        $value = apcu_fetch($key, $success);
+        if ($success !== true) $value = null;
+        return $value;
+    }
+
+    /** {@inheritdoc} */
+    public function has(string $key): bool {
+        return apcu_exists($key);
+    }
+
+    /** {@inheritdoc} */
+    public function set(string $key, $value, int $expiry = 0): bool {
+        if ($this->isExpired($expiry)) return $this->delete($key);
+        $ttl = $this->expiryToLifetime($expiry);
+        return apcu_store($key, $value, $ttl);
+    }
+
 }
