@@ -64,6 +64,11 @@ class CachePoolDriver extends BaseDriver implements Driver {
     }
 
     /** {@inheritdoc} */
+    public function has(string $key): bool {
+        return $this->cacheProvider->hasItem($key);
+    }
+
+    /** {@inheritdoc} */
     public function delete(string $key): bool {
         unset($this->issued[$this->getHashedKey($key)]);
         return $this->cacheProvider->deleteItem($key);
@@ -73,11 +78,6 @@ class CachePoolDriver extends BaseDriver implements Driver {
     public function get(string $key) {
         $item = $this->issued[$this->getHashedKey($key)] = $this->cacheProvider->getItem($key);
         return $item->isHit() ? $item->get() : null;
-    }
-
-    /** {@inheritdoc} */
-    public function has(string $key): bool {
-        return $this->cacheProvider->hasItem($key);
     }
 
     /** {@inheritdoc} */
