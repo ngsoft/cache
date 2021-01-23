@@ -8,7 +8,7 @@ use Doctrine\Common\Cache\{
     Cache, CacheProvider, ClearableCache, FlushableCache, MultiOperationCache
 };
 use NGSOFT\{
-    Cache\Driver, Cache\Utils\CacheUtils, Traits\Unserializable
+    Cache\DoctrineCache, Cache\Driver, Cache\InvalidArgumentException, Cache\Utils\CacheUtils, Traits\Unserializable
 };
 use Traversable;
 
@@ -34,6 +34,16 @@ final class DoctrineDriver implements Driver {
     public function __construct(
             Cache $doctrineProvider
     ) {
+        if (
+                $doctrineProvider instanceof DoctrineCache
+        ) {
+            // to prevent infinite loops
+            throw new InvalidArgumentException(sprintf(
+                                    'Cannot use %s as %s, too much recursion.',
+                                    get_class($doctrineProvider),
+                                    Cache::class
+            ));
+        }
         $this->doctrineProvider = $doctrineProvider;
     }
 
