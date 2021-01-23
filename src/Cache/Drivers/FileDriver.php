@@ -82,7 +82,7 @@ final class FileDriver extends FileSystem implements Driver {
                     fclose($handle);
 
                     // prevent further failed reads
-                    if ($success == false) $this->unlink($filename);
+                    if ($success == false) $this->unlink($filename) && $this->rmdir(dirname($filename));
                 }
             } catch (ErrorException $error) {
 

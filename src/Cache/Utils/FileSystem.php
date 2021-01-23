@@ -182,7 +182,8 @@ abstract class FileSystem extends BaseDriver {
 
     /** {@inheritdoc} */
     public function has(string $key): bool {
-        return $this->read($this->getFilename($key, $this->getExtension()));
+        $filename = $this->getFilename($key, $this->getExtension());
+        return is_file($filename) and $this->read($this->getFilename($key, $this->getExtension()));
     }
 
     /** {@inheritdoc} */
