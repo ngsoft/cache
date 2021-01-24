@@ -57,7 +57,7 @@ interface Driver extends LoggerAwareInterface, Stringable, JsonSerializable {
     public function getMultiple(array $keys): Traversable;
 
     /**
-     * Persists data in the cache, uniquely referenced by a key with an optional expiration TTL time.
+     * Persists data in the cache, uniquely referenced by a key
      *
      * @param string    $key            The key of the item to store.
      * @param mixed     $value          The value of the item to store, must be serializable.
@@ -68,7 +68,7 @@ interface Driver extends LoggerAwareInterface, Stringable, JsonSerializable {
     public function set(string $key, $value, int $expiry = 0): bool;
 
     /**
-     * Persists a set of key => value pairs in the cache, with an optional TTL.
+     * Persists a set of key => value pairs in the cache
      *
      * @param array     $values     A list of key => value pairs for a multiple-set operation.
      * @param int       $expiry     The timestamp at which the item will expire (a value of 0 never expires).
