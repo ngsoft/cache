@@ -5,17 +5,18 @@ declare(strict_types=1);
 namespace NGSOFT\Cache;
 
 use Amp\{
-    Cache\Cache, Cache\CacheException, Promise, Success
+    Cache\Cache as CacheInterface, Cache\CacheException, Promise, Success
 };
+use Error;
 use NGSOFT\{
-    Cache\Utils\CacheUtils, Cache\Utils\NamespaceAble, Traits\Unserializable
+    Cache, Cache\Utils\CacheUtils, Cache\Utils\NamespaceAble, Traits\Unserializable
 };
 
 /**
  * This is a bridge between my drivers and amphp/cache
  *   - amphp/cache must be installed to use this
  */
-class AmpCache extends NamespaceAble implements Cache {
+class AmpCache extends NamespaceAble implements Cache, CacheInterface {
 
     use CacheUtils;
     use Unserializable;
@@ -67,7 +68,7 @@ class AmpCache extends NamespaceAble implements Cache {
     public function set(string $key, string $value, int $ttl = null): Promise {
         if ($ttl === null) $expiry = 0;
         elseif (0 > $ttl) {
-            throw new \Error("Invalid cache TTL ({$ttl}; integer >= 0 or null required");
+            throw new Error("Invalid cache TTL ({$ttl}; integer >= 0 or null required");
         } else $expiry = time() + $ttl; // time() + 0 expires in 1 second, would have been better to replace null with a default value, and 0 to unlimited
         $nkey = $this->getStorageKey($key);
 

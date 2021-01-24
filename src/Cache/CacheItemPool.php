@@ -24,6 +24,9 @@ class_exists(CacheItem::class);
  *  - Namespaces (+Namespace invalidation)
  *  - PSR-14 Events (if you provide a PSR-14 Event Dispatcher using $pool->setEventDispatcher() eg: symfony/event-dispatcher)
  *  - Drivers that supports the most useful providers (Doctrine, Symfony(via PSR-6 proxy(if using ChainDriver)), Illuminate, any PSR-6/16 implementation)
+ *
+ *  - Don't supports tags at the moment as it adds more computing to the save and delete methods (I tried (even created a shared list system for that),
+ *    you can use 'cache/taggable-cache'<https://github.com/php-cache/taggable-cache> with that class if you want tag support)
  */
 class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterface, LoggerAwareInterface, EventDispatcherInterface, Stringable, JsonSerializable {
 

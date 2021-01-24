@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace NGSOFT\Cache;
 
 use Doctrine\Common\Cache\{
-    Cache, ClearableCache, FlushableCache, MultiOperationCache
+    Cache as DoctrineCacheInterface, ClearableCache, FlushableCache, MultiOperationCache
 };
 use NGSOFT\{
-    Cache\Utils\CacheUtils, Cache\Utils\NamespaceAble, Traits\Unserializable
+    Cache, Cache\Utils\CacheUtils, Cache\Utils\NamespaceAble, Traits\Unserializable
 };
 
 /**
  * This is a bridge between my drivers and Doctrine Cache
  *   - doctrine/cache must be installed to use that feature
  */
-final class DoctrineCache extends NamespaceAble implements Cache, FlushableCache, ClearableCache, MultiOperationCache {
+final class DoctrineCache extends NamespaceAble implements Cache, DoctrineCacheInterface, FlushableCache, ClearableCache, MultiOperationCache {
 
     use CacheUtils;
     use Unserializable;
@@ -35,7 +35,6 @@ final class DoctrineCache extends NamespaceAble implements Cache, FlushableCache
             string $namespace = ''
     ) {
         $this->defaultLifetime = max(0, $defaultLifetime);
-        //chain cache, doctrine ...
         if (method_exists($driver, 'setDefaultLifetime')) {
             $driver->setDefaultLifetime($this->defaultLifetime);
         }
@@ -56,35 +55,17 @@ final class DoctrineCache extends NamespaceAble implements Cache, FlushableCache
     }
 
     /** {@inheritdoc} */
-    public function fetch($id) {
-        $this->checkType($id, 'string');
-        $value = $this->driver->get($this->getStorageKey($id));
-        return $value === null ? false : $value;
-    }
-
-    /** {@inheritdoc} */
-    public function save($id, $data, $lifeTime = 0): bool {
-        $this->checkType($id, 'string');
-        $this->checkType($lifeTime, 'int');
-        $expiry = $lifeTime !== 0 ? time() + $lifeTime : 0;
-        return $this->driver->set($this->getStorageKey($id), $data, $expiry);
-    }
-
-    /** {@inheritdoc} */
-    public function deleteAll() {
-        return $this->invalidateNamespace();
-    }
-
-    /** {@inheritdoc} */
-    public function flushAll() {
-        return $this->driver->clear();
-    }
-
-    /** {@inheritdoc} */
     public function deleteMultiple(array $keys) {
         $this->doCheckKeys($keys);
         $keysToDelete = array_map(fn($k) => $this->getStorageKey($k), array_values($keys));
         return $this->driver->deleteMultiple($keysToDelete);
+    }
+
+    /** {@inheritdoc} */
+    public function fetch($id) {
+        $this->checkType($id, 'string');
+        $value = $this->driver->get($this->getStorageKey($id));
+        return $value === null ? false : $value;
     }
 
     /** {@inheritdoc} */
@@ -99,6 +80,14 @@ final class DoctrineCache extends NamespaceAble implements Cache, FlushableCache
     }
 
     /** {@inheritdoc} */
+    public function save($id, $data, $lifeTime = 0) {
+        $this->checkType($id, 'string');
+        $this->checkType($lifeTime, 'int');
+        $expiry = $lifeTime !== 0 ? time() + $lifeTime : 0;
+        return $this->driver->set($this->getStorageKey($id), $data, $expiry);
+    }
+
+    /** {@inheritdoc} */
     public function saveMultiple(array $keysAndValues, $lifetime = 0) {
         $this->checkType($lifetime, 'int');
         $expiry = $lifetime !== 0 ? time() + $lifetime : 0;
@@ -107,10 +96,20 @@ final class DoctrineCache extends NamespaceAble implements Cache, FlushableCache
     }
 
     /** {@inheritdoc} */
+    public function deleteAll() {
+        return $this->invalidateNamespace();
+    }
+
+    /** {@inheritdoc} */
+    public function flushAll() {
+        return $this->driver->clear();
+    }
+
+    /** {@inheritdoc} */
     public function getStats() {
         return [
             'Cache' => static::class,
-            'Version' => CacheItemPool::VERSION,
+            'Version' => static::VERSION,
             'Implements' => array_values(class_implements($this)),
             'Driver' => (string) $this->getDriver()
         ];

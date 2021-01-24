@@ -16,7 +16,7 @@ final class PHPCache extends CacheItemPool {
     /**
      * @param string|null $rootpath Root directory to store the cache (defaults to tmp)
      * @param int|null $defaultLifetime default TTL to use to store the files (defaults to 0 =>  never expires)
-     * @param string $prefix prefix to use (defaults to phpcache)
+     * @param string $prefix prefix to use for rootpath (defaults to phpcache)
      */
     public function __construct(
             string $rootpath = null,
