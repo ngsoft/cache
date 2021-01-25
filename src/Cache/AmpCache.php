@@ -11,12 +11,15 @@ use Error;
 use NGSOFT\{
     Cache, Cache\Utils\CacheUtils, Cache\Utils\NamespaceAble, Traits\Unserializable
 };
+use Psr\Log\{
+    LoggerAwareInterface, LoggerInterface
+};
 
 /**
  * This is a bridge between my drivers and amphp/cache
  *   - amphp/cache must be installed to use this
  */
-class AmpCache extends NamespaceAble implements Cache, CacheInterface {
+class AmpCache extends NamespaceAble implements Cache, CacheInterface, LoggerAwareInterface {
 
     use CacheUtils;
     use Unserializable;
@@ -37,6 +40,14 @@ class AmpCache extends NamespaceAble implements Cache, CacheInterface {
         }
 
         parent::__construct($driver, $namespace);
+    }
+
+    ////////////////////////////   LoggerAware   ////////////////////////////
+
+    /** {@inheritdoc} */
+    public function setLogger(LoggerInterface $logger) {
+        $this->logger = $logger;
+        $this->driver->setLogger($logger);
     }
 
     ////////////////////////////   API   ////////////////////////////
