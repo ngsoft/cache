@@ -10,7 +10,7 @@ use NGSOFT\{
     Cache, Cache\InvalidArgumentException, Cache\Utils\CacheUtils, Traits\Unserializable
 };
 use Psr\{
-    Cache\CacheItemPoolInterface, Log\LoggerAwareInterface, Log\LoggerInterface, SimpleCache\CacheInterface
+    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerAwareInterface, Log\LoggerInterface, SimpleCache\CacheInterface
 };
 use Stringable,
     Throwable;
@@ -27,6 +27,9 @@ final class SimpleCachePool implements Cache, CacheInterface, LoggerAwareInterfa
 
     /** @var CacheItemPoolInterface */
     private $pool;
+
+    /** @var CacheItemInterface[] */
+    private $items = [];
 
     /** @var int */
     private $defaultLifetime;
@@ -83,6 +86,7 @@ final class SimpleCachePool implements Cache, CacheInterface, LoggerAwareInterfa
      * @return bool
      */
     public function clear() {
+        $this->items = [];
         return $this->pool->clear();
     }
 
@@ -118,7 +122,7 @@ final class SimpleCachePool implements Cache, CacheInterface, LoggerAwareInterfa
      */
     public function get($key, $default = null) {
         try {
-            $item = $this->pool->getItem($key);
+            $item = $this->items[$key] = $this->pool->getItem($key);
             return $item->isHit() ?
                     $item->get() :
                     $default;
@@ -137,6 +141,7 @@ final class SimpleCachePool implements Cache, CacheInterface, LoggerAwareInterfa
             if (!is_array($keys)) $keys = iterator_to_array($keys);
             if (empty($keys)) return;
             foreach ($this->pool->getItems($keys)as $key => $item) {
+                $this->items[$key] = $item;
                 yield $key => $item->isHit() ?
                                 $item->get() :
                                 $default;
@@ -167,9 +172,10 @@ final class SimpleCachePool implements Cache, CacheInterface, LoggerAwareInterfa
             $this->doCheckTTL($ttl);
             $this->doCheckValue($value);
             $ttl = $ttl ?? $this->getDefaultLifetime();
+            $item = $this->items[$key] ?? $this->pool->getItem($key);
+            unset($this->items[$key]);
             return $this->pool->save(
-                            $this->pool
-                                    ->getItem($key)
+                            $item
                                     ->set($value)
                                     ->expiresAfter($ttl === 0 ? null : $ttl)
             );
@@ -192,11 +198,13 @@ final class SimpleCachePool implements Cache, CacheInterface, LoggerAwareInterfa
             if (!is_array($values)) $values = iterator_to_array($values);
             $ttl = $ttl ?? $this->getDefaultLifetime();
 
-            foreach ($this->pool->getItems(array_keys($values)) as $key => $item) {
-                $this->doCheckValue($values[$key]);
+            foreach ($values as $key => $value) {
+                $item = $this->items[$key] ?? $this->pool->getItem($key);
+                unset($this->items[$key]);
+                $this->doCheckValue($value);
                 $this->pool->saveDeferred(
                         $item
-                                ->set($values[$key])
+                                ->set($value)
                                 // to prevent cache pool from deleting the item (we use the cache pool default value)
                                 ->expiresAfter($ttl === 0 ? null : $ttl)
                 );

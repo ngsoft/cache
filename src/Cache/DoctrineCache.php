@@ -10,12 +10,15 @@ use Doctrine\Common\Cache\{
 use NGSOFT\{
     Cache, Cache\Utils\CacheUtils, Cache\Utils\NamespaceAble, Traits\Unserializable
 };
+use Psr\Log\{
+    LoggerAwareInterface, LoggerInterface
+};
 
 /**
  * This is a bridge between my drivers and Doctrine Cache
  *   - doctrine/cache must be installed to use that feature
  */
-final class DoctrineCache extends NamespaceAble implements Cache, DoctrineCacheInterface, FlushableCache, ClearableCache, MultiOperationCache {
+final class DoctrineCache extends NamespaceAble implements Cache, DoctrineCacheInterface, FlushableCache, ClearableCache, MultiOperationCache, LoggerAwareInterface {
 
     use CacheUtils;
     use Unserializable;
@@ -41,6 +44,16 @@ final class DoctrineCache extends NamespaceAble implements Cache, DoctrineCacheI
 
         parent::__construct($driver, $namespace);
     }
+
+    ////////////////////////////   LoggerAware   ////////////////////////////
+
+    /** {@inheritdoc} */
+    public function setLogger(LoggerInterface $logger) {
+        $this->logger = $logger;
+        $this->driver->setLogger($logger);
+    }
+
+    ////////////////////////////   API   ////////////////////////////
 
     /** {@inheritdoc} */
     public function contains($id) {
