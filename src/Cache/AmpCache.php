@@ -56,7 +56,7 @@ class AmpCache extends NamespaceAble implements Cache, CacheInterface, LoggerAwa
     public function delete(string $key): Promise {
         $nkey = $this->getStorageKey($key);
         if ($exists = $this->driver->has($nkey)) {
-            if (!$this->driver->delete($nkey)) {
+            if (!$this->getDriver()->delete($nkey)) {
                 throw new CacheException('Cannot delete ' . $key);
             }
         }
@@ -65,7 +65,7 @@ class AmpCache extends NamespaceAble implements Cache, CacheInterface, LoggerAwa
 
     /** {@inheritdoc} */
     public function get(string $key): Promise {
-        $value = $this->driver->get($this->getStorageKey($key));
+        $value = $this->getDriver()->get($this->getStorageKey($key));
         if (
                 !is_string($value) and
                 !is_null($value)
@@ -83,7 +83,7 @@ class AmpCache extends NamespaceAble implements Cache, CacheInterface, LoggerAwa
         } else $expiry = time() + $ttl; // time() + 0 expires in 1 second, would have been better to replace null with a default value, and 0 to unlimited
         $nkey = $this->getStorageKey($key);
 
-        if (!$this->driver->set($nkey, $value, $expiry)) {
+        if (!$this->getDriver()->set($nkey, $value, $expiry)) {
             throw new CacheException('Cannot set ' . $key);
         }
 
