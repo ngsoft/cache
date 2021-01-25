@@ -10,9 +10,13 @@ use NGSOFT\{
 use Psr\Log\{
     LoggerAwareInterface, LoggerInterface
 };
-use React\Cache\CacheInterface,
-    Throwable;
+use React\{
+    Cache\CacheInterface, Promise\PromiseInterface
+};
+use Throwable;
 use function React\Promise\resolve;
+
+interface_exists(PromiseInterface::class);
 
 class ReactCache extends NamespaceAble implements Cache, CacheInterface, LoggerAwareInterface {
 
@@ -52,15 +56,19 @@ class ReactCache extends NamespaceAble implements Cache, CacheInterface, LoggerA
 
     ////////////////////////////   API   ////////////////////////////
 
-    /** {@inheritdoc} */
+    /**
+     * {@inheritdoc}
+     * @suppress PhanParamSignatureMismatch
+     * @return PromiseInterface<bool>
+     */
     public function clear() {
         return resolve(parent::clear());
     }
 
+    /** {@inheritdoc} */
     public function has($key) {
         try {
             $this->getValidKey($key);
-
             return resolve($this->getDriver()->has($this->getStorageKey($key)));
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
@@ -77,17 +85,74 @@ class ReactCache extends NamespaceAble implements Cache, CacheInterface, LoggerA
         }
     }
 
+    /** {@inheritdoc} */
     public function delete($key) {
         try {
-
+            $this->getValidKey($key);
+            return resolve($this->getDriver()->delete($this->getStorageKey($key)));
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
     }
 
+    /** {@inheritdoc} */
     public function set($key, $value, $ttl = null) {
         try {
+            $this->getValidKey($key);
+            $this->doCheckValue($value);
+            if (is_float($ttl)) $ttl = (int) ceil($ttl);
+            $this->doCheckTTL($ttl);
+            $ttl = $ttl ?? $this->defaultLifetime;
+            $expiry = $ttl != 0 ? time() + $ttl : 0;
+            if ($this->isExpired($expiry)) return $this->delete($key);
+            return resolve($this->getDriver()->set($this->getStorageKey($key), $value, $expiry));
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
+    }
 
+    /** {@inheritdoc} */
+    public function deleteMultiple(array $keys) {
+        try {
+            $this->doCheckKeys($keys);
+            $keysToRemove = array_map(fn($k) => $this->getStorageKey($k), array_values($keys));
+            return resolve($this->getDriver()->deleteMultiple($keysToRemove));
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
+    }
+
+    /** {@inheritdoc} */
+    public function getMultiple(array $keys, $default = null) {
+        try {
+            $this->doCheckKeys($keys);
+            $keys = array_values(array_unique($keys));
+            $keysToGet = array_combine(array_map(fn($k) => $this->getStorageKey($k), $keys), $keys);
+            $result = [];
+            foreach ($this->getDriver()->getMultiple(array_keys($keysToGet)) as $nkey => $value) {
+                $result[$keysToGet[$nkey]] = $value ?? $default;
+            }
+            return resolve($result);
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
+    }
+
+    /** {@inheritdoc} */
+    public function setMultiple(array $values, $ttl = null) {
+        try {
+            if (is_float($ttl)) $ttl = (int) ceil($ttl);
+            $this->doCheckTTL($ttl);
+            $ttl = $ttl ?? $this->defaultLifetime;
+            $expiry = $ttl != 0 ? time() + $ttl : 0;
+            if ($this->isExpired($expiry)) return $this->deleteMultiple(array_keys($values));
+            $toSave = [];
+            foreach ($values as $key => $value) {
+                $this->doCheckValue($value);
+                $this->getValidKey($key);
+                $toSave[$this->getStorageKey($key)] = $value;
+            }
+            return resolve($this->getDriver()->setMultiple($toSave, $expiry));
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
