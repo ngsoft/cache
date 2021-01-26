@@ -9,6 +9,7 @@ use DateInterval,
 use NGSOFT\{
     Cache\CacheException, Cache\CacheItem, Cache\InvalidArgumentException, Traits\LoggerAware, Traits\UnionType
 };
+use \Psr\Cache\CacheException as PSRCacheException;
 use Psr\Log\{
     LoggerInterface, LogLevel
 };
@@ -49,7 +50,7 @@ trait CacheUtils {
         if ($exception instanceof InvalidArgumentException) $level = LogLevel::WARNING;
 
         if (
-                $exception instanceof CacheException and
+                $exception instanceof PSRCacheException and
                 $method
         ) {
             $this->log($level, sprintf('Cache Exception thrown in %s::%s', static::class, $method), [
