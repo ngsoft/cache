@@ -97,9 +97,7 @@ final class ChainDriver implements Driver, IteratorAggregate, Countable {
         $this->defaultLifetime = max(0, $defaultLifetime);
         // chain inside chain? (it's not forbidden, just don't use the same driver twice)
         foreach ($this->getIterator() as $driver) {
-            if (method_exists($driver, 'setDefaultLifetime')) {
-                $driver->setDefaultLifetime($this->defaultLifetime);
-            }
+            $driver->setDefaultLifetime($this->defaultLifetime);
         }
     }
 

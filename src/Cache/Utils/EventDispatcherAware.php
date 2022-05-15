@@ -12,7 +12,7 @@ use Psr\EventDispatcher\{
 
 trait EventDispatcherAware {
 
-    private ?EventDispatcherInterface $eventDispatcher;
+    private ?EventDispatcherInterface $eventDispatcher = null;
 
     /**
      * Get the proxied EventDispatcher
