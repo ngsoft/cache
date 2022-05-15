@@ -70,7 +70,7 @@ final class Serializer {
         try {
             static::setErrorHandler();
             return \serialize($input);
-        } catch (Throwable $ex) { return null; } finally { \restore_error_handler(); }
+        } catch (Throwable) { return null; } finally { \restore_error_handler(); }
     }
 
     /**
@@ -95,7 +95,7 @@ final class Serializer {
             // we already checked if a false has been serialized: so that's unserialize that failed
             // (we must already be inside the catch block but we don't know for sure)
             return $result === false ? null : $result;
-        } catch (Throwable $ex) { return null; } finally { \restore_error_handler(); }
+        } catch (Throwable) { return null; } finally { \restore_error_handler(); }
     }
 
 }
