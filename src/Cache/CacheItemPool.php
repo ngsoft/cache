@@ -68,7 +68,7 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
     ////////////////////////////   LoggerAware   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function setLogger(LoggerInterface $logger) {
+    public function setLogger(LoggerInterface $logger): void {
         $this->logger = $logger;
         $this->driver->setLogger($logger);
     }

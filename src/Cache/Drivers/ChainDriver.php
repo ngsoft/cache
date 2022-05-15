@@ -93,7 +93,7 @@ final class ChainDriver implements Driver, IteratorAggregate, Countable {
      * @suppress PhanUndeclaredMethod
      * @param int $defaultLifetime
      */
-    public function setDefaultLifetime(int $defaultLifetime) {
+    public function setDefaultLifetime(int $defaultLifetime): void {
         $this->defaultLifetime = max(0, $defaultLifetime);
         // chain inside chain? (it's not forbidden, just don't use the same driver twice)
         foreach ($this->getIterator() as $driver) {

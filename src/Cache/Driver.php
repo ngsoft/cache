@@ -16,6 +16,14 @@ use JsonSerializable,
 interface Driver extends LoggerAwareInterface, Stringable, JsonSerializable {
 
     /**
+     * Set the default lifetime
+     *
+     * @param int $defaultLifetime
+     * @return void
+     */
+    public function setDefaultLifetime(int $defaultLifetime): void;
+
+    /**
      * Removes expired item entries if driver supports it
      *
      * @return bool true if operation was successful, false if not supported or error

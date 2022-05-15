@@ -60,6 +60,11 @@ final class DoctrineDriver implements Driver {
     ////////////////////////////   API   ////////////////////////////
 
     /** {@inheritdoc} */
+    public function setDefaultLifetime(int $defaultLifetime): void {
+
+    }
+
+    /** {@inheritdoc} */
     public function purge(): bool {
         return false;
     }

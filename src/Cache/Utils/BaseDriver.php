@@ -19,6 +19,8 @@ abstract class BaseDriver implements Driver {
      */
     protected const HASH_CHARCODES = '0123456789abcdef';
 
+    protected ?int $defaultLifetime;
+
     ////////////////////////////   GC (Override if possible)   ////////////////////////////
 
     /** {@inheritdoc} */
@@ -50,6 +52,13 @@ abstract class BaseDriver implements Driver {
         $r = true;
         foreach ($values as $key => $value) $r = $this->set($key, $value, $expiry) && $r;
         return $r;
+    }
+
+    ////////////////////////////   Compatibility   ////////////////////////////
+
+    /** {@inheritdoc} */
+    public function setDefaultLifetime(int $defaultLifetime): void {
+        $this->defaultLifetime = max(0, $defaultLifetime);
     }
 
     ////////////////////////////   Utils   ////////////////////////////
