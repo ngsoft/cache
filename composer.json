@@ -40,7 +40,7 @@
         "psr/cache": "^3",
         "psr/simple-cache": "^3",
         "psr/event-dispatcher": "^1",
-        "psr/log": "^3"
+        "psr/log": "^1|^2|^3"
 
     },
     "autoload": {
