@@ -1,6 +1,6 @@
 {
     "name": "ngsoft/cache",
-    "description": "A PSR-6/PSR-16/Doctrine/React/Amp cache implementation that supports OPCache, APCu, Doctrine, Illuminate or any PSR-6/16 implementations and can chain them all.",
+    "description": "A PSR-6/PSR-16/Doctrine/React cache implementation that supports OPCache, APCu, Doctrine, Illuminate or any PSR-6/16 implementations and can chain them all.",
     "keywords": [
         "psr-6", "psr-16", "psr-3", "psr-14", "cache", "caching", "opcache", "phpfilecache",
         "react", "amp", "promise", "doctrine", "illuminate", "chain", "apcu"
@@ -15,31 +15,30 @@
         "doctrine/cache": "A popular cache implementation that supports many different drivers such as redis, memcache, apc, mongodb and others.",
         "illuminate/cache": "The Illuminate Cache package.",
         "react/cache": "Async, Promise-based cache interface.",
-        "amphp/cache": "A promise-aware caching API for Amp.",
         "ext-Zend-OPcache": "Can Accelerate php file caching see: https://www.php.net/manual/en/opcache.installation.php"
     },
     "provide": {
-        "psr/cache-implementation": "^1.0",
-        "psr/simple-cache-implementation": "^1.0"
+        "psr/cache-implementation": "^3.0",
+        "psr/simple-cache-implementation": "^3.0"
     },
     "conflict": {
-        "illuminate/cache": "<5.8",
-        "amphp/cache": "<1.0",
-        "react/cache": "<0.6"
+        "illuminate/cache": "<9.0.0",
+        "react/cache": "<1.1",
+        "doctrine/cache": "<1.10.1|>=2.0",
+        "symfony/cache": "<6.0"
     },
     "require-dev": {
         "react/cache": ">=1.1",
-        "doctrine/cache": "^1.10",
-        "illuminate/cache": ">=5.8",
-        "symfony/cache": ">=5.2",
-        "amphp/cache": ">=1.4"
-
+        "doctrine/cache": ">=1.10.1",
+        "illuminate/cache": ">=9.0",
+        "symfony/cache": ">=6.0"
     },
     "require": {
-        "php": ">=7.4",
-        "ngsoft/tools": "^2",
-        "psr/cache": "^1",
-        "psr/simple-cache": "^1"
+        "php": ">=8.1",
+        "ngsoft/tools": "^3",
+        "psr/cache": "^3",
+        "psr/simple-cache": "^3",
+        "psr/event-dispatcher": "^1"
 
     },
     "autoload": {
