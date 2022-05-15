@@ -7,8 +7,8 @@ namespace NGSOFT\Cache;
 use Generator,
     JsonSerializable;
 use NGSOFT\{
-    Cache, Cache\Events\CacheHit, Cache\Events\CacheMiss, Cache\Events\KeyDeleted, Cache\Events\KeySaved, Cache\Utils\CacheUtils, Cache\Utils\NamespaceAble,
-    Events\EventDispatcherAware, Traits\Unserializable
+    Cache, Cache\Events\CacheHit, Cache\Events\CacheMiss, Cache\Events\KeyDeleted, Cache\Events\KeySaved, Cache\Utils\CacheUtils, Cache\Utils\EventDispatcherAware,
+    Cache\Utils\NamespaceAble, Traits\Unserializable
 };
 use Psr\{
     Cache\CacheItemInterface, Cache\CacheItemPoolInterface, EventDispatcher\EventDispatcherInterface, Log\LoggerAwareInterface, Log\LoggerInterface
