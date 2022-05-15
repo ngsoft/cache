@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Events;
 
-use NGSOFT\Events\StoppableEvent;
+use NGSOFT\Cache\Utils\StoppableEvent;
 
 /**
  * Base Event For Cache Pool
