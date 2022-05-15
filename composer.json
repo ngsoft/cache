@@ -24,21 +24,23 @@
     "conflict": {
         "illuminate/cache": "<9.0.0",
         "react/cache": "<1.1",
-        "doctrine/cache": "<1.10.1|>=2.0",
-        "symfony/cache": "<6.0"
+        "doctrine/cache": "<1.10.1",
+        "symfony/cache": "<6.0",
+        "ngsoft/tools": "<3.0.1"
     },
     "require-dev": {
         "react/cache": ">=1.1",
-        "doctrine/cache": ">=1.10.1",
+        "doctrine/cache": ">=1.10.1,<2.0",
         "illuminate/cache": ">=9.0",
         "symfony/cache": ">=6.0"
     },
     "require": {
         "php": ">=8.1",
-        "ngsoft/tools": "^3",
+        "ngsoft/tools": ">=3.0.1",
         "psr/cache": "^3",
         "psr/simple-cache": "^3",
-        "psr/event-dispatcher": "^1"
+        "psr/event-dispatcher": "^1",
+        "psr/log": "^3"
 
     },
     "autoload": {
