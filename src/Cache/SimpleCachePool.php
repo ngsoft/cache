@@ -57,7 +57,7 @@ final class SimpleCachePool implements Cache, CacheInterface, LoggerAwareInterfa
     ////////////////////////////   LoggerAware   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function setLogger(LoggerInterface $logger) {
+    public function setLogger(LoggerInterface $logger): void {
         $this->logger = $logger;
         if ($this->pool instanceof LoggerAwareInterface) {
             $this->pool->setLogger($logger);
@@ -85,7 +85,7 @@ final class SimpleCachePool implements Cache, CacheInterface, LoggerAwareInterfa
      * {@inheritdoc}
      * @return bool
      */
-    public function clear() {
+    public function clear(): bool {
         $this->items = [];
         return $this->pool->clear();
     }
@@ -94,7 +94,7 @@ final class SimpleCachePool implements Cache, CacheInterface, LoggerAwareInterfa
      * {@inheritdoc}
      * @return bool
      */
-    public function delete($key) {
+    public function delete(string $key): bool {
         try {
             return $this->pool->deleteItem($key);
         } catch (Throwable $error) {
@@ -106,7 +106,7 @@ final class SimpleCachePool implements Cache, CacheInterface, LoggerAwareInterfa
      * {@inheritdoc}
      * @return bool
      */
-    public function deleteMultiple($keys) {
+    public function deleteMultiple(iterable $keys): bool {
         try {
             $this->doCheckKeys($keys);
             if (!is_array($keys)) $keys = iterator_to_array($keys);
@@ -120,7 +120,7 @@ final class SimpleCachePool implements Cache, CacheInterface, LoggerAwareInterfa
      * {@inheritdoc}
      * @return mixed
      */
-    public function get($key, $default = null) {
+    public function get(string $key, mixed $default = null): mixed {
         try {
             $item = $this->items[$key] = $this->pool->getItem($key);
             return $item->isHit() ?
@@ -135,7 +135,7 @@ final class SimpleCachePool implements Cache, CacheInterface, LoggerAwareInterfa
      * {@inheritdoc}
      * @return Generator
      */
-    public function getMultiple($keys, $default = null) {
+    public function getMultiple(iterable $keys, mixed $default = null): iterable {
         try {
             $this->doCheckKeys($keys);
             if (!is_array($keys)) $keys = iterator_to_array($keys);
@@ -155,7 +155,7 @@ final class SimpleCachePool implements Cache, CacheInterface, LoggerAwareInterfa
      * {@inheritdoc}
      * @return bool
      */
-    public function has($key) {
+    public function has(string $key): bool {
         try {
             return $this->pool->hasItem($key);
         } catch (Throwable $error) {
@@ -167,7 +167,7 @@ final class SimpleCachePool implements Cache, CacheInterface, LoggerAwareInterfa
      * {@inheritdoc}
      * @return bool
      */
-    public function set($key, $value, $ttl = null) {
+    public function set(string $key, mixed $value, null|int|\DateInterval $ttl = null): bool {
         try {
             $this->doCheckTTL($ttl);
             $this->doCheckValue($value);
@@ -188,7 +188,7 @@ final class SimpleCachePool implements Cache, CacheInterface, LoggerAwareInterfa
      * {@inheritdoc}
      * @return bool
      */
-    public function setMultiple($values, $ttl = null) {
+    public function setMultiple(iterable $values, null|int|\DateInterval $ttl = null): bool {
         try {
             if (!is_iterable($values)) {
                 throw new InvalidArgumentException(sprintf('Invalid $values iterable expected, %s given.', get_debug_type($values)));
@@ -225,12 +225,12 @@ final class SimpleCachePool implements Cache, CacheInterface, LoggerAwareInterfa
     }
 
     /** {@inheritdoc} */
-    public function __toString() {
+    public function __toString(): string {
         return json_encode($this, JSON_PRETTY_PRINT);
     }
 
     /** {@inheritdoc} */
-    public function jsonSerialize() {
+    public function jsonSerialize(): mixed {
 
         return [
             'Cache' => static::class,

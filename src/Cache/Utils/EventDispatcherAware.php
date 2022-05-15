@@ -26,6 +26,7 @@ trait EventDispatcherAware {
     /**
      * Set an event dispatcher to forwards calls to
      *
+     * @phan-suppress PhanTypeMismatchReturn
      * @param EventDispatcherInterface $eventDispatcher
      * @return static
      * @throws InvalidArgumentException

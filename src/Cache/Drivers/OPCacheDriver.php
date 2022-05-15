@@ -40,7 +40,7 @@ final class OPCacheDriver extends FileSystem implements Driver {
     }
 
     /** {@inheritdoc} */
-    public function jsonSerialize() {
+    public function jsonSerialize(): mixed {
         return [
             static::class => [
                 'Cache Directory' => $this->getCacheRoot(),
@@ -139,7 +139,7 @@ final class OPCacheDriver extends FileSystem implements Driver {
         static $handler, $errorHandler;
         // safe include (without context)
         if (!$handler) {
-            $handler = static function(string $filename) {
+            $handler = static function (string $filename) {
                 return include $filename;
             };
             $errorHandler = static function () {

@@ -48,7 +48,7 @@ final class DoctrineDriver implements Driver {
     }
 
     /** {@inheritdoc} */
-    public function jsonSerialize() {
+    public function jsonSerialize(): mixed {
         return [
             static::class => [
                 Cache::class => get_class($this->doctrineProvider),

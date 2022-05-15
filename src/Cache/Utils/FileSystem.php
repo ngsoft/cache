@@ -99,7 +99,7 @@ abstract class FileSystem extends BaseDriver {
     }
 
     /** {@inheritdoc} */
-    public function jsonSerialize() {
+    public function jsonSerialize(): mixed {
         return [
             static::class => [
                 'Cache Directory' => $this->getCacheRoot(),
@@ -146,7 +146,6 @@ abstract class FileSystem extends BaseDriver {
 
         $rootDir = $root . self::DS . self::STORAGE_PREFIX . $prefix;
 
-
         if ($this->isRunningOnWindows() and mb_strlen($rootDir) > 200) {
             throw new InvalidArgumentException(sprintf('Cache directory too long for windows filesystem (%s).', $rootDir));
         }
@@ -173,10 +172,6 @@ abstract class FileSystem extends BaseDriver {
      * @return bool
      */
     abstract protected function read(string $filename, &$value = null): bool;
-
-
-
-
 
     ////////////////////////////   API   ////////////////////////////
 

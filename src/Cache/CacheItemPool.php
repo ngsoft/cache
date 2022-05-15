@@ -52,11 +52,7 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
             string $namespace = ''
     ) {
         $this->defaultLifetime = max(0, $defaultLifetime);
-        //chain cache, doctrine ...
-        if (method_exists($driver, 'setDefaultLifetime')) {
-            $driver->setDefaultLifetime($this->defaultLifetime);
-        }
-
+        $driver->setDefaultLifetime($this->defaultLifetime);
         parent::__construct($driver, $namespace);
     }
 
@@ -75,11 +71,16 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
 
     ////////////////////////////   PSR-6   ////////////////////////////
 
+    /** {@inheritdoc} */
+    public function clear(): bool {
+        return $this->clearNamespace();
+    }
+
     /**
      * {@inheritdoc}
      * @return bool
      */
-    public function commit() {
+    public function commit(): bool {
         try {
             if (empty($this->deferred)) return true;
 
@@ -124,7 +125,7 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
      * {@inheritdoc}
      * @return bool
      */
-    public function deleteItem($key) {
+    public function deleteItem(string $key): bool {
         try {
             // to not copy/paste code...
             return $this->deleteItems([$key]);
@@ -137,7 +138,7 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
      * {@inheritdoc}
      * @return bool
      */
-    public function deleteItems(array $keys) {
+    public function deleteItems(array $keys): bool {
         if (empty($keys)) return true;
         try {
             $keys = array_values(array_unique($keys));
@@ -183,7 +184,7 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
      * {@inheritdoc}
      * @return Generator|CacheItem[]
      */
-    public function getItems(array $keys = []) {
+    public function getItems(array $keys = []): iterable {
         try {
             // 'yield' in a function: function returns: \Generator
             // even if we do that
@@ -241,7 +242,7 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
      * {@inheritdoc}
      * @return bool
      */
-    public function save(CacheItemInterface $item) {
+    public function save(CacheItemInterface $item): bool {
         try {
             return $this->saveDeferred($item) and $this->commit();
         } catch (Throwable $error) {
@@ -253,7 +254,7 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
      * {@inheritdoc}
      * @return bool
      */
-    public function saveDeferred(CacheItemInterface $item) {
+    public function saveDeferred(CacheItemInterface $item): bool {
         // as we have no way to know expiry on third party items, we have to do that
         if (!($item instanceof CacheItem)) {
             throw $this->handleException(
@@ -297,7 +298,7 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
     }
 
     /** {@inheritdoc} */
-    public function jsonSerialize() {
+    public function jsonSerialize(): mixed {
 
         return [
             'Cache' => static::class,

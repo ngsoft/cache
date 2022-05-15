@@ -48,7 +48,7 @@ final class CachePoolDriver extends BaseDriver implements Driver {
     }
 
     /** {@inheritdoc} */
-    public function jsonSerialize() {
+    public function jsonSerialize(): mixed {
         return [
             static::class => [
                 CacheItemPoolInterface::class => get_class($this->cacheProvider)

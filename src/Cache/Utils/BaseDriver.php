@@ -99,7 +99,7 @@ abstract class BaseDriver implements Driver {
     ////////////////////////////   Debug   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function jsonSerialize() {
+    public function jsonSerialize(): mixed {
 
         return [static::class => []];
     }

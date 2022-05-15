@@ -37,7 +37,7 @@ class CacheItem implements CacheItemInterface, Cache, LoggerAwareInterface {
      * {@inheritdoc}
      * @return CacheItem
      */
-    public function expiresAfter($time) {
+    public function expiresAfter(int|\DateInterval|null $time): static {
         try {
             if ($time === null) $this->expiry = null;
             elseif ($time instanceof DateInterval) $this->expiry = (new DateTime())->add($time)->getTimestamp();
@@ -53,7 +53,7 @@ class CacheItem implements CacheItemInterface, Cache, LoggerAwareInterface {
      * {@inheritdoc}
      * @return CacheItem
      */
-    public function expiresAt($expiration) {
+    public function expiresAt(?\DateTimeInterface $expiration): static {
         try {
             if ($expiration instanceof DateTimeInterface) {
                 $this->expiry = $expiration->getTimestamp();
@@ -69,7 +69,7 @@ class CacheItem implements CacheItemInterface, Cache, LoggerAwareInterface {
      * {@inheritdoc}
      * @return CacheItem
      */
-    public function set($value) {
+    public function set(mixed $value): static {
         // we need something serializable (not resources ...)
         $this->doCheckValue($value);
         $this->value = $value;
@@ -77,7 +77,7 @@ class CacheItem implements CacheItemInterface, Cache, LoggerAwareInterface {
     }
 
     /** {@inheritdoc} */
-    public function get() {
+    public function get(): mixed {
         return
                 $this->isHit() ?
                 $this->value :
@@ -85,12 +85,12 @@ class CacheItem implements CacheItemInterface, Cache, LoggerAwareInterface {
     }
 
     /** {@inheritdoc} */
-    public function getKey() {
+    public function getKey(): string {
         return $this->key;
     }
 
     /** {@inheritdoc} */
-    public function isHit() {
+    public function isHit(): bool {
 
         return
                 $this->value !== null and

@@ -48,12 +48,21 @@ final class DoctrineCache extends NamespaceAble implements Cache, DoctrineCacheI
     ////////////////////////////   LoggerAware   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function setLogger(LoggerInterface $logger) {
+    public function setLogger(LoggerInterface $logger): void {
         $this->logger = $logger;
         $this->driver->setLogger($logger);
     }
 
     ////////////////////////////   API   ////////////////////////////
+
+    /**
+     * Clears the entire cache
+     *
+     * @return bool
+     */
+    public function clear(): bool {
+        return $this->clearNamespace();
+    }
 
     /** {@inheritdoc} */
     public function contains($id) {

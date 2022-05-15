@@ -75,7 +75,7 @@ abstract class NamespaceAble {
      *
      * @return bool   true on success, false otherwise
      */
-    public function clear() {
+    public function clearNamespace(): bool {
         $this->namespace_version = null;
         return $this->getDriver()->clear();
     }

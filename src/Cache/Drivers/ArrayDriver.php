@@ -52,7 +52,7 @@ final class ArrayDriver extends BaseDriver implements Driver {
     }
 
     /** {@inheritdoc} */
-    public function jsonSerialize() {
+    public function jsonSerialize(): mixed {
 
         return [static::class => [
                 'store_serialized' => $this->storeSerialized,

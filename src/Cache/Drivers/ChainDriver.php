@@ -52,14 +52,14 @@ final class ChainDriver implements Driver, IteratorAggregate, Countable {
     }
 
     /** {@inheritdoc} */
-    public function jsonSerialize() {
+    public function jsonSerialize(): mixed {
         return [static::class => [$this->drivers]];
     }
 
     ////////////////////////////   The Engine   ////////////////////////////
 
-    /** @return Generator|Driver[] */
-    public function getIterator() {
+    /** @return Generator<int,Driver> */
+    public function getIterator(): \Traversable {
         foreach ($this->drivers as $id => $driver) {
             yield $id => $driver;
         }
@@ -76,7 +76,7 @@ final class ChainDriver implements Driver, IteratorAggregate, Countable {
     }
 
     /** {@inheritdoc} */
-    public function count() {
+    public function count(): int {
         return count($this->drivers);
     }
 

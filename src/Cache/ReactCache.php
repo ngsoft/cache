@@ -49,7 +49,7 @@ class ReactCache extends NamespaceAble implements Cache, CacheInterface, LoggerA
     ////////////////////////////   LoggerAware   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function setLogger(LoggerInterface $logger) {
+    public function setLogger(LoggerInterface $logger): void {
         $this->logger = $logger;
         $this->driver->setLogger($logger);
     }
@@ -62,7 +62,7 @@ class ReactCache extends NamespaceAble implements Cache, CacheInterface, LoggerA
      * @return PromiseInterface<bool>
      */
     public function clear() {
-        return resolve(parent::clear());
+        return resolve($this->clearNamespace());
     }
 
     /** {@inheritdoc} */
