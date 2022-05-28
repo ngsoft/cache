@@ -11,7 +11,6 @@ use JsonSerializable,
 
 /**
  * A slightly modified version of SimpleCache Interface
- * Please make a v2 compatible PHP 7+ (not php 5.2)
  */
 interface Driver extends LoggerAwareInterface, Stringable, JsonSerializable {
 
