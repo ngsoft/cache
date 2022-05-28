@@ -286,7 +286,7 @@ class CacheItemPool extends NamespaceAble implements Cache, CacheItemPoolInterfa
     ////////////////////////////   Debug Infos   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function __debugInfo() {
+    public function __debugInfo(): array {
         return [
             'Informations' => $this->__toString()
         ];

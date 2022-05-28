@@ -30,7 +30,7 @@ final class IlluminateDriver extends BaseDriver implements Driver {
     }
 
     /** {@inheritdoc} */
-    public function jsonSerialize() {
+    public function jsonSerialize(): mixed {
         return [
             static::class => [
                 Store::class => get_class($this->cacheStore)

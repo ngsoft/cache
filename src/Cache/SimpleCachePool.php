@@ -218,7 +218,7 @@ final class SimpleCachePool implements Cache, CacheInterface, LoggerAwareInterfa
     ////////////////////////////   Debug Infos   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function __debugInfo() {
+    public function __debugInfo(): array {
         return [
             'Informations' => $this->__toString()
         ];

@@ -115,7 +115,7 @@ class CacheItem implements CacheItemInterface, Cache, LoggerAwareInterface {
     }
 
     /** {@inheritdoc} */
-    public function __debugInfo() {
+    public function __debugInfo(): array {
         return [
             'key' => $this->getKey(),
             'hit' => $this->isHit()
@@ -141,7 +141,7 @@ class CacheItem implements CacheItemInterface, Cache, LoggerAwareInterface {
      * If in deferred with an Object(s) inside
      * to not modify the original objects
      */
-    public function __clone() {
+    public function __clone(): void {
         if (is_object($this->value)) {
             $this->value = clone $this->value;
         } elseif (is_array($this->value)) {

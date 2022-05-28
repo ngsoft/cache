@@ -178,7 +178,7 @@ final class ArrayDriver extends BaseDriver implements Driver {
     }
 
     /** {@inheritdoc} */
-    public function __clone() {
+    public function __clone(): void {
         // clone the fixed arrays
         if ($this->capacity > 0) {
             $this->values = clone $this->values;
