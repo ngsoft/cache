@@ -21,8 +21,6 @@ return [
     'directory_list' => [
         'src',
         'vendor',
-        '../tools/src',
-        '../tools/vendor'
     //'vendor/illuminate',
     ],
     // A directory list that defines files that will be excluded
@@ -38,7 +36,6 @@ return [
     //       to `exclude_analysis_directory_list`.
     "exclude_analysis_directory_list" => [
         'vendor/',
-        '../tools/'
     //'src/Cache/Drivers/',
     ],
     // A list of plugin files to execute.
