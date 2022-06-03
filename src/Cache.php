@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace NGSOFT;
 
-interface Cache {
+interface Cache
+{
 
     /**
      * Version Informations
      */
-    public const VERSION = '2.1';
+    public const VERSION = '3.0';
 
 }

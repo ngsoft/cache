@@ -6,7 +6,7 @@ namespace NGSOFT\Cache;
 
 use Traversable;
 
-interface CacheDriver
+interface CacheDriver extends \Psr\Log\LoggerAwareInterface, \Stringable
 {
 
     /**
@@ -53,10 +53,26 @@ interface CacheDriver
      * Tag a key entry
      *
      * @param string $key
-     * @param string|string[] $tag
+     * @param string|string[] $tags
      * @return bool
      */
-    public function tag(string $key, string|iterable $tag): bool;
+    public function setTag(string $key, string|iterable $tags): bool;
+
+    /**
+     * Get tags for key entry
+     *
+     * @param string $key
+     * @return string[]
+     */
+    public function getTags(string $key): iterable;
+
+    /**
+     * Remove tagged entries
+     *
+     * @param string|iterable $tag
+     * @return bool
+     */
+    public function deleteTag(string|iterable $tag): bool;
 
     /**
      * Persists data in the cache, uniquely referenced by a key
