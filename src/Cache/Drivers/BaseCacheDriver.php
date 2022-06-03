@@ -70,7 +70,7 @@ abstract class BaseCacheDriver implements CacheDriver
 
         foreach ($tag as $tagName) {
             $encodedTagKey = sprintf(static::TAG_KEY_TAG, $tagName);
-            $tagEntry = $this->get($encodedTagKey) ?? [];
+            $tagEntry = $this->getRaw($encodedTagKey) ?? [];
             $tagEntry[$key] = $key;
             $result = $this->set($encodedTagKey, $tagEntry) && $result;
         }
