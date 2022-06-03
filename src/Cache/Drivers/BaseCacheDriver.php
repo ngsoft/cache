@@ -10,7 +10,7 @@ use NGSOFT\{
 use Psr\Log\LoggerAwareTrait,
     Traversable;
 
-class BaseCacheDriver implements CacheDriver
+abstract class BaseCacheDriver implements CacheDriver
 {
 
     use LoggerAwareTrait,
@@ -25,9 +25,9 @@ class BaseCacheDriver implements CacheDriver
     }
 
     /** {@inheritdoc} */
-    public function purge(): bool
+    public function purge(): void
     {
-        return false;
+
     }
 
     /** {@inheritdoc} */
@@ -67,6 +67,35 @@ class BaseCacheDriver implements CacheDriver
         // classname added to prevent conflicts on similar drivers
         // MD5 as we need speed and some filesystems are limited in length
         return hash('MD5', static::class . $key);
+    }
+
+    /**
+     * Convenience function to check if item is expired status against current time
+     * @param int|null $expiry
+     * @return bool
+     */
+    final protected function isExpired(?int $expiry = null): bool
+    {
+        $expiry = $expiry ?? 0;
+        return
+                $expiry !== 0 &&
+                microtime(true) > $expiry;
+    }
+
+    /**
+     * Convenience function to convert expiry into TTL
+     * A TTL/expiry of 0 never expires
+     *
+     *
+     * @param int $expiry
+     * @return int the ttl a negative ttl is already expired
+     */
+    final protected function expiryToLifetime(int $expiry): int
+    {
+        return
+                $expiry !== 0 ?
+                $expiry - time() :
+                0;
     }
 
 }

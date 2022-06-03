@@ -20,9 +20,9 @@ interface CacheDriver extends \Psr\Log\LoggerAwareInterface, \Stringable
     /**
      * Removes expired item entries if driver supports it
      *
-     * @return bool true if operation was successful, false if not supported or error
+     * @return void
      */
-    public function purge(): bool;
+    public function purge(): void;
 
     /**
      * Wipes clean the entire cache's keys.
