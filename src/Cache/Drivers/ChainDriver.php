@@ -106,19 +106,35 @@ class ChainDriver extends BaseCacheDriver implements Countable, IteratorAggregat
         return $result;
     }
 
+    public function getRaw(string $key): mixed
+    {
+        $result = null;
+        foreach ($this->drivers as $index => $driver) {
+            $result = $driver->getRaw($key);
+            if ($result !== null) {
+
+                foreach ($this->getReverseIterator($index) as $i => $revDriver) {
+                    $revDriver->set($key, $result);
+                }
+
+                break;
+            }
+        }
+
+        return $result;
+    }
+
     public function get(string $key): CacheEntry
     {
 
 
-        $result = null;
-        $expiry = $this->defaultLifetime > 0 ? time() + $this->defaultLifetime : 0;
+        $result = new CacheEntry($key);
         foreach ($this->drivers as $index => $driver) {
             $result = $driver->get($key);
 
-            if ($result !== null) {
+            if ($result->isHit()) {
                 foreach ($this->getReverseIterator($index) as $i => $revDriver) {
-                    var_dump($i, $revDriver);
-                    $revDriver->set($key, $result, $expiry);
+                    $revDriver->set($key, $result->value, $result->expiry);
                 }
                 break;
             }

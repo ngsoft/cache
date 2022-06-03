@@ -82,7 +82,7 @@ abstract class BaseCacheDriver implements CacheDriver
     public function getTags(string $key): iterable
     {
         $encodedKey = sprintf(static::TAG_KEY_ENTRY, $key);
-        return $this->get($encodedKey) ?? [];
+        return $this->getRaw($encodedKey) ?? [];
     }
 
     /** {@inheritdoc} */
@@ -95,12 +95,12 @@ abstract class BaseCacheDriver implements CacheDriver
         foreach ($tag as $tagName) {
 
             $encodedTagKey = sprintf(static::TAG_KEY_TAG, $tagName);
-            $tagEntry = $this->get($encodedTagKey) ?? [];
+            $tagEntry = $this->getRaw($encodedTagKey) ?? [];
 
             foreach ($tagEntry as $key) {
                 // check if entry has given tag
                 $encodedKey = sprintf(static::TAG_KEY_ENTRY, $key);
-                $keyTags = $this->get($encodedKey);
+                $keyTags = $this->getRaw($encodedKey);
 
                 if (!in_array($tagName, $keyTags)) {
                     continue;
