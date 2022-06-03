@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Drivers;
 
 use NGSOFT\{
-    Cache\Driver, Cache\Utils\BaseDriver, Tools\FixedArray
+    Cache\Driver, Cache\Utils\BaseDriver, DataStructure\FixedArray
 };
 use Throwable;
 
 /**
  * A Basic Cache of Cache
  */
-final class ArrayDriver extends BaseDriver implements Driver {
+final class ArrayDriver extends BaseDriver implements Driver
+{
 
     /**
      * References the minimum capacity (if != 0)
@@ -43,7 +44,8 @@ final class ArrayDriver extends BaseDriver implements Driver {
             bool $storeSerialized = true,
             int $capacity = 0,
             int $maxLifeTime = 0
-    ) {
+    )
+    {
 
         $this->capacity = $capacity !== 0 ? max(self:: MIN_INDEX_CAPACITY, $capacity) : 0;
         $this->maxLifeTime = max(0, $maxLifeTime);
@@ -52,7 +54,8 @@ final class ArrayDriver extends BaseDriver implements Driver {
     }
 
     /** {@inheritdoc} */
-    public function jsonSerialize(): mixed {
+    public function jsonSerialize(): mixed
+    {
 
         return [static::class => [
                 'store_serialized' => $this->storeSerialized,
@@ -64,7 +67,8 @@ final class ArrayDriver extends BaseDriver implements Driver {
     ////////////////////////////   API   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function clear(): bool {
+    public function clear(): bool
+    {
         if ($this->capacity > 0) {
             $this->expiries = FixedArray::create($this->capacity);
             $this->values = FixedArray::create($this->capacity);
@@ -74,7 +78,8 @@ final class ArrayDriver extends BaseDriver implements Driver {
     }
 
     /** {@inheritdoc} */
-    public function purge(): bool {
+    public function purge(): bool
+    {
         // clean up expired entries
         // can happen on long running scripts
         foreach ($this->expiries as $hKey => $expiry) {
@@ -84,21 +89,24 @@ final class ArrayDriver extends BaseDriver implements Driver {
     }
 
     /** {@inheritdoc} */
-    public function delete(string $key): bool {
+    public function delete(string $key): bool
+    {
         $key = $this->getHashedKey($key);
         unset($this->expiries[$key], $this->values[$key]);
         return true;
     }
 
     /** {@inheritdoc} */
-    public function has(string $key): bool {
+    public function has(string $key): bool
+    {
         // more memory efficient
         $this->purge();
         return !$this->isExpired($this->expiries[$this->getHashedKey($key)] ?? 1);
     }
 
     /** {@inheritdoc} */
-    public function get(string $key) {
+    public function get(string $key)
+    {
         return
                 $this->has($key) ?
                 ( $this->storeSerialized ?
@@ -108,7 +116,8 @@ final class ArrayDriver extends BaseDriver implements Driver {
     }
 
     /** {@inheritdoc} */
-    public function set(string $key, $value, int $expiry = 0): bool {
+    public function set(string $key, $value, int $expiry = 0): bool
+    {
         $expiry = $expiry === 0 ? PHP_INT_MAX : $expiry;
         if ($this->maxLifeTime > 0) $expiry = min($expiry, time() + $this->maxLifeTime);
         // expiry can be negative or < now
@@ -128,7 +137,8 @@ final class ArrayDriver extends BaseDriver implements Driver {
      * @param mixed $value
      * @return mixed
      */
-    private function unserializeIfNeeded($value) {
+    private function unserializeIfNeeded($value)
+    {
 
         try {
             $this->setErrorHandler();
@@ -154,7 +164,8 @@ final class ArrayDriver extends BaseDriver implements Driver {
      * @param mixed $value
      * @return mixed
      */
-    private function serializeIfNeeded($value) {
+    private function serializeIfNeeded($value)
+    {
 
         try {
             $this->setErrorHandler();
@@ -178,7 +189,8 @@ final class ArrayDriver extends BaseDriver implements Driver {
     }
 
     /** {@inheritdoc} */
-    public function __clone(): void {
+    public function __clone(): void
+    {
         // clone the fixed arrays
         if ($this->capacity > 0) {
             $this->values = clone $this->values;
