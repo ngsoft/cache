@@ -47,7 +47,7 @@ interface CacheDriver extends \Psr\Log\LoggerAwareInterface, \Stringable
      *
      * @return mixed null on cache miss
      */
-    public function get(string $key): mixed;
+    public function get(string $key): CacheEntry;
 
     /**
      * Tag a key entry
@@ -99,7 +99,7 @@ interface CacheDriver extends \Psr\Log\LoggerAwareInterface, \Stringable
      *
      * @param iterable $keys A list of keys that can obtained in a single operation.
      *
-     * @return Traversable An Iterator indexed by key => value.
+     * @return Traversable An Iterator indexed by key => CacheEntry.
      */
     public function getMultiple(iterable $keys): Traversable;
 

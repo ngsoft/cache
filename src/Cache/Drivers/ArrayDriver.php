@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
-use NGSOFT\DataStructure\FixedArray;
+use NGSOFT\{
+    Cache\CacheEntry, DataStructure\FixedArray
+};
+use Throwable;
 
 class ArrayDriver extends BaseCacheDriver
 {
@@ -50,7 +53,7 @@ class ArrayDriver extends BaseCacheDriver
         return true;
     }
 
-    public function get(string $key): mixed
+    public function get(string $key): CacheEntry
     {
         if (!$this->has($key)) {
             return null;
@@ -98,7 +101,7 @@ class ArrayDriver extends BaseCacheDriver
             }
 
             return $result;
-        } catch (\Throwable) { return null; } finally { restore_error_handler(); }
+        } catch (Throwable) { return null; } finally { restore_error_handler(); }
     }
 
     final protected function serializeEntry(mixed $value): mixed
@@ -106,7 +109,7 @@ class ArrayDriver extends BaseCacheDriver
         try {
             $this->setErrorHandler();
             return is_object($value) ? \serialize($value) : $value;
-        } catch (\Throwable) { return null; } finally { restore_error_handler(); }
+        } catch (Throwable) { return null; } finally { restore_error_handler(); }
     }
 
 }

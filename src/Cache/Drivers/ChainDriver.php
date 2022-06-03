@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
-use NGSOFT\Cache\CacheDriver,
+use Countable,
+    IteratorAggregate;
+use NGSOFT\Cache\{
+    CacheDriver, CacheEntry
+};
+use Traversable,
     ValueError;
 use function get_debug_type;
 
-class ChainDriver extends BaseCacheDriver implements \Countable, \IteratorAggregate
+class ChainDriver extends BaseCacheDriver implements Countable, IteratorAggregate
 {
 
     /** @var CacheDriver[] */
@@ -60,14 +65,14 @@ class ChainDriver extends BaseCacheDriver implements \Countable, \IteratorAggreg
     }
 
     /** {@inheritdoc} */
-    public function getIterator(): \Traversable
+    public function getIterator(): Traversable
     {
         foreach ($this->drivers as $index => $driver) {
             yield $index => $driver;
         }
     }
 
-    public function getReverseIterator(?int $current = null): \Traversable
+    public function getReverseIterator(?int $current = null): Traversable
     {
         $current = $current ?? count($this);
 
@@ -101,7 +106,7 @@ class ChainDriver extends BaseCacheDriver implements \Countable, \IteratorAggreg
         return $result;
     }
 
-    public function get(string $key): mixed
+    public function get(string $key): CacheEntry
     {
 
 
@@ -111,7 +116,8 @@ class ChainDriver extends BaseCacheDriver implements \Countable, \IteratorAggreg
             $result = $driver->get($key);
 
             if ($result !== null) {
-                foreach ($this->getReverseIterator() as $revDriver) {
+                foreach ($this->getReverseIterator($index) as $i => $revDriver) {
+                    var_dump($i, $revDriver);
                     $revDriver->set($key, $result, $expiry);
                 }
                 break;
