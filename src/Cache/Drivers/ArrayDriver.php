@@ -60,6 +60,7 @@ class ArrayDriver extends BaseCacheDriver
 
     public function has(string $key): bool
     {
+        $this->purge();
         return !$this->isExpired($this->expiries[$this->getHashedKey($key)]);
     }
 
