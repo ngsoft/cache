@@ -41,7 +41,7 @@ interface CacheDriver extends \Psr\Log\LoggerAwareInterface, \Stringable
     public function has(string $key): bool;
 
     /**
-     * Fetches a value from the cache.
+     * Fetches a CacheEntry from the cache.
      *
      * @param string $key The unique key of this item in the cache.
      *
@@ -50,7 +50,7 @@ interface CacheDriver extends \Psr\Log\LoggerAwareInterface, \Stringable
     public function get(string $key): CacheEntry;
 
     /**
-     * Fetches a value from the cache.
+     * Fetches a raw value from the cache.
      *
      * @param string $key
      * @return mixed null on miss
