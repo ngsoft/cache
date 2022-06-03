@@ -101,7 +101,8 @@ abstract class BaseCacheDriver implements CacheDriver
                 // check if entry has given tag
                 $encodedKey = sprintf(static::TAG_KEY_ENTRY, $key);
                 $keyTags = $this->get($encodedKey);
-                if (!in_array($tag, $keyTags)) {
+
+                if (!in_array($tagName, $keyTags)) {
                     continue;
                 } else $result = $this->delete($encodedKey) && $result;
             }

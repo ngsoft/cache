@@ -55,10 +55,15 @@ class ArrayDriver extends BaseCacheDriver
 
     public function get(string $key): CacheEntry
     {
+
+        $cacheEntry = new CacheEntry($key);
         if (!$this->has($key)) {
-            return null;
+            return $cacheEntry;
         }
-        return $this->unserializeEntry($this->entries[$this->getHashedKey($key)]);
+
+        $cacheEntry->expiry = $this->entries[$this->getHashedKey($key)];
+        $cacheEntry->value = $this->unserializeEntry($this->entries[$this->getHashedKey($key)]);
+        return $cacheEntry;
     }
 
     public function has(string $key): bool

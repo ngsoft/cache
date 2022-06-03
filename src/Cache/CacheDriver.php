@@ -45,7 +45,7 @@ interface CacheDriver extends \Psr\Log\LoggerAwareInterface, \Stringable
      *
      * @param string $key The unique key of this item in the cache.
      *
-     * @return mixed null on cache miss
+     * @return CacheEntry null on cache miss
      */
     public function get(string $key): CacheEntry;
 

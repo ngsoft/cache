@@ -9,7 +9,7 @@ final class CacheEntry
 
     public function __construct(
             public readonly string $key,
-            public ?int $expiry = null,
+            public int $expiry = 0,
             public mixed $value = null
     )
     {
@@ -21,11 +21,8 @@ final class CacheEntry
         if (null === $this->value) {
             return false;
         }
-        if (is_int($this->expiry)) {
-            return $this->expiry > microtime(true);
-        }
 
-        return true;
+        return $this->expiry === 0 || $this->expiry > microtime(true);
     }
 
 }
