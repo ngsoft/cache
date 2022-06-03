@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
+use ErrorException;
 use NGSOFT\{
     Cache\CacheDriver, Traits\StringableObject
 };
@@ -16,12 +17,15 @@ abstract class BaseCacheDriver implements CacheDriver
     use LoggerAwareTrait,
         StringableObject;
 
-    protected int $defaultLifeTime = 0;
+    protected const TAG_KEY_ENTRY = 'NGSOFTCacheTag[%s]';
+    protected const TAG_KEY_TAG = 'NGSOFTCacheTagged[%s]';
+
+    protected int $defaultLifetime = 0;
 
     /** {@inheritdoc} */
     public function setDefaultLifetime(int $defaultLifetime): void
     {
-        $this->defaultLifeTime = max(0, $defaultLifetime);
+        $this->defaultLifetime = max(0, $defaultLifetime);
     }
 
     /** {@inheritdoc} */
@@ -48,12 +52,64 @@ abstract class BaseCacheDriver implements CacheDriver
     }
 
     /** {@inheritdoc} */
-    public function setMultiple(iterable $values, ?int $expiry = 0): Traversable
+    public function setMultiple(iterable $values, int $expiry = 0): Traversable
     {
 
         foreach ($values as $key => $value) {
             yield $key => $this->set($key, $value, $expiry);
         }
+    }
+
+    /** {@inheritdoc} */
+    public function setTag(string $key, string|array $tag): bool
+    {
+
+        $encodedKey = sprintf(static::TAG_KEY_ENTRY, $key);
+        $tag = is_string($tag) ? [$tag] : $tag;
+        $result = $this->set($encodedKey, $tag);
+
+        foreach ($tag as $tagName) {
+            $encodedTagKey = sprintf(static::TAG_KEY_TAG, $tagName);
+            $tagEntry = $this->get($encodedTagKey) ?? [];
+            $tagEntry[$key] = $key;
+            $result = $this->set($encodedTagKey, $tagEntry) && $result;
+        }
+
+        return $result;
+    }
+
+    /** {@inheritdoc} */
+    public function getTags(string $key): iterable
+    {
+        $encodedKey = sprintf(static::TAG_KEY_ENTRY, $key);
+        return $this->get($encodedKey) ?? [];
+    }
+
+    /** {@inheritdoc} */
+    public function deleteTag(string|array $tag): bool
+    {
+
+        $tag = is_string($tag) ? [$tag] : $tag;
+        $result = true;
+
+        foreach ($tag as $tagName) {
+
+            $encodedTagKey = sprintf(static::TAG_KEY_TAG, $tagName);
+            $tagEntry = $this->get($encodedTagKey) ?? [];
+
+            foreach ($tagEntry as $key) {
+                // check if entry has given tag
+                $encodedKey = sprintf(static::TAG_KEY_ENTRY, $key);
+                $keyTags = $this->get($encodedKey);
+                if (!in_array($tag, $keyTags)) {
+                    continue;
+                } else $result = $this->delete($encodedKey) && $result;
+            }
+
+            $result = $this->delete($encodedTagKey) && $result;
+        }
+
+        return $result;
     }
 
     /**
@@ -76,8 +132,8 @@ abstract class BaseCacheDriver implements CacheDriver
      */
     final protected function isExpired(?int $expiry = null): bool
     {
-        $expiry = $expiry ?? 0;
-        return microtime(true) > $expiry;
+        $expiry = $expiry ?? 1;
+        return $expiry !== 0 && microtime(true) > $expiry;
     }
 
     /**
@@ -94,6 +150,32 @@ abstract class BaseCacheDriver implements CacheDriver
                 $expiry !== 0 ?
                 $expiry - time() :
                 0;
+    }
+
+    /**
+     * Convenient Function used to convert php errors, warning, ... as ErrorException
+     *
+     * @suppress PhanTypeMismatchArgumentInternal
+     * @staticvar Closure $handler
+     * @return void
+     */
+    final protected function setErrorHandler(): void
+    {
+        static $handler;
+        if (!$handler) {
+            $handler = static function ($type, $msg, $file, $line) {
+                throw new ErrorException($msg, 0, $type, $file, $line);
+            };
+        }
+        set_error_handler($handler);
+    }
+
+    final protected function safeExec(callable $callable, array $arguments = []): mixed
+    {
+        try {
+            $this->setErrorHandler();
+            return call_user_func_array($callable, $arguments);
+        } catch (\Throwable) { return null; } finally { restore_error_handler(); }
     }
 
 }

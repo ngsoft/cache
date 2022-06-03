@@ -47,36 +47,65 @@ class ArrayDriver extends BaseCacheDriver
     public function delete(string $key): bool
     {
         unset($this->expiries[$this->getHashedKey($key)], $this->entries[$this->getHashedKey($key)]);
+        return true;
     }
 
     public function get(string $key): mixed
     {
-
+        if (!$this->has($key)) {
+            return null;
+        }
+        return $this->unserializeEntry($this->entries[$this->getHashedKey($key)]);
     }
 
     public function has(string $key): bool
     {
-
+        return !$this->isExpired($this->expiries[$this->getHashedKey($key)]);
     }
 
-    public function set(string $key, $value, int $expiry = 0): bool
+    public function set(string $key, mixed $value, int $expiry = 0): bool
     {
 
+        $expiry = $expiry === 0 ? PHP_INT_MAX : $expiry;
+        if ($this->defaultLifetime > 0) $expiry = min($expiry, time() + $this->defaultLifetime);
+
+        if ($expiry < 0) {
+            return $this->delete($key);
+        }
+        $hashed = $this->getHashedKey($key);
+
+        $this->expiries[$hashed] = $expiry;
+        $this->entries[$hashed] = $this->serializeEntry($value);
+        return true;
     }
 
-    public function setTag(string $key, string|iterable $tags): bool
+    final protected function unserializeEntry(mixed $value): mixed
     {
-        return false;
+
+        try {
+            $this->setErrorHandler();
+            if (!is_string($value) || !preg_match('#^[idbsaO]:#', $value)) {
+                return $value;
+            }
+
+            if ($value === 'b:0;') {
+                return false;
+            }
+
+            if (($result = \unserialize($value)) === false) {
+                return null;
+            }
+
+            return $result;
+        } catch (\Throwable) { return null; } finally { restore_error_handler(); }
     }
 
-    public function getTags(string $key): iterable
+    final protected function serializeEntry(mixed $value): mixed
     {
-        return [];
-    }
-
-    public function deleteTag(string|iterable $tag): bool
-    {
-        return false;
+        try {
+            $this->setErrorHandler();
+            return is_object($value) ? \serialize($value) : $value;
+        } catch (\Throwable) { return null; } finally { restore_error_handler(); }
     }
 
 }

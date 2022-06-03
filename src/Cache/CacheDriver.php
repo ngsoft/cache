@@ -53,10 +53,10 @@ interface CacheDriver extends \Psr\Log\LoggerAwareInterface, \Stringable
      * Tag a key entry
      *
      * @param string $key
-     * @param string|string[] $tags
+     * @param string|string[] $tag
      * @return bool
      */
-    public function setTag(string $key, string|iterable $tags): bool;
+    public function setTag(string $key, string|array $tag): bool;
 
     /**
      * Get tags for key entry
@@ -69,10 +69,10 @@ interface CacheDriver extends \Psr\Log\LoggerAwareInterface, \Stringable
     /**
      * Remove tagged entries
      *
-     * @param string|iterable $tag
+     * @param string|string[] $tag
      * @return bool
      */
-    public function deleteTag(string|iterable $tag): bool;
+    public function deleteTag(string|array $tag): bool;
 
     /**
      * Persists data in the cache, uniquely referenced by a key
@@ -83,7 +83,7 @@ interface CacheDriver extends \Psr\Log\LoggerAwareInterface, \Stringable
      *
      * @return bool   true on success, false otherwise
      */
-    public function set(string $key, $value, int $expiry = 0): bool;
+    public function set(string $key, mixed $value, int $expiry = 0): bool;
 
     /**
      * Delete an item from the cache by its unique key.
@@ -107,12 +107,12 @@ interface CacheDriver extends \Psr\Log\LoggerAwareInterface, \Stringable
      * Persists a set of key => value pairs in the cache
      *
      * @param iterable  $values     A list of key => value pairs for a multiple-set operation.
-     * @param ?int       $expiry     The timestamp at which the item will expire (a value of 0 never expires, a null value uses the defaultLifetime).
+     * @param int       $expiry     The timestamp at which the item will expire (a value of 0 never expires, a null value uses the defaultLifetime).
      *
      * @return Traversable<string,bool>     true on success(even if object removed), false otherwise.
      *
      */
-    public function setMultiple(iterable $values, ?int $expiry = 0): Traversable;
+    public function setMultiple(iterable $values, int $expiry = 0): Traversable;
 
     /**
      * Deletes multiple cache items in a single operation.
