@@ -11,18 +11,18 @@ class ArrayDriver extends BaseCacheDriver
 
     protected const DEFAULT_SIZE = 255;
 
+    protected int $size;
     protected FixedArray $expiries;
     protected FixedArray $entries;
 
     public function __construct(
-            protected int $size = self::DEFAULT_SIZE,
-            protected int $maxLifeTime = 0
+            int $size = self::DEFAULT_SIZE,
+            int $defaultLifetime = 0
     )
     {
-
         if ($size === 0) $this->size = PHP_INT_MAX;
         else $this->size = max(1, $size);
-        $this->maxLifeTime = max(0, $maxLifeTime);
+        $this->defaultLifetime = max(0, $defaultLifetime);
         $this->clear();
     }
 
@@ -41,26 +41,15 @@ class ArrayDriver extends BaseCacheDriver
 
         $this->expiries = FixedArray::create($this->size);
         $this->entries = FixedArray::create($this->size);
-
         return true;
     }
 
     public function delete(string $key): bool
     {
-
-    }
-
-    public function deleteTag(string|iterable $tag): bool
-    {
-
+        unset($this->expiries[$this->getHashedKey($key)], $this->entries[$this->getHashedKey($key)]);
     }
 
     public function get(string $key): mixed
-    {
-
-    }
-
-    public function getTags(string $key): iterable
     {
 
     }
@@ -77,7 +66,17 @@ class ArrayDriver extends BaseCacheDriver
 
     public function setTag(string $key, string|iterable $tags): bool
     {
+        return false;
+    }
 
+    public function getTags(string $key): iterable
+    {
+        return [];
+    }
+
+    public function deleteTag(string|iterable $tag): bool
+    {
+        return false;
     }
 
 }

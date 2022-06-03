@@ -77,9 +77,7 @@ abstract class BaseCacheDriver implements CacheDriver
     final protected function isExpired(?int $expiry = null): bool
     {
         $expiry = $expiry ?? 0;
-        return
-                $expiry !== 0 &&
-                microtime(true) > $expiry;
+        return microtime(true) > $expiry;
     }
 
     /**
