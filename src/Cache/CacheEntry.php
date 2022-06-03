@@ -25,4 +25,14 @@ final class CacheEntry
         return $this->expiry === 0 || $this->expiry > microtime(true);
     }
 
+    public static function create(string $key, int $expiry, mixed $value): static
+    {
+        return new static($key, $expiry, $value);
+    }
+
+    public static function createEmpty(string $key): static
+    {
+        return new static($key);
+    }
+
 }
