@@ -35,6 +35,12 @@ abstract class BaseCacheDriver implements CacheDriver
     }
 
     /** {@inheritdoc} */
+    public function getRaw(string $key): mixed
+    {
+        return $this->get($key)->value;
+    }
+
+    /** {@inheritdoc} */
     public function deleteMultiple(iterable $keys): Traversable
     {
 
@@ -104,7 +110,10 @@ abstract class BaseCacheDriver implements CacheDriver
 
                 if (!in_array($tagName, $keyTags)) {
                     continue;
-                } else $result = $this->delete($encodedKey) && $result;
+                } else {
+                    $result = $this->delete($encodedKey) && $result;
+                    $result = $this->delete($key) && $result;
+                }
             }
 
             $result = $this->delete($encodedTagKey) && $result;

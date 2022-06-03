@@ -53,21 +53,17 @@ class ArrayDriver extends BaseCacheDriver
         return true;
     }
 
-    public function getRaw(string $key): mixed
-    {
-
-        if (!$this->has($key)) {
-            return null;
-        }
-        return $this->unserializeEntry($this->entries[$this->getHashedKey($key)]) ?? null;
-    }
-
     public function get(string $key): CacheEntry
     {
 
+
         $cacheEntry = new CacheEntry($key);
-        $cacheEntry->value = $this->getRaw($key);
-        $cacheEntry->expiry = $this->expiries[$this->getHashedKey($key)] ?? 0;
+
+        if ($this->has($key)) {
+            $cacheEntry->value = $this->unserializeEntry($this->entries[$this->getHashedKey($key)]);
+            $cacheEntry->expiry = $this->expiries[$this->getHashedKey($key)] ?? 0;
+        }
+
         return $cacheEntry;
     }
 
