@@ -325,6 +325,10 @@ class PhpDriver extends BaseCacheDriver
 
     public function set(string $key, mixed $value, int $expiry = 0): bool
     {
+
+        $expiry = $expiry === 0 ? PHP_INT_MAX : $expiry;
+        if ($this->defaultLifetime > 0) $expiry = min($expiry, time() + $this->defaultLifetime);
+
         if ($this->isExpired($expiry)) {
             return $this->delete($key);
         }

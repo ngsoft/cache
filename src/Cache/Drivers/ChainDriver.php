@@ -109,7 +109,6 @@ class ChainDriver extends BaseCacheDriver implements Countable, IteratorAggregat
     public function get(string $key): CacheEntry
     {
 
-
         $result = new CacheEntry($key);
         foreach ($this->drivers as $index => $driver) {
             $result = $driver->get($key);
