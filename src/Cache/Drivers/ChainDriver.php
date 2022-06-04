@@ -114,7 +114,7 @@ class ChainDriver extends BaseCacheDriver implements Countable, IteratorAggregat
             $result = $driver->get($key);
 
             if ($result->isHit()) {
-                foreach ($this->getReverseIterator($index) as $i => $revDriver) {
+                foreach ($this->getReverseIterator($index) as $revDriver) {
                     $revDriver->set($key, $result->value, $result->expiry);
                 }
                 break;

@@ -8,6 +8,9 @@ use NGSOFT\{
     Cache\CacheEntry, DataStructure\SimpleObject
 };
 
+/**
+ * Saves cache data into a Json file
+ */
 class JsonDriver extends BaseCacheDriver
 {
 
@@ -15,11 +18,23 @@ class JsonDriver extends BaseCacheDriver
     protected SimpleObject $provider;
 
     public function __construct(
-            protected string $file
+            protected string $file = '',
+            protected string $key = 'cache'
     )
     {
 
-        $this->provider = is_file($file) ? SimpleObject::fromJsonFile($file) : SimpleObject::create();
+        $this->file = empty($file) ?
+                sys_get_temp_dir() .
+                DIRECTORY_SEPARATOR .
+                strtolower(substr(static::class, 1 + strrpos(static::class, '\\')))
+                . '.json' :
+                $file;
+
+        $this->provider = is_file($this->file) ? SimpleObject::fromJsonFile($this->file) : SimpleObject::create();
+
+        if (!isset($this->provider[$this->key])) {
+            $this->provider[$this->key] = [];
+        }
     }
 
     protected function update(): bool
@@ -59,24 +74,23 @@ class JsonDriver extends BaseCacheDriver
     public function purge(): void
     {
 
-        foreach ($this->provider as $key => $entry) {
+        foreach ($this->provider[$this->key] as $key => $entry) {
+
             if ($this->isExpired($entry['expiry'])) {
-                unset($this->provider[$key]);
+                unset($this->provider[$this->key][$key]);
             }
         }
     }
 
     public function clear(): bool
     {
-
-        $this->provider = SimpleObject::create();
-        unlink($this->file);
-        return true;
+        $this->provider[$this->key] = [];
+        return $this->update();
     }
 
     public function delete(string $key): bool
     {
-        unset($this->provider[$this->getHashedKey($key)]);
+        unset($this->provider[$this->key][$this->getHashedKey($key)]);
         return $this->update();
     }
 
@@ -84,10 +98,10 @@ class JsonDriver extends BaseCacheDriver
     {
 
         $this->purge();
-        if ($entry = $this->provider[$this->getHashedKey($key)]) {
+        if ($entry = $this->provider[$this->key][$this->getHashedKey($key)]) {
             $expiry = $entry['expiry'];
             $value = $this->unserializeEntry($entry['value']);
-            if (!$this->isExpired()) return CacheEntry::create($key, $expiry, $value);
+            if (!$this->isExpired($expiry)) return CacheEntry::create($key, $expiry, $value);
         }
 
         $this->delete($key);
@@ -114,7 +128,7 @@ class JsonDriver extends BaseCacheDriver
             'value' => $this->serializeEntry($value),
         ];
 
-        $this->provider[$this->getHashedKey($key)] = $entry;
+        $this->provider[$this->key][$this->getHashedKey($key)] = $entry;
         return $this->update();
     }
 
