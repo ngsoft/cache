@@ -39,11 +39,32 @@ class NamespaceAble
         $this->setNamespace($namespace);
     }
 
+    /**
+     * Used when adapter use clear()
+     * @return bool
+     */
+    final protected function clearNamespace(): bool
+    {
+        if (empty($this->namespace)) {
+            return true;
+        }
+        $this->namespaceVersion = null;
+        return $this->driver->delete($this->getNamespaceVersionKey());
+    }
+
+    /**
+     * Change the current namespace
+     *
+     * @param string $namespace
+     * @return void
+     * @throws InvalidArgument
+     */
     public function setNamespace(string $namespace): void
     {
         if (false !== strpbrk($namespace, Item::RESERVED_CHAR_KEY)) {
             throw new InvalidArgument(sprintf('Cache namespace "%s" contains reserved characters "%s".', $namespace, Item::RESERVED_CHAR_KEY));
         }
+        $this->clearNamespace();
         $this->namespace = $namespace;
     }
 

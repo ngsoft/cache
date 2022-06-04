@@ -4,12 +4,20 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-use Psr\Cache\CacheItemPoolInterface;
+use Psr\{
+    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerAwareInterface
+};
+use Throwable;
 
 class_exists(Item::class);
 
-final class CachePool extends NamespaceAble implements CacheItemPoolInterface
+final class CachePool extends NamespaceAble implements CacheItemPoolInterface, LoggerAwareInterface
 {
+
+    use ExceptionLogger;
+
+    /** @var Item[] */
+    private array $queue = [];
 
     public function __construct(
             TaggedCacheDriver $driver,
@@ -18,6 +26,156 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface
     )
     {
         parent::__construct($driver, $namespace);
+        $this->driver->setDefaultLifetime($defaultLifetime);
+    }
+
+    public function __destruct()
+    {
+        $this->commit();
+    }
+
+    public function clear(): bool
+    {
+        $this->clearNamespace();
+        return $this->driver->clear();
+    }
+
+    public function deleteItem(string $key): bool
+    {
+        try {
+            return $this->driver->delete($this->getCacheKey($key));
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
+    }
+
+    public function deleteItems(string $keys): bool
+    {
+
+        $result = true;
+        foreach ($keys as $key) {
+            $result = $this->deleteItem($key) && $result;
+        }
+        return $result;
+    }
+
+    public function getItem(string $key): CacheItemInterface
+    {
+
+        try {
+            $entry = $this->driver->get($this->getCacheKey($key));
+            if ($entry->isHit()) {
+                return Item::create($key, $entry->value, $entry->expiry === 0 ? null : $entry->expiry);
+            }
+            return Item::create($key);
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
+    }
+
+    public function getItems(array $keys = []): iterable
+    {
+        try {
+            foreach ($keys as $key) {
+                $nkey = $this->getCacheKey($key);
+                if (isset($this->queue[$nkey])) {
+                    $item = clone $this->queue[$nkey];
+                } else $item = $this->getItem($key);
+                yield $key => $item;
+            }
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
+    }
+
+    public function hasItem(string $key): bool
+    {
+
+        try {
+            $nkey = $this->getCacheKey($key);
+            if (isset($this->queue[$nkey])) {
+                $this->commit();
+            }
+            return $this->driver->has($nkey);
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
+    }
+
+    public function save(Item $item): bool
+    {
+        try {
+            return $this->saveDeferred($item) && $this->commit();
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
+    }
+
+    public function saveDeferred(Item $item): bool
+    {
+
+        try {
+            $this->queue[$this->getCacheKey($key)] = $item;
+            return true;
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
+    }
+
+    public function commit(): bool
+    {
+
+        try {
+            $queue = $this->queue;
+            $this->queue = $toSave = $assoc = [];
+
+            $result = true;
+
+            // pass 1: sort by expiry
+            /** @var Item $item */
+            foreach ($queue as $nkey => $item) {
+                if (!$item->isHit()) {
+                    $result = $this->driver->delete($nkey) && $result;
+                    continue;
+                }
+
+                $expiry = $this->getExpiryRealValue($item->expiry);
+
+                $toSave[$expiry] = $toSave[$expiry] ?? [];
+                $toSave[$expiry][$nkey] = $item->value;
+                $assoc[$nkey] = $item->getKey();
+            }
+
+
+            foreach ($toSave as $expiry => $items) {
+
+                foreach ($this->driver->setMultiple($items, $expiry) as $nkey => $bool) {
+                    $result = $bool && $result;
+                }
+            }
+
+
+
+
+
+
+
+
+
+
+
+            return $result;
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
+    }
+
+    private function getExpiryRealValue(?int $expiry = null): int
+    {
+        if (is_int($expiry)) {
+            return $expiry;
+        }
+        return $this->defaultLifetime > 0 ? time() + $this->defaultLifetime : 0;
     }
 
 }

@@ -118,4 +118,12 @@ final class Item implements CacheItemInterface, Cache, LoggerAwareInterface, Str
         return $this;
     }
 
+    /** {@inheritdoc} */
+    public function __clone()
+    {
+        if (is_object($this->value)) {
+            $this->value = clone $this->value;
+        }
+    }
+
 }
