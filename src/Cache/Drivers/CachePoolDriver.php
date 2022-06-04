@@ -29,6 +29,7 @@ class CachePoolDriver extends BaseCacheDriver
 
     public function clear(): bool
     {
+        $this->items = [];
         return $this->provider->clear();
     }
 
