@@ -6,16 +6,21 @@ namespace NGSOFT\Cache;
 
 use DateInterval,
     DateTime,
-    DateTimeInterface,
-    NGSOFT\Cache;
+    DateTimeInterface;
+use NGSOFT\{
+    Cache, Traits\StringableObject, Traits\Unserializable
+};
 use Psr\{
     Cache\CacheItemInterface, Log\LoggerAwareInterface, Log\LoggerAwareTrait
 };
+use Stringable;
 
-class Item implements CacheItemInterface, Cache, LoggerAwareInterface
+final class Item implements CacheItemInterface, Cache, LoggerAwareInterface, Stringable
 {
 
-    use LoggerAwareTrait;
+    use LoggerAwareTrait,
+        Unserializable,
+        StringableObject;
 
     public ?int $expiry = null;
     public mixed $value = null;
