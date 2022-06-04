@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
-use NGSOFT\Cache\CacheEntry;
+use NGSOFT\Cache\{
+    CacheEntry, CacheError
+};
 
 class ApcuDriver extends BaseCacheDriver
 {
@@ -15,10 +17,11 @@ class ApcuDriver extends BaseCacheDriver
 
         if ($result === null) {
             $result = false;
+
             if (\function_exists('apcu_fetch')) {
                 $result = filter_var(ini_get('apc.enabled'), \FILTER_VALIDATE_BOOLEAN);
                 if (php_sapi_name() === 'cli') {
-                    $result = filter_var(ini_get('apc.enable_cli'), \FILTER_VALIDATE_INT) && $result;
+                    $result = filter_var(ini_get('apc.enable_cli'), \FILTER_VALIDATE_INT) === 1 && $result;
                 }
             }
         }
@@ -33,6 +36,8 @@ class ApcuDriver extends BaseCacheDriver
             throw new CacheError('APCu is not enabled.');
         }
         if (php_sapi_name() === 'cli') {
+
+            $this->logger?->debug('APCu driver in CLI mode is the same as ArrayDriver.');
             ini_set('apc.use_request_time', 0);
         }
     }
