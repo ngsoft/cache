@@ -10,19 +10,17 @@ use DateInterval,
 use NGSOFT\{
     Cache, Traits\StringableObject, Traits\Unserializable
 };
-use Psr\{
-    Cache\CacheItemInterface, Log\LoggerAwareInterface, Log\LoggerAwareTrait
-};
-use Stringable;
+use Psr\Cache\CacheItemInterface,
+    Stringable;
+use function get_debug_type;
 
 /**
  * A Cache Item
  */
-final class Item implements CacheItemInterface, Cache, LoggerAwareInterface, Stringable
+final class Item implements CacheItemInterface, Cache, Stringable
 {
 
-    use LoggerAwareTrait,
-        Unserializable,
+    use Unserializable,
         StringableObject;
 
     public const RESERVED_CHAR_KEY = '{}()/\@:';
