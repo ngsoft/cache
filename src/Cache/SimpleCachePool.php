@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-class SimpleCachePool
+class SimpleCachePool extends NamespaceAble
 {
 
 }

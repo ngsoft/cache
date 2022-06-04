@@ -8,16 +8,14 @@ use NGSOFT\Cache\Events\{
     CacheEvent, CacheHit, CacheMiss, KeyDeleted, KeySaved
 };
 use Psr\{
-    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, EventDispatcher\EventDispatcherInterface, Log\LoggerAwareInterface
+    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, EventDispatcher\EventDispatcherInterface
 };
 use Throwable;
 
 class_exists(Item::class);
 
-final class CachePool extends NamespaceAble implements CacheItemPoolInterface, LoggerAwareInterface
+final class CachePool extends NamespaceAble implements CacheItemPoolInterface
 {
-
-    use ExceptionLogger;
 
     /** @var Item[] */
     private array $queue = [];

@@ -4,8 +4,15 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-class NamespaceAble
+use NGSOFT\Traits\StringableObject,
+    Psr\Log\LoggerAwareInterface,
+    Stringable;
+
+abstract class NamespaceAble implements Stringable, LoggerAwareInterface
 {
+
+    use ExceptionLogger,
+        StringableObject;
 
     /**
      * Namespaces are used to prevent conflicts between differents applications that can use the same cache keys
