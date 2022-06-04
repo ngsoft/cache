@@ -67,6 +67,7 @@ abstract class BaseCacheDriver implements TaggedCacheDriver
         }
     }
 
+    /** {@inheritdoc} */
     public function getTagged(string|array $tag): iterable
     {
 
@@ -95,7 +96,10 @@ abstract class BaseCacheDriver implements TaggedCacheDriver
     {
 
         $tag = is_array($tag) ? $tag : [$tag];
-        $missing = array_combine(array_values($tag), array_values($tag));
+        foreach ($tag as $tagName) {
+            $missing[$tagName] = $tagName;
+        }
+
         foreach ($this->getTags($key) as $tagged) {
             unset($missing[$tagged]);
         }
@@ -164,7 +168,7 @@ abstract class BaseCacheDriver implements TaggedCacheDriver
      * @param string $key
      * @return string
      */
-    final protected function getHashedKey(string $key): string
+    protected function getHashedKey(string $key): string
     {
         // classname added to prevent conflicts on similar drivers
         // MD5 as we need speed and some filesystems are limited in length
@@ -172,11 +176,30 @@ abstract class BaseCacheDriver implements TaggedCacheDriver
     }
 
     /**
+     * Convenience function to convert expiry into TTL
+     * A TTL/expiry of 0 never expires
+     *
+     *
+     * @param int $expiry
+     * @return int the ttl a negative ttl is already expired
+     */
+    protected function expiryToLifetime(int $expiry): int
+    {
+        static $max;
+        $max = $max ?? apcu_cache_info(true)['ttl'];
+
+        return
+                $expiry !== 0 ?
+                min($expiry - time(), $this->maxTTL) :
+                0;
+    }
+
+    /**
      * Convenience function to check if item is expired status against current time
      * @param int|null $expiry
      * @return bool
      */
-    final protected function isExpired(?int $expiry = null): bool
+    protected function isExpired(?int $expiry = null): bool
     {
         $expiry = $expiry ?? 1;
         return $expiry !== 0 && microtime(true) > $expiry;
@@ -189,7 +212,7 @@ abstract class BaseCacheDriver implements TaggedCacheDriver
      * @staticvar Closure $handler
      * @return void
      */
-    final protected function setErrorHandler(): void
+    protected function setErrorHandler(): void
     {
         static $handler;
         if (!$handler) {
@@ -200,7 +223,7 @@ abstract class BaseCacheDriver implements TaggedCacheDriver
         set_error_handler($handler);
     }
 
-    final protected function safeExec(callable $callable, array $arguments = []): mixed
+    protected function safeExec(callable $callable, array $arguments = []): mixed
     {
         try {
             $this->setErrorHandler();
