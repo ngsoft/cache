@@ -6,7 +6,7 @@ namespace NGSOFT\Cache\Drivers;
 
 use ErrorException;
 use NGSOFT\{
-    Cache\TaggedCacheDriver, Traits\StringableObject
+    Cache\TaggedCacheDriver, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\Log\LoggerAwareTrait,
     Throwable,
@@ -16,7 +16,8 @@ abstract class BaseCacheDriver implements TaggedCacheDriver
 {
 
     use LoggerAwareTrait,
-        StringableObject;
+        StringableObject,
+        Unserializable;
 
     protected const TAG_KEY_ENTRY = 'NGSOFTCacheTag[%s]';
     protected const TAG_KEY_TAG = 'NGSOFTCacheTagged[%s]';
