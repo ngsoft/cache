@@ -75,5 +75,6 @@ return [
         'PhanAccessMethodProtected',
         'PhanRedefinedInheritedInterface',
         'PhanRedefinedClassReference',
+        'PhanRedefinedUsedTrait',
     ]
 ];

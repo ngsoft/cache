@@ -7,6 +7,7 @@ namespace NGSOFT\Cache\Drivers;
 use NGSOFT\{
     Cache\CacheEntry, DataStructure\SimpleObject
 };
+use Throwable;
 
 /**
  * Saves cache data into a Json file

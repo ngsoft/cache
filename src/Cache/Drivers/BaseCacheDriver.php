@@ -96,6 +96,7 @@ abstract class BaseCacheDriver implements TaggedCacheDriver
     {
 
         $tag = is_array($tag) ? $tag : [$tag];
+        $missing = [];
         foreach ($tag as $tagName) {
             $missing[$tagName] = $tagName;
         }

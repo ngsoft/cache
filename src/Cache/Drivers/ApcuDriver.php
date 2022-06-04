@@ -29,6 +29,10 @@ class ApcuDriver extends BaseCacheDriver
         return $result;
     }
 
+    /**
+     * @phan-suppress PhanTypeMismatchArgumentInternalProbablyReal
+     * @throws CacheError
+     */
     public function __construct()
     {
 
