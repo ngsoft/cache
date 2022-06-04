@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-final class CacheEntry
+final class CacheEntry implements \Stringable
 {
 
     public function __construct(
@@ -33,6 +33,11 @@ final class CacheEntry
     public static function createEmpty(string $key): static
     {
         return new static($key);
+    }
+
+    public function __toString(): string
+    {
+        return $this->key;
     }
 
 }

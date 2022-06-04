@@ -6,12 +6,13 @@ namespace NGSOFT\Cache\Drivers;
 
 use ErrorException;
 use NGSOFT\{
-    Cache\CacheDriver, Traits\StringableObject
+    Cache\TaggedCacheDriver, Traits\StringableObject
 };
 use Psr\Log\LoggerAwareTrait,
+    Throwable,
     Traversable;
 
-abstract class BaseCacheDriver implements CacheDriver
+abstract class BaseCacheDriver implements TaggedCacheDriver
 {
 
     use LoggerAwareTrait,
@@ -66,6 +67,41 @@ abstract class BaseCacheDriver implements CacheDriver
         }
     }
 
+    public function getTagged(string|array $tag): iterable
+    {
+
+        $tag = is_array($tag) ? $tag : [$tag];
+
+        $entries = [];
+
+        foreach ($tag as $tagName) {
+
+            $encodedTagKey = sprintf(static::TAG_KEY_TAG, $tagName);
+            $tagEntry = $this->getRaw($encodedTagKey) ?? [];
+            foreach ($tagEntry as $key) {
+                if (!isset($entries[$key])) {
+
+                    if ($this->hasTag($key, $tag)) {
+                        $entries[$key] = $this->get($key);
+                        yield $key => $entries[$key];
+                    }
+                }
+            }
+        }
+    }
+
+    /** {@inheritdoc} */
+    public function hasTag(string $key, string|array $tag): bool
+    {
+
+        $tag = is_array($tag) ? $tag : [$tag];
+        $missing = array_combine(array_values($tag), array_values($tag));
+        foreach ($this->getTags($key) as $tagged) {
+            unset($missing[$tagged]);
+        }
+        return count($missing) === 0;
+    }
+
     /** {@inheritdoc} */
     public function setTag(string $key, string|array $tag): bool
     {
@@ -92,7 +128,7 @@ abstract class BaseCacheDriver implements CacheDriver
     }
 
     /** {@inheritdoc} */
-    public function deleteTag(string|array $tag): bool
+    public function deleteTagged(string|array $tag): bool
     {
 
         $tag = is_string($tag) ? [$tag] : $tag;
@@ -185,7 +221,7 @@ abstract class BaseCacheDriver implements CacheDriver
         try {
             $this->setErrorHandler();
             return call_user_func_array($callable, $arguments);
-        } catch (\Throwable) { return null; } finally { restore_error_handler(); }
+        } catch (Throwable) { return null; } finally { restore_error_handler(); }
     }
 
 }

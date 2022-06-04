@@ -58,31 +58,6 @@ interface CacheDriver extends \Psr\Log\LoggerAwareInterface, \Stringable
     public function getRaw(string $key): mixed;
 
     /**
-     * Tag a key entry
-     *
-     * @param string $key
-     * @param string|string[] $tag
-     * @return bool
-     */
-    public function setTag(string $key, string|array $tag): bool;
-
-    /**
-     * Get tags for key entry
-     *
-     * @param string $key
-     * @return string[]
-     */
-    public function getTags(string $key): iterable;
-
-    /**
-     * Remove tagged entries
-     *
-     * @param string|string[] $tag
-     * @return bool
-     */
-    public function deleteTag(string|array $tag): bool;
-
-    /**
      * Persists data in the cache, uniquely referenced by a key
      *
      * @param string    $key            The key of the item to store.
