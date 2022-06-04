@@ -183,22 +183,6 @@ abstract class BaseCacheDriver implements TaggedCacheDriver
     }
 
     /**
-     * Convenience function to convert expiry into TTL
-     * A TTL/expiry of 0 never expires
-     *
-     *
-     * @param int $expiry
-     * @return int the ttl a negative ttl is already expired
-     */
-    final protected function expiryToLifetime(int $expiry): int
-    {
-        return
-                $expiry !== 0 ?
-                $expiry - time() :
-                0;
-    }
-
-    /**
      * Convenient Function used to convert php errors, warning, ... as ErrorException
      *
      * @suppress PhanTypeMismatchArgumentInternal

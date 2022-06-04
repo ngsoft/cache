@@ -35,6 +35,16 @@ final class CacheEntry implements \Stringable
         return new static($key);
     }
 
+    public function __serialize(): array
+    {
+        return [$this->key, $this->expiry, $this->value];
+    }
+
+    public function __unserialize(array $data): void
+    {
+        list($this->key, $this->expiry, $this->value) = $data;
+    }
+
     public function __toString(): string
     {
         return $this->key;
