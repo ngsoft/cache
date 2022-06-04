@@ -185,12 +185,9 @@ abstract class BaseCacheDriver implements TaggedCacheDriver
      */
     protected function expiryToLifetime(int $expiry): int
     {
-        static $max;
-        $max = $max ?? apcu_cache_info(true)['ttl'];
-
         return
                 $expiry !== 0 ?
-                min($expiry - time(), $this->maxTTL) :
+                $expiry - time() :
                 0;
     }
 
