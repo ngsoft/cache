@@ -15,6 +15,9 @@ use Psr\{
 };
 use Stringable;
 
+/**
+ * A Cache Item
+ */
 final class Item implements CacheItemInterface, Cache, LoggerAwareInterface, Stringable
 {
 
@@ -22,14 +25,46 @@ final class Item implements CacheItemInterface, Cache, LoggerAwareInterface, Str
         Unserializable,
         StringableObject;
 
+    public const RESERVED_CHAR_KEY = '{}()/\@:';
+
     public ?int $expiry = null;
     public mixed $value = null;
+
+    public static function validateKey(mixed $key): void
+    {
+
+
+        if (!is_string($key)) {
+            throw new InvalidArgument(sprintf(
+                                    'Cache key must be a string, "%s" given.',
+                                    get_debug_type($key)
+            ));
+        }
+        if ('' === $key) {
+            throw new InvalidArgument('Cache key length must be greater than zero.');
+        }
+        if (false !== strpbrk($key, self::RESERVED_CHAR_KEY)) {
+            throw new InvalidArgument(sprintf(
+                                    'Cache key "%s" contains reserved characters "%s".',
+                                    $key,
+                                    self::RESERVED_CHAR_KEY
+            ));
+        }
+    }
+
+    public static function create(string $key, mixed $value = null, ?int $expiry = null): static
+    {
+        $instance = new static($key);
+        $instance->value = $value;
+        $instance->expiry = $expiry;
+        return $instance;
+    }
 
     public function __construct(
             public readonly string $key
     )
     {
-
+        static::validateKey($key);
     }
 
     /** {@inheritdoc} */
