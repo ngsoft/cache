@@ -11,6 +11,7 @@ use NGSOFT\Cache\{
     CacheEntry, CacheError
 };
 use RecursiveDirectoryIterator,
+    Symfony\Component\VarExporter\VarExporter,
     Throwable;
 use function mb_strlen,
              str_ends_with,
@@ -24,6 +25,7 @@ class PhpDriver extends BaseCacheDriver
     protected const CHMOD_FILE = 0666;
     protected const HASH_CHARCODES = '0123456789abcdef';
     protected const COMPILE_OFFSET = -86400;
+    protected const STRING_SIZE_LIMIT = 512000;
     protected const TEMPLATE = '<?php return \\NGSOFT\\Cache\\CacheEntry::create(key: "%s", expiry: %d, value: %s);';
 
     protected array $tmpFiles = [];
@@ -63,7 +65,7 @@ class PhpDriver extends BaseCacheDriver
             $this->setErrorHandler();
 
             $this->prefix = !empty($prefix) ? $prefix : strtolower(substr(static::class, 1 + strrpos(static::class, '\\')));
-            $this->root = !empty($root) ? $root : sys_get_temp_dir();
+            $this->root = $this->normalizePath(!empty($root) ? $root : sys_get_temp_dir());
 
             $this->mkdir($this->root);
 
@@ -72,6 +74,7 @@ class PhpDriver extends BaseCacheDriver
             }
 
             $this->root .= DIRECTORY_SEPARATOR . static::STORAGE_PREFIX . $this->prefix;
+            $this->root = $this->normalizePath($this->root);
 
             if (self::onWindows() && mb_strlen($this->root) > 200) {
                 throw new InvalidArgumentException(sprintf('Cache directory "%s" too long for windows filesystem.', $this->root));
@@ -89,6 +92,12 @@ class PhpDriver extends BaseCacheDriver
         foreach (array_pop($this->tmpFiles) as $file) {
             $this->unlink($file);
         }
+    }
+
+    final protected function normalizePath(string $file): string
+    {
+
+        return preg_replace('#[\\\/]+#', DIRECTORY_SEPARATOR, $file);
     }
 
     final protected function mkdir(string $dir): bool
@@ -234,20 +243,21 @@ class PhpDriver extends BaseCacheDriver
 
     final protected function getFilename(string $key, string $extension = '.php'): string
     {
-        $extension = str_starts_with($extension, '.') ? $extension : ".$extension";
+        if (!empty($extension)) {
+            $extension = str_starts_with($extension, '.') ? $extension : ".$extension";
+        }
+
         $hash = $this->getHashedKey($key);
         return $this->root . DIRECTORY_SEPARATOR . $hash[0] . $hash[1] . DIRECTORY_SEPARATOR . $hash . $extension;
     }
 
     final protected function varExporter(mixed $data): ?string
     {
-
-
         if (is_scalar($data) || is_null($data)) {
             return var_export($data, true);
         } elseif (is_object($data)) {
             try {
-                return \Symfony\Component\VarExporter\VarExporter::export($data);
+                return VarExporter::export($data);
             } catch (\Throwable) {
                 return null;
             }
@@ -287,6 +297,8 @@ class PhpDriver extends BaseCacheDriver
         foreach ($this->getFiles($this->root, 'php|txt') as $file) {
             $this->invalidate($file);
             $result = $this->unlink($file) && $result;
+
+            $this->rmdir(dirname($file));
         }
 
         return $result;
@@ -317,9 +329,15 @@ class PhpDriver extends BaseCacheDriver
             return $this->delete($key);
         }
 
-        $file = $this->getFilename($key);
-        $contents = $this->varExporter($value);
-        if (null !== $contents && $this->write($file, sprintf(self::TEMPLATE, $key, $expiry, $contents))) {
+        $file = $this->getFilename($key, '');
+
+        if (is_string($value) && mb_strlen($value) > self::STRING_SIZE_LIMIT) {
+            $txtFile = DIRECTORY_SEPARATOR . basename($file) . '.txt';
+            if ($this->write(dirname($file) . $txtFile, $value)) {
+                $contents = sprintf('file_get_contents(__DIR__ .\'%s\')', $txtFile);
+            } else return false;
+        } else $contents = $this->varExporter($value);
+        if (null !== $contents && $this->write($file . '.php', sprintf(self::TEMPLATE, $key, $expiry, $contents))) {
             $this->compile($file);
             return true;
         }
