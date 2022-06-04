@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
-use Doctrine\Common\Cache\CacheProvider,
+use Illuminate\Contracts\Cache\Store,
     NGSOFT\Cache\CacheEntry;
 
-class DoctrineDriver extends BaseCacheDriver
+class IlluminateDriver extends BaseCacheDriver
 {
 
     public function __construct(
-            protected CacheProvider $provider
+            protected Store $provider
     )
     {
 
@@ -19,35 +19,38 @@ class DoctrineDriver extends BaseCacheDriver
 
     public function clear(): bool
     {
-        return $this->provider->flushAll();
+        return $this->provider->flush();
     }
 
     public function delete(string $key): bool
     {
-        return $this->provider->delete($key);
+        $this->provider->forget($key);
+        return !$this->has($key);
     }
 
     public function get(string $key): CacheEntry
     {
-        $result = $this->provider->fetch($key);
+        $result = $this->provider->get($key);
         return $result instanceof CacheEntry ? $result : CacheEntry::createEmpty($key);
     }
 
     public function has(string $key): bool
     {
-        return $this->provider->contains($key);
+        return $this->provider->get($key) === null;
     }
 
     public function set(string $key, mixed $value, int $expiry = 0): bool
     {
-
         $expiry = $expiry === 0 ? 0 : $expiry;
         if ($this->defaultLifetime > 0) $expiry = min($expiry, time() + $this->defaultLifetime);
 
         if ($this->isExpired($expiry)) {
             return $this->delete($key);
         }
-        return $this->provider->save($key, CacheEntry::create($key, $expiry, $value), $this->expiryToLifetime($expiry));
+
+        return $expiry === 0 ?
+                $this->provider->forever($key, CacheEntry::create($key, $expiry, $value)) :
+                $this->provider->put($key, CacheEntry::create($key, $expiry, $value), $this->expiryToLifetime($expiry));
     }
 
 }
