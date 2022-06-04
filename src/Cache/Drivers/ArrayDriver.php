@@ -114,7 +114,7 @@ class ArrayDriver extends BaseCacheDriver
     {
         try {
             $this->setErrorHandler();
-            return is_object($value) ? \serialize($value) : $value;
+            return is_object($value) || is_array($value) ? \serialize($value) : $value;
         } catch (Throwable) { return null; } finally { restore_error_handler(); }
     }
 
