@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
+use NGSOFT\Cache\Events\CacheEvent;
 use Psr\{
-    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerAwareInterface
+    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, EventDispatcher\EventDispatcherInterface, Log\LoggerAwareInterface
 };
 use Throwable;
 
@@ -18,6 +19,7 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface, L
 
     /** @var Item[] */
     private array $queue = [];
+    private ?EventDispatcherInterface $eventDispatcher = null;
 
     public function __construct(
             TaggedCacheDriver $driver,
@@ -34,12 +36,19 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface, L
         $this->commit();
     }
 
+    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): void
+    {
+        $this->eventDispatcher = $eventDispatcher;
+    }
+
+    /** {@inheritdoc} */
     public function clear(): bool
     {
         $this->clearNamespace();
         return $this->driver->clear();
     }
 
+    /** {@inheritdoc} */
     public function deleteItem(string $key): bool
     {
         try {
@@ -49,6 +58,7 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface, L
         }
     }
 
+    /** {@inheritdoc} */
     public function deleteItems(string $keys): bool
     {
 
@@ -59,6 +69,7 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface, L
         return $result;
     }
 
+    /** {@inheritdoc} */
     public function getItem(string $key): CacheItemInterface
     {
 
@@ -73,6 +84,7 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface, L
         }
     }
 
+    /** {@inheritdoc} */
     public function getItems(array $keys = []): iterable
     {
         try {
@@ -88,6 +100,7 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface, L
         }
     }
 
+    /** {@inheritdoc} */
     public function hasItem(string $key): bool
     {
 
@@ -102,6 +115,7 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface, L
         }
     }
 
+    /** {@inheritdoc} */
     public function save(Item $item): bool
     {
         try {
@@ -111,6 +125,7 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface, L
         }
     }
 
+    /** {@inheritdoc} */
     public function saveDeferred(Item $item): bool
     {
 
@@ -122,6 +137,7 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface, L
         }
     }
 
+    /** {@inheritdoc} */
     public function commit(): bool
     {
 
@@ -154,20 +170,15 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface, L
                 }
             }
 
-
-
-
-
-
-
-
-
-
-
             return $result;
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
+    }
+
+    public function dispatch(CacheEvent $event): object
+    {
+        return $this->eventDispatcher?->dispatch($event) ?? $event;
     }
 
     private function getExpiryRealValue(?int $expiry = null): int
