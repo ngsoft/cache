@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-use NGSOFT\Cache\Events\CacheEvent;
+use NGSOFT\Cache\Events\{
+    CacheEvent, CacheHit, CacheMiss, KeyDeleted, KeySaved
+};
 use Psr\{
     Cache\CacheItemInterface, Cache\CacheItemPoolInterface, EventDispatcher\EventDispatcherInterface, Log\LoggerAwareInterface
 };
@@ -52,14 +54,19 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface, L
     public function deleteItem(string $key): bool
     {
         try {
-            return $this->driver->delete($this->getCacheKey($key));
+            if ($this->driver->delete($this->getCacheKey($key))) {
+                $this->dispatch(new KeyDeleted($key));
+                return true;
+            }
+
+            return false;
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
     }
 
     /** {@inheritdoc} */
-    public function deleteItems(string $keys): bool
+    public function deleteItems(array $keys): bool
     {
 
         $result = true;
@@ -76,8 +83,14 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface, L
         try {
             $entry = $this->driver->get($this->getCacheKey($key));
             if ($entry->isHit()) {
+
+
+                $this->dispatch(new CacheHit($key, $entry->value));
+
                 return Item::create($key, $entry->value, $entry->expiry === 0 ? null : $entry->expiry);
             }
+
+            $this->dispatch(new CacheMiss($key));
             return Item::create($key);
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
@@ -116,7 +129,7 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface, L
     }
 
     /** {@inheritdoc} */
-    public function save(Item $item): bool
+    public function save(CacheItemInterface $item): bool
     {
         try {
             return $this->saveDeferred($item) && $this->commit();
@@ -126,11 +139,21 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface, L
     }
 
     /** {@inheritdoc} */
-    public function saveDeferred(Item $item): bool
+    public function saveDeferred(CacheItemInterface $item): bool
     {
 
         try {
-            $this->queue[$this->getCacheKey($key)] = $item;
+
+            if ($item instanceof Item === false) {
+                throw new InvalidArgument(sprintf(
+                                        'Cache items are not transferable between pools. "%s" requested, "%s" given.',
+                                        Item::class,
+                                        get_class($item)
+                ));
+            }
+
+
+            $this->queue[$this->getCacheKey($item->getKey())] = $item;
             return true;
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
@@ -166,6 +189,8 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface, L
             foreach ($toSave as $expiry => $items) {
 
                 foreach ($this->driver->setMultiple($items, $expiry) as $nkey => $bool) {
+                    if ($bool) $this->dispatch(new KeySaved($assoc[$nkey], $items[$nkey]));
+
                     $result = $bool && $result;
                 }
             }
