@@ -336,9 +336,9 @@ class PhpDriver extends BaseCacheDriver
         $file = $this->getFilename($key, '');
 
         if (is_string($value) && mb_strlen($value) > self::STRING_SIZE_LIMIT) {
-            $txtFile = DIRECTORY_SEPARATOR . basename($file) . '.txt';
-            if ($this->write(dirname($file) . $txtFile, $value)) {
-                $contents = sprintf('file_get_contents(__DIR__ .\'%s\')', $txtFile);
+            $txtFile = basename($file) . '.txt';
+            if ($this->write(dirname($file) . DIRECTORY_SEPARATOR . $txtFile, $value)) {
+                $contents = sprintf('file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . \'%s\')', $txtFile);
             } else return false;
         } else $contents = $this->varExporter($value);
         if (null !== $contents && $this->write($file . '.php', sprintf(self::TEMPLATE, $key, $expiry, $contents))) {
