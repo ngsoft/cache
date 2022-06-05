@@ -27,7 +27,7 @@ class PhpDriver extends BaseCacheDriver
     protected const COMPILE_OFFSET = -86400;
     protected const STRING_SIZE_LIMIT = 512000;
     protected const TEMPLATE = "<?php\n\nreturn \\NGSOFT\\Cache\\CacheEntry::create(\n    key: '%s',\n    expiry: %d,\n    value: %s\n);";
-    protected const TEMPLATE_TXT = 'file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . %s)';
+    protected const TEMPLATE_TXT = 'file_get_contents( __DIR__ . DIRECTORY_SEPARATOR . %s )';
 
     protected array $tmpFiles = [];
     protected ?string $tmpFile = null;
