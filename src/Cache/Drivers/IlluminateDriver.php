@@ -31,7 +31,7 @@ class IlluminateDriver extends BaseCacheDriver
     public function get(string $key): CacheEntry
     {
         $result = $this->provider->get($key);
-        return $result instanceof CacheEntry ? $result : CacheEntry::createEmpty($key);
+        return is_array($result) ? CacheEntry::create($key, $result['expiry'], $result['value']) : CacheEntry::createEmpty($key);
     }
 
     public function has(string $key): bool
@@ -48,9 +48,11 @@ class IlluminateDriver extends BaseCacheDriver
             return $this->delete($key);
         }
 
+        $entry = ['expiry' => $expiry, 'value' => $value];
+
         return $expiry === 0 ?
-                $this->provider->forever($key, CacheEntry::create($key, $expiry, $value)) :
-                $this->provider->put($key, CacheEntry::create($key, $expiry, $value), $this->expiryToLifetime($expiry));
+                $this->provider->forever($key, $entry) :
+                $this->provider->put($key, $entry, $this->expiryToLifetime($expiry));
     }
 
 }

@@ -30,7 +30,7 @@ class DoctrineDriver extends BaseCacheDriver
     public function get(string $key): CacheEntry
     {
         $result = $this->provider->fetch($key);
-        return $result instanceof CacheEntry ? $result : CacheEntry::createEmpty($key);
+        return is_array($result) ? CacheEntry::create($key, $result['expiry'], $result['value']) : CacheEntry::createEmpty($key);
     }
 
     public function has(string $key): bool
@@ -47,7 +47,8 @@ class DoctrineDriver extends BaseCacheDriver
         if ($this->isExpired($expiry)) {
             return $this->delete($key);
         }
-        return $this->provider->save($key, CacheEntry::create($key, $expiry, $value), $this->expiryToLifetime($expiry));
+
+        return $this->provider->save($key, ['expiry' => $expiry, 'value' => $value], $this->expiryToLifetime($expiry));
     }
 
 }
