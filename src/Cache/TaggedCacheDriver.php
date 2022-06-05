@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
+/**
+ * In that implementation tags works like namespaces and that makes them faster
+ */
 interface TaggedCacheDriver extends CacheDriver
 {
 
@@ -27,7 +30,7 @@ interface TaggedCacheDriver extends CacheDriver
 
     /**
      * Removes Tags for entry
-     * 
+     *
      * @param string $key
      * @return bool
      */

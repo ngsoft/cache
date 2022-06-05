@@ -65,7 +65,7 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface
         try {
             if ($this->driver->delete($this->getCacheKey($key))) {
                 if ($this->useTags) {
-                    $result = $this->driver->deleteTags($this->getCacheKey($key)) && $result;
+                    $this->driver->deleteTags($this->getCacheKey($key));
                 }
                 $this->dispatch(new KeyDeleted($key));
                 return true;
