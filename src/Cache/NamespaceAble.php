@@ -127,15 +127,15 @@ abstract class NamespaceAble implements Stringable, LoggerAwareInterface
     /**
      * Get namespaced cache key
      *
-     * @param string $key
+     * @param mixed $key
      * @return string
      */
-    final protected function getCacheKey(string $key): string
+    final protected function getCacheKey(mixed $key): string
     {
+        Item::validateKey($key);
         if (!empty($this->namespace)) {
             $key = sprintf(self::NAMESPACE_MODIFIER, $this->namespace, $key, $this->getNamespaceVersion());
         }
-        Item::validateKey($key);
         return $key;
     }
 

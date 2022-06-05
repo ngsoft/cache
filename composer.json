@@ -1,8 +1,8 @@
 {
     "name": "ngsoft/cache",
-    "description": "A PSR-6/PSR-16/Doctrine/React cache implementation that supports OPCache, APCu, Doctrine, Illuminate or any PSR-6/16 implementations and can chain them all.",
+    "description": "A PSR-6/PSR-16/React cache implementation that supports OPCache, APCu, Doctrine, Illuminate or any PSR-6/16 implementations and can chain them all.",
     "keywords": [
-        "psr-6", "psr-16", "psr-3", "psr-14", "cache", "caching", "opcache", "phpfilecache",
+        "psr-6", "psr-16", "cache", "caching", "opcache", "phpfilecache",
         "react", "promise", "doctrine", "illuminate", "chain", "apcu"
     ],
     "license": "MIT",
