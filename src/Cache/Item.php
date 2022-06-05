@@ -27,6 +27,7 @@ final class Item implements CacheItemInterface, Cache, Stringable
 
     public ?int $expiry = null;
     public mixed $value = null;
+    public array $tags = [];
 
     public static function validateKey(mixed $key): void
     {
@@ -63,6 +64,28 @@ final class Item implements CacheItemInterface, Cache, Stringable
     )
     {
         static::validateKey($key);
+    }
+
+    /**
+     * Adds a tag to a cache item.
+     *
+     * Tags are strings that follow the same validation rules as keys.
+     *
+     * @param string|string[] $tags A tag or array of tags
+     *
+     * @return $this
+     *
+     * @throws InvalidArgumentException When $tag is not valid
+     * @throws CacheException           When the item comes from a pool that is not tag-aware
+     */
+    public function tag(string|iterable $tags): static
+    {
+        $tags = is_string($tags) ? [$tags] : $tags;
+
+        foreach ($tags as $tag) {
+            $this->tags[$tag] = $tag;
+        }
+        return $this;
     }
 
     /** {@inheritdoc} */

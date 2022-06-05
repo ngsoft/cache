@@ -198,6 +198,35 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface
         }
     }
 
+    /**
+     * Invalidates cached items using tags.
+     *
+     * When implemented on a PSR-6 pool, invalidation should not apply
+     * to deferred items. Instead, they should be committed as usual.
+     * This allows replacing old tagged values by new ones without
+     * race conditions.
+     *
+     * @param string[] $tags An array of tags to invalidate
+     *
+     * @return bool True on success
+     *
+     * @throws InvalidArgument When $tags is not valid
+     */
+    public function invalidateTags(array $tags): bool
+    {
+        try {
+            $result = true;
+            foreach ($tags as $tag) {
+                $ntag = $this->getCacheKey($tag);
+                $result = $this->driver->deleteTagged($ntag) && $result;
+            }
+
+            return $result;
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
+    }
+
     public function dispatch(CacheEvent $event): object
     {
         return $this->eventDispatcher?->dispatch($event) ?? $event;
