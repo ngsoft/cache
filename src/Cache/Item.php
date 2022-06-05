@@ -10,14 +10,13 @@ use DateInterval,
 use NGSOFT\{
     Cache, Traits\StringableObject, Traits\Unserializable
 };
-use Psr\Cache\CacheItemInterface,
-    Stringable;
+use Stringable;
 use function get_debug_type;
 
 /**
  * A Cache Item
  */
-final class Item implements CacheItemInterface, Cache, Stringable
+final class Item implements TaggableCacheItem, Cache, Stringable
 {
 
     use Unserializable,

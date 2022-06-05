@@ -86,9 +86,8 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface
 
     /**
      * {@inheritdoc}
-     * @return Item
      */
-    public function getItem(string $key): Item
+    public function getItem(string $key): TaggableCacheItem
     {
 
         try {
