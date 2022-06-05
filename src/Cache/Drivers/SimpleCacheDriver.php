@@ -41,7 +41,7 @@ class SimpleCacheDriver extends BaseCacheDriver
     public function get(string $key): CacheEntry
     {
         $result = $this->provider->get($key);
-        return $result instanceof CacheEntry ? $result : CacheEntry::createEmpty($key);
+        return is_array($result) ? CacheEntry::create($key, $result['expiry'], $result['value']) : CacheEntry::createEmpty($key);
     }
 
     /** {@inheritdoc} */
@@ -60,7 +60,7 @@ class SimpleCacheDriver extends BaseCacheDriver
             return $this->delete($key);
         }
         $ttl = $this->expiryToLifetime($expiry);
-        return $this->provider->set($key, CacheEntry::create($key, $expiry, $value), $ttl === 0 ? null : $ttl);
+        return $this->provider->set($key, ['expiry' => $expiry, 'value' => $value], $ttl === 0 ? null : $ttl);
     }
 
 }
