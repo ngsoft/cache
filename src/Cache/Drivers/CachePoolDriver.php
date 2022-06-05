@@ -44,7 +44,7 @@ class CachePoolDriver extends BaseCacheDriver
         $item = $this->items[$this->getHashedKey($key)] = $this->provider->getItem($key);
 
         $result = $item->isHit() ? $item->get() : null;
-        return $result instanceof CacheEntry ? $result : CacheEntry::createEmpty($key);
+        return is_array($result) ? CacheEntry::create($key, $result['expiry'], $result['value']) : CacheEntry::createEmpty($key);
     }
 
     public function has(string $key): bool
@@ -67,7 +67,7 @@ class CachePoolDriver extends BaseCacheDriver
         $ttl = $this->expiryToLifetime($expiry);
         return $this->provider->save(
                         $item
-                                ->set(CacheEntry::create($key, $expiry, $value))
+                                ->set(['expiry' => $expiry, 'value' => $value])
                                 ->expiresAfter($ttl === 0 ? null : $ttl)
         );
     }
