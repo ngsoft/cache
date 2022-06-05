@@ -13,6 +13,7 @@ use Psr\{
 use Throwable;
 
 class_exists(Item::class);
+class_exists(InvalidArgument::class);
 
 final class CachePool extends NamespaceAble implements CacheItemPoolInterface
 {
@@ -87,7 +88,7 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface
      * {@inheritdoc}
      * @return Item
      */
-    public function getItem(string $key): CacheItemInterface
+    public function getItem(string $key): Item
     {
 
         try {
