@@ -306,8 +306,14 @@ class PhpDriver extends BaseCacheDriver
 
     public function delete(string $key): bool
     {
-        $fileName = $this->getFilename($key);
-        return !is_file($fileName) || $this->unlink($fileName);
+        $fileName = $this->getFilename($key, '');
+        $result = true;
+
+        foreach (['php', 'txt'] as $ext) {
+            $result = (!is_file("{$fileName}.{$ext}") || $this->unlink("{$fileName}.{$ext}")) && $result;
+        }
+
+        return $result;
     }
 
     public function get(string $key): CacheEntry
