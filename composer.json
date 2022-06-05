@@ -36,7 +36,7 @@
     },
     "require": {
         "php": ">=8.1",
-        "ngsoft/tools": ">=3.1",
+        "ngsoft/tools": "^3.0",
         "psr/cache": "^3",
         "psr/simple-cache": "^3",
         "psr/log": "^1|^2|^3",

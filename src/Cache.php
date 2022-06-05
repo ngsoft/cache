@@ -10,6 +10,6 @@ interface Cache
     /**
      * Version Informations
      */
-    public const VERSION = '3.0';
+    public const VERSION = '2.0';
 
 }
