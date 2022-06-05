@@ -233,7 +233,7 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface
             $result = true;
 
             if (!$this->useTags) {
-                throw new CacheError('Tags are disabled.');
+                throw new CacheError('Tags are disabled, cannot invalidate.');
             }
 
             foreach ($tags as $tag) {
