@@ -200,10 +200,11 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface
             foreach ($toSave as $expiry => $items) {
 
                 foreach ($this->driver->setMultiple($items, $expiry) as $nkey => $bool) {
-                    if ($bool) $this->dispatch(new KeySaved($assoc[$nkey], $items[$nkey]));
+                    if ($bool) {
+                        $this->dispatch(new KeySaved($assoc[$nkey], $items[$nkey]));
+                        $result = $this->saveTags($queue[$nkey]) && $result;
+                    }
                     $result = $bool && $result;
-
-                    $result = $this->saveTags($queue[$nkey]) && $result;
                 }
             }
 
