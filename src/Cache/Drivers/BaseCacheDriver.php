@@ -154,13 +154,13 @@ abstract class BaseCacheDriver implements TaggedCacheDriver
 
             foreach ($tagEntry as $key) {
                 // check if entry has given tag
-                $encodedKey = sprintf(static::TAG_KEY_ENTRY, $key);
-                $keyTags = $this->getRaw($encodedKey);
+
+                $keyTags = $this->getTags($key);
 
                 if (!in_array($tagName, $keyTags)) {
                     continue;
                 } else {
-                    $result = $this->delete($encodedKey) && $result;
+                    $result = $this->deleteTags($key) && $result;
                     $result = $this->delete($key) && $result;
                 }
             }

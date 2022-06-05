@@ -256,6 +256,11 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface
     {
 
         if (!$this->useTags) {
+            if (!empty($item->tags)) {
+                $this->logger?->debug('Cannot save tags, they are disabled.', [
+                    'tags' => $item->tags
+                ]);
+            }
             return true;
         }
 
