@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-use NGSOFT\Cache\Events\{
-    CacheEvent, CacheHit, CacheMiss, KeyDeleted, KeySaved
+use NGSOFT\{
+    Cache\Events\CacheEvent, Cache\Events\CacheHit, Cache\Events\CacheMiss, Cache\Events\KeyDeleted, Cache\Events\KeySaved, Traits\Unserializable
 };
 use Psr\{
     Cache\CacheItemInterface, Cache\CacheItemPoolInterface, EventDispatcher\EventDispatcherInterface
@@ -16,6 +16,8 @@ class_exists(Item::class);
 
 final class CachePool extends NamespaceAble implements CacheItemPoolInterface
 {
+
+    use Unserializable;
 
     /** @var Item[] */
     private array $queue = [];
