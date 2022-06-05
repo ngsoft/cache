@@ -27,7 +27,8 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface
     public function __construct(
             TaggedCacheDriver $driver,
             protected int $defaultLifetime = 0,
-            string $namespace = ''
+            string $namespace = '',
+            protected bool $useTags = false
     )
     {
         parent::__construct($driver, $namespace);
@@ -63,6 +64,9 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface
     {
         try {
             if ($this->driver->delete($this->getCacheKey($key))) {
+                if ($this->useTags) {
+                    $result = $this->driver->deleteTags($this->getCacheKey($key)) && $result;
+                }
                 $this->dispatch(new KeyDeleted($key));
                 return true;
             }
@@ -227,6 +231,11 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface
     {
         try {
             $result = true;
+
+            if (!$this->useTags) {
+                throw new CacheError('Tags are disabled.');
+            }
+
             foreach ($tags as $tag) {
                 $ntag = $this->getCacheKey($tag);
                 $result = $this->driver->deleteTagged($ntag) && $result;
@@ -245,6 +254,11 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface
 
     protected function saveTags(Item $item): bool
     {
+
+        if (!$this->useTags) {
+            return true;
+        }
+
         if (empty($item->tags)) {
             return $this->driver->deleteTags($this->getCacheKey($item->getKey()));
         }
