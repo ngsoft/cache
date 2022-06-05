@@ -134,6 +134,13 @@ abstract class BaseCacheDriver implements TaggedCacheDriver
     }
 
     /** {@inheritdoc} */
+    public function deleteTags(string $key): bool
+    {
+        $encodedKey = sprintf(static::TAG_KEY_ENTRY, $key);
+        return $this->delete($encodedKey);
+    }
+
+    /** {@inheritdoc} */
     public function deleteTagged(string|array $tag): bool
     {
 

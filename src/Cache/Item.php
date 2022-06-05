@@ -75,14 +75,14 @@ final class Item implements CacheItemInterface, Cache, Stringable
      *
      * @return $this
      *
-     * @throws InvalidArgumentException When $tag is not valid
-     * @throws CacheException           When the item comes from a pool that is not tag-aware
+     * @throws InvalidArgument  When $tag is not valid
      */
     public function tag(string|iterable $tags): static
     {
         $tags = is_string($tags) ? [$tags] : $tags;
 
         foreach ($tags as $tag) {
+            static::validateKey($tag);
             $this->tags[$tag] = $tag;
         }
         return $this;

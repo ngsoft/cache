@@ -26,6 +26,14 @@ interface TaggedCacheDriver extends CacheDriver
     public function setTag(string $key, string|array $tag): bool;
 
     /**
+     * Removes Tags for entry
+     * 
+     * @param string $key
+     * @return bool
+     */
+    public function deleteTags(string $key): bool;
+
+    /**
      * Get tags for key entry
      *
      * @param string $key

@@ -8,7 +8,7 @@ use NGSOFT\{
     Cache\Events\CacheEvent, Cache\Events\CacheHit, Cache\Events\CacheMiss, Cache\Events\KeyDeleted, Cache\Events\KeySaved, Traits\Unserializable
 };
 use Psr\{
-    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, EventDispatcher\EventDispatcherInterface
+    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, EventDispatcher\EventDispatcherInterface, Log\LoggerInterface
 };
 use Throwable;
 
@@ -41,6 +41,13 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface
     public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): void
     {
         $this->eventDispatcher = $eventDispatcher;
+    }
+
+    public function setLogger(LoggerInterface $logger): void
+    {
+        parent::setLogger($logger);
+
+        $this->driver->setLogger($logger);
     }
 
     /** {@inheritdoc} */
@@ -76,7 +83,10 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface
         return $result;
     }
 
-    /** {@inheritdoc} */
+    /**
+     * {@inheritdoc}
+     * @return Item
+     */
     public function getItem(string $key): CacheItemInterface
     {
 
@@ -187,8 +197,9 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface
 
                 foreach ($this->driver->setMultiple($items, $expiry) as $nkey => $bool) {
                     if ($bool) $this->dispatch(new KeySaved($assoc[$nkey], $items[$nkey]));
-
                     $result = $bool && $result;
+
+                    $result = $this->saveTags($queue[$nkey]) && $result;
                 }
             }
 
@@ -232,7 +243,20 @@ final class CachePool extends NamespaceAble implements CacheItemPoolInterface
         return $this->eventDispatcher?->dispatch($event) ?? $event;
     }
 
-    private function getExpiryRealValue(?int $expiry = null): int
+    protected function saveTags(Item $item): bool
+    {
+        if (empty($item->tags)) {
+            return $this->driver->deleteTags($this->getCacheKey($item->getKey()));
+        }
+        $tags = [];
+        foreach ($item->tags as $tag) {
+            $ntag = $this->getCacheKey($tag);
+            $tags[$ntag] = $ntag;
+        }
+        return $this->driver->setTag($this->getCacheKey($item->getKey()), $tags);
+    }
+
+    protected function getExpiryRealValue(?int $expiry = null): int
     {
         if (is_int($expiry)) {
             return $expiry;
