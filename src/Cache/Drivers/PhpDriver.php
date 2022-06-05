@@ -26,7 +26,8 @@ class PhpDriver extends BaseCacheDriver
     protected const HASH_CHARCODES = '0123456789abcdef';
     protected const COMPILE_OFFSET = -86400;
     protected const STRING_SIZE_LIMIT = 512000;
-    protected const TEMPLATE = '<?php return \\NGSOFT\\Cache\\CacheEntry::create(key: "%s", expiry: %d, value: %s);';
+    protected const TEMPLATE = "<?php\n\nreturn \\NGSOFT\\Cache\\CacheEntry::create(\n    key: '%s',\n    expiry: %d,\n    value: %s\n);";
+    protected const TEMPLATE_TXT = 'file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . %s)';
 
     protected array $tmpFiles = [];
     protected ?string $tmpFile = null;
@@ -171,7 +172,7 @@ class PhpDriver extends BaseCacheDriver
 
     final protected function compile(string $file): bool
     {
-        if (!static::opCacheSupported() || !is_file($file)) {
+        if (!static::opCacheSupported() || !is_file($file) || !str_ends_with($file, '.php')) {
             return false;
         }
         $this->invalidate($file);
@@ -180,7 +181,7 @@ class PhpDriver extends BaseCacheDriver
 
     final protected function invalidate(string $file): bool
     {
-        if (!static::opCacheSupported() || !is_file($file)) {
+        if (!static::opCacheSupported() || !is_file($file) || !str_ends_with($file, '.php')) {
             return true;
         }
         return touch($file, static::COMPILE_OFFSET) && opcache_invalidate($file, true);
@@ -332,7 +333,7 @@ class PhpDriver extends BaseCacheDriver
     public function set(string $key, mixed $value, int $expiry = 0): bool
     {
 
-        $expiry = $expiry === 0 ? PHP_INT_MAX : $expiry;
+        $expiry = $expiry === 0 ? 0 : $expiry;
         if ($this->defaultLifetime > 0) $expiry = min($expiry, time() + $this->defaultLifetime);
 
         if ($this->isExpired($expiry)) {
@@ -344,7 +345,7 @@ class PhpDriver extends BaseCacheDriver
         if (is_string($value) && mb_strlen($value) > self::STRING_SIZE_LIMIT) {
             $txtFile = basename($file) . '.txt';
             if ($this->write(dirname($file) . DIRECTORY_SEPARATOR . $txtFile, $value)) {
-                $contents = sprintf('file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . \'%s\')', $txtFile);
+                $contents = sprintf(self::TEMPLATE_TXT, var_export($txtFile, true));
             } else return false;
         } else $contents = $this->varExporter($value);
         if (null !== $contents && $this->write($file . '.php', sprintf(self::TEMPLATE, $key, $expiry, $contents))) {
