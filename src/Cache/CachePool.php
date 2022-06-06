@@ -15,7 +15,7 @@ use Throwable;
 class_exists(Item::class);
 class_exists(InvalidArgument::class);
 
-final class CachePool extends NamespaceAble implements CacheItemPoolInterface
+class CachePool extends NamespaceAble implements CacheItemPoolInterface
 {
 
     use Unserializable;
