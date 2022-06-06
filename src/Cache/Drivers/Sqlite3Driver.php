@@ -195,6 +195,7 @@ class Sqlite3Driver extends BaseCacheDriver
         $expiry = $expiry === 0 ? 0 : $expiry;
         if ($this->defaultLifetime > 0) $expiry = min($expiry, time() + $this->defaultLifetime);
 
+        $value = $this->serializeEntry($value);
 
         if ($this->isExpired($expiry) || null === $value) {
             return $this->delete($key);
@@ -208,7 +209,7 @@ class Sqlite3Driver extends BaseCacheDriver
                 )
         );
         $query->bindValue(':key', $key, SQLITE3_TEXT);
-        $query->bindValue(':data', $this->serializeEntry($value), SQLITE3_BLOB);
+        $query->bindValue(':data', $value, SQLITE3_BLOB);
         $query->bindValue(':expiry', $expiry);
 
         return $query->execute() instanceof SQLite3Result;

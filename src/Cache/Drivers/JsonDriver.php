@@ -122,13 +122,15 @@ class JsonDriver extends BaseCacheDriver
         $expiry = $expiry === 0 ? 0 : $expiry;
         if ($this->defaultLifetime > 0) $expiry = min($expiry, time() + $this->defaultLifetime);
 
+        $value = $this->serializeEntry($value);
+
         if ($this->isExpired($expiry) || $value === null) {
             return $this->delete($key);
         }
 
         $entry = [
             'expiry' => $expiry,
-            'value' => $this->serializeEntry($value),
+            'value' => $value,
         ];
 
         $this->provider[$this->key][$this->getHashedKey($key)] = $entry;

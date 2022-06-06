@@ -34,7 +34,7 @@ class PHPCache extends CachePool
         ];
 
         if (ApcuDriver::isSupported()) {
-            //  $drivers[] = new ApcuDriver();
+            $drivers[] = new ApcuDriver();
         }
         $drivers [] = new PhpDriver($rootpath, $prefix);
         parent::__construct(new ChainDriver($drivers), $defaultLifetime, $namespace);
