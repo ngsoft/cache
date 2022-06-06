@@ -65,11 +65,16 @@ class CachePoolDriver extends BaseCacheDriver
         $item = $this->items[$this->getHashedKey($key)] ?? $this->provider->getItem($key);
         unset($this->items[$this->getHashedKey($key)]);
         $ttl = $this->expiryToLifetime($expiry);
-        return $this->provider->save(
-                        $item
-                                ->set(['expiry' => $expiry, 'value' => $value])
-                                ->expiresAfter($ttl === 0 ? null : $ttl)
-        );
+
+        try {
+            return $this->provider->save(
+                            $item
+                                    ->set(['expiry' => $expiry, 'value' => $value])
+                                    ->expiresAfter($ttl === 0 ? null : $ttl)
+            );
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
 }

@@ -43,9 +43,9 @@ class PHPCache extends CachePool
     /**
      * Append driver to the ChainDriver
      * @param TaggedCacheDriver $driver
-     * @return void
+     * @return static
      */
-    public function appendDriver(TaggedCacheDriver $driver): void
+    public function appendDriver(TaggedCacheDriver $driver): static
     {
         $drivers = [];
 
@@ -64,15 +64,16 @@ class PHPCache extends CachePool
 
         $this->driver = new ChainDriver($drivers);
         $this->driver->setDefaultLifetime($this->defaultLifetime);
+        return $this;
     }
 
     /**
      * Prepend Driver to the ChainDriver
      *
      * @param TaggedCacheDriver $driver
-     * @return void
+     * @return static
      */
-    public function prependDriver(TaggedCacheDriver $driver): void
+    public function prependDriver(TaggedCacheDriver $driver): static
     {
 
         $drivers = [$driver];
@@ -89,6 +90,7 @@ class PHPCache extends CachePool
 
         $this->driver = new ChainDriver($drivers);
         $this->driver->setDefaultLifetime($this->defaultLifetime);
+        return $this;
     }
 
 }

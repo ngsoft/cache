@@ -60,7 +60,12 @@ class SimpleCacheDriver extends BaseCacheDriver
             return $this->delete($key);
         }
         $ttl = $this->expiryToLifetime($expiry);
-        return $this->provider->set($key, ['expiry' => $expiry, 'value' => $value], $ttl === 0 ? null : $ttl);
+
+        try {
+            return $this->provider->set($key, ['expiry' => $expiry, 'value' => $value], $ttl === 0 ? null : $ttl);
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
 }

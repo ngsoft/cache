@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Drivers;
 
 use Illuminate\Contracts\Cache\Store,
-    NGSOFT\Cache\CacheEntry;
+    NGSOFT\Cache\CacheEntry,
+    Throwable;
 
 class IlluminateDriver extends BaseCacheDriver
 {
@@ -49,10 +50,13 @@ class IlluminateDriver extends BaseCacheDriver
         }
 
         $entry = ['expiry' => $expiry, 'value' => $value];
-
-        return $expiry === 0 ?
-                $this->provider->forever($key, $entry) :
-                $this->provider->put($key, $entry, $this->expiryToLifetime($expiry));
+        try {
+            return $expiry === 0 ?
+                    $this->provider->forever($key, $entry) :
+                    $this->provider->put($key, $entry, $this->expiryToLifetime($expiry));
+        } catch (Throwable) {
+            return false;
+        }
     }
 
 }

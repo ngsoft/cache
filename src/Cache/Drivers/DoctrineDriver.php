@@ -48,7 +48,11 @@ class DoctrineDriver extends BaseCacheDriver
             return $this->delete($key);
         }
 
-        return $this->provider->save($key, ['expiry' => $expiry, 'value' => $value], $this->expiryToLifetime($expiry));
+        try {
+            return $this->provider->save($key, ['expiry' => $expiry, 'value' => $value], $this->expiryToLifetime($expiry));
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
 }
