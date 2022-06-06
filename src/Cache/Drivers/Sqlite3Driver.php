@@ -9,6 +9,9 @@ use NGSOFT\Cache\CacheEntry,
     SQLite3Result,
     Throwable;
 
+/**
+ * Uses Sqlite3 database as storage
+ */
 class Sqlite3Driver extends BaseCacheDriver
 {
 
@@ -194,7 +197,6 @@ class Sqlite3Driver extends BaseCacheDriver
 
 
         if ($this->isExpired($expiry) || null === $value) {
-
             return $this->delete($key);
         }
 
