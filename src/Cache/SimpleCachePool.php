@@ -143,4 +143,12 @@ final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Str
         }
     }
 
+    public function __debugInfo(): array
+    {
+        return [
+            CacheItemPoolInterface::class => get_class($this->cachePool),
+            'defaultLifetime' => $this->defaultLifetime,
+        ];
+    }
+
 }
