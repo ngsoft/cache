@@ -25,7 +25,7 @@ class CachePool extends NamespaceAble implements CacheItemPoolInterface
     protected ?EventDispatcherInterface $eventDispatcher = null;
 
     public function __construct(
-            TaggedCacheDriver $driver,
+            TaggedCacheDriver|CacheDriver $driver,
             protected int $defaultLifetime = 0,
             string $namespace = '',
             protected bool $useTags = false
@@ -233,7 +233,7 @@ class CachePool extends NamespaceAble implements CacheItemPoolInterface
         try {
             $result = true;
 
-            if (!$this->useTags) {
+            if (!$this->useTags || $this->driver instanceof TaggedCacheDriver === false) {
                 throw new CacheError('Tags are disabled, cannot invalidate.');
             }
 
@@ -256,7 +256,7 @@ class CachePool extends NamespaceAble implements CacheItemPoolInterface
     protected function saveTags(Item $item): bool
     {
 
-        if (!$this->useTags) {
+        if (!$this->useTags || $this->driver instanceof TaggedCacheDriver === false) {
             if (!empty($item->tags)) {
                 $this->logger?->debug('Cannot save tags, they are disabled.', [
                     'tags' => $item->tags
