@@ -14,7 +14,7 @@ use function React\Promise\resolve;
 final class ReactCache extends NamespaceAble implements Cache, CacheInterface
 {
 
-    public function __construct(TaggedCacheDriver $driver, protected int $defaultLifetime = 0, string $namespace = '')
+    public function __construct(TaggedCacheDriver|CacheDriver $driver, protected int $defaultLifetime = 0, string $namespace = '')
     {
         parent::__construct($driver, $namespace);
         $this->driver->setDefaultLifetime($defaultLifetime);
@@ -92,7 +92,7 @@ final class ReactCache extends NamespaceAble implements Cache, CacheInterface
     public function set($key, $value, $ttl = null)
     {
         try {
-            return $this->resolve($this->driver->set($this->getCacheKey($key), $this->lifeTimeToExpiry($ttl)));
+            return $this->resolve($this->driver->set($this->getCacheKey($key), $value, $this->lifeTimeToExpiry($ttl)));
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
@@ -107,7 +107,7 @@ final class ReactCache extends NamespaceAble implements Cache, CacheInterface
 
             $expiry = $this->lifeTimeToExpiry($ttl);
             foreach ($values as $key => $value) {
-                $result = $this->driver->set($this->getCacheKey($key), $value) && $result;
+                $result = $this->driver->set($this->getCacheKey($key), $value, $expiry) && $result;
             }
 
             return $this->resolve($result);
