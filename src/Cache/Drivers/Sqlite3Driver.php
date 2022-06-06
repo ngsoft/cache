@@ -137,6 +137,24 @@ class Sqlite3Driver extends BaseCacheDriver
         return $this->driver->exec(sprintf('DELETE FROM %s', $this->table));
     }
 
+    public function purge(): void
+    {
+
+
+        $query = $this->driver->prepare(
+                sprintf(
+                        'DELETE FROM %s WHERE %s > 0 AND %s < :now',
+                        $this->table,
+                        self::COLUMN_EXPIRY,
+                        self::COLUMN_EXPIRY
+                )
+        );
+
+        $query->bindValue(':now', time());
+
+        $query->execute();
+    }
+
     public function delete(string $key): bool
     {
 
@@ -176,6 +194,7 @@ class Sqlite3Driver extends BaseCacheDriver
 
 
         if ($this->isExpired($expiry) || null === $value) {
+
             return $this->delete($key);
         }
 
