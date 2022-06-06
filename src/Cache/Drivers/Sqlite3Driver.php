@@ -6,7 +6,8 @@ namespace NGSOFT\Cache\Drivers;
 
 use NGSOFT\Cache\CacheEntry,
     SQLite3,
-    SQLite3Result;
+    SQLite3Result,
+    Throwable;
 
 class Sqlite3Driver extends BaseCacheDriver
 {
@@ -15,11 +16,15 @@ class Sqlite3Driver extends BaseCacheDriver
     protected const COLUMN_DATA = 'data';
     protected const COLUMN_EXPIRY = 'expiry';
 
+    protected SQLite3 $driver;
+
     public function __construct(
-            protected SQLite3 $driver,
+            SQLite3|string $driver = '',
             protected readonly string $table = 'cache'
     )
     {
+        $driver = empty($driver) ? sys_get_temp_dir() . DIRECTORY_SEPARATOR . $table . '.db3' : $driver;
+        $this->driver = is_string($driver) ? new \SQLite3($driver) : $driver;
         $this->createTable($this->table);
     }
 
@@ -39,7 +44,8 @@ class Sqlite3Driver extends BaseCacheDriver
 
     protected function getColumns(): array
     {
-        static $columns = [
+        static $columns;
+        $columns = $columns ?? [
             static::COLUMN_KEY,
             static::COLUMN_DATA,
             static::COLUMN_EXPIRY
@@ -80,6 +86,52 @@ class Sqlite3Driver extends BaseCacheDriver
         return $result;
     }
 
+    final protected function unserializeEntry(mixed $value): mixed
+    {
+
+        try {
+            $this->setErrorHandler();
+            if (!is_string($value)) {
+                return $value;
+            }
+
+            if (!preg_match('#^[idbsaO]:#', $value)) {
+
+                try {
+                    return json_decode($value, flags: JSON_THROW_ON_ERROR);
+                } catch (\JsonException) {
+                    return $value;
+                }
+            }
+
+            if ($value === 'b:0;') {
+                return false;
+            }
+
+            if (($result = \unserialize($value)) === false) {
+                return null;
+            }
+
+            return $result;
+        } catch (Throwable) { return null; } finally { restore_error_handler(); }
+    }
+
+    final protected function serializeEntry(mixed $value): mixed
+    {
+        try {
+            $this->setErrorHandler();
+
+            if (is_string($value)) {
+                return $value;
+            }
+
+            if (is_scalar($value)) {
+                return json_encode($value);
+            }
+            return \serialize($value);
+        } catch (Throwable) { return null; } finally { restore_error_handler(); }
+    }
+
     public function clear(): bool
     {
         return $this->driver->exec(sprintf('DELETE FROM %s', $this->table));
@@ -107,7 +159,7 @@ class Sqlite3Driver extends BaseCacheDriver
 
         if ($item = $this->find($key)) {
             $result->expiry = $item[self::COLUMN_EXPIRY];
-            $result->value = unserialize($item[self::COLUMN_DATA]);
+            $result->value = $this->unserializeEntry($item[self::COLUMN_DATA]);
         }
         return $result;
     }
@@ -122,6 +174,11 @@ class Sqlite3Driver extends BaseCacheDriver
         $expiry = $expiry === 0 ? 0 : $expiry;
         if ($this->defaultLifetime > 0) $expiry = min($expiry, time() + $this->defaultLifetime);
 
+
+        if ($this->isExpired($expiry) || null === $value) {
+            return $this->delete($key);
+        }
+
         $query = $this->driver->prepare(
                 sprintf(
                         'INSERT OR REPLACE INTO %s (%s) VALUES (:key, :data, :expiry)',
@@ -130,7 +187,7 @@ class Sqlite3Driver extends BaseCacheDriver
                 )
         );
         $query->bindValue(':key', $key, SQLITE3_TEXT);
-        $query->bindValue(':data', serialize($value), SQLITE3_BLOB);
+        $query->bindValue(':data', $this->serializeEntry($value), SQLITE3_BLOB);
         $query->bindValue(':expiry', $expiry);
 
         return $query->execute() instanceof SQLite3Result;

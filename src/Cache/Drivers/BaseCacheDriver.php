@@ -39,7 +39,9 @@ abstract class BaseCacheDriver implements TaggedCacheDriver
     /** {@inheritdoc} */
     public function getRaw(string $key): mixed
     {
-        return $this->get($key)->value;
+        $item = $this->get($key);
+
+        return $item->isHit() ? $item->value : null;
     }
 
     /** {@inheritdoc} */

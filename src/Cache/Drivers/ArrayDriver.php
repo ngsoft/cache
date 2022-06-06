@@ -79,7 +79,7 @@ class ArrayDriver extends BaseCacheDriver
         $expiry = $expiry === 0 ? PHP_INT_MAX : $expiry;
         if ($this->defaultLifetime > 0) $expiry = min($expiry, time() + $this->defaultLifetime);
 
-        if ($expiry < 0) {
+        if ($expiry < 0 || $value === null) {
             return $this->delete($key);
         }
         $hashed = $this->getHashedKey($key);

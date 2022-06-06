@@ -136,6 +136,14 @@ class ChainDriver extends BaseCacheDriver implements Countable, IteratorAggregat
     public function set(string $key, mixed $value, int $expiry = 0): bool
     {
 
+
+        $expiry = $expiry === 0 ? 0 : $expiry;
+        if ($this->defaultLifetime > 0) $expiry = min($expiry, time() + $this->defaultLifetime);
+
+        if ($this->isExpired($expiry) || null === $value) {
+            return $this->delete($key);
+        }
+
         $result = true;
 
         foreach ($this->drivers as $driver) {

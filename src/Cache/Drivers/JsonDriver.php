@@ -102,7 +102,9 @@ class JsonDriver extends BaseCacheDriver
         if ($entry = $this->provider[$this->key][$this->getHashedKey($key)]) {
             $expiry = $entry['expiry'];
             $value = $this->unserializeEntry($entry['value']);
-            if (!$this->isExpired($expiry)) return CacheEntry::create($key, $expiry, $value);
+            if (!$this->isExpired($expiry)) {
+                return CacheEntry::create($key, $expiry, $value);
+            }
         }
 
         $this->delete($key);
@@ -120,7 +122,7 @@ class JsonDriver extends BaseCacheDriver
         $expiry = $expiry === 0 ? 0 : $expiry;
         if ($this->defaultLifetime > 0) $expiry = min($expiry, time() + $this->defaultLifetime);
 
-        if ($this->isExpired($expiry)) {
+        if ($this->isExpired($expiry) || $value === null) {
             return $this->delete($key);
         }
 

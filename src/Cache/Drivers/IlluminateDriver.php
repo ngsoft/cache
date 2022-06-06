@@ -44,7 +44,7 @@ class IlluminateDriver extends BaseCacheDriver
         $expiry = $expiry === 0 ? 0 : $expiry;
         if ($this->defaultLifetime > 0) $expiry = min($expiry, time() + $this->defaultLifetime);
 
-        if ($this->isExpired($expiry)) {
+        if ($this->isExpired($expiry) || null === $value) {
             return $this->delete($key);
         }
 
