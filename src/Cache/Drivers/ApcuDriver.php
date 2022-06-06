@@ -7,6 +7,7 @@ namespace NGSOFT\Cache\Drivers;
 use NGSOFT\Cache\{
     CacheEntry, CacheError
 };
+use Throwable;
 
 class ApcuDriver extends BaseCacheDriver
 {
@@ -94,7 +95,12 @@ class ApcuDriver extends BaseCacheDriver
         if ($this->isExpired($expiry) || null === $value) {
             return $this->delete($key);
         }
-        return apcu_store($key, CacheEntry::create($key, $expiry, $value), $this->expiryToLifetime($expiry));
+
+        try {
+            return apcu_store($key, CacheEntry::create($key, $expiry, $value), $this->expiryToLifetime($expiry));
+        } catch (Throwable) {
+            return false;
+        }
     }
 
 }
