@@ -146,4 +146,14 @@ final class Item implements TaggableCacheItem, Cache, Stringable
         }
     }
 
+    public function __debugInfo(): array
+    {
+        return [
+            'key' => $this->key,
+            'expiry' => $this->expiry,
+            'valueType' => get_debug_type($this->value),
+            'hit' => $this->isHit(),
+        ];
+    }
+
 }

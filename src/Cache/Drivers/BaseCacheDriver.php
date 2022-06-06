@@ -239,4 +239,9 @@ abstract class BaseCacheDriver implements TaggedCacheDriver
         } catch (Throwable) { return null; } finally { restore_error_handler(); }
     }
 
+    public function __debugInfo(): array
+    {
+        return [];
+    }
+
 }

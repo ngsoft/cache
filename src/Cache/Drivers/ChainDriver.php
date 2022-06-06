@@ -49,12 +49,17 @@ class ChainDriver extends BaseCacheDriver implements Countable, IteratorAggregat
         $this->setDefaultLifetime($defaultLifetime);
     }
 
+    public function __debugInfo(): array
+    {
+        return array_map(fn($d) => get_class($d), $this->drivers);
+    }
+
     /** {@inheritdoc} */
     public function setDefaultLifetime(int $defaultLifetime): void
     {
         parent::setDefaultLifetime($defaultLifetime);
         foreach ($this as $driver) {
-            $driver->setDefaultLifetime($this->defaultLifetime);
+            $driver->setDefaultLifetime($defaultLifetime);
         }
     }
 
