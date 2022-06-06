@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
+use NGSOFT\Cache\CacheEntry,
+    SQLite3,
+    SQLite3Result;
+
 class Sqlite3Driver extends BaseCacheDriver
 {
 
@@ -12,7 +16,7 @@ class Sqlite3Driver extends BaseCacheDriver
     protected const COLUMN_EXPIRY = 'expiry';
 
     public function __construct(
-            protected \SQLite3 $driver,
+            protected SQLite3 $driver,
             protected readonly string $table = 'cache'
     )
     {
@@ -94,12 +98,18 @@ class Sqlite3Driver extends BaseCacheDriver
         );
 
         $query->bindValue(':key', $key, SQLITE3_TEXT);
-        return $query->execute() instanceof \SQLite3Result;
+        return $query->execute() instanceof SQLite3Result;
     }
 
-    public function get(string $key): \NGSOFT\Cache\CacheEntry
+    public function get(string $key): CacheEntry
     {
+        $result = CacheEntry::createEmpty($key);
 
+        if ($item = $this->find($key)) {
+            $result->expiry = $item[self::COLUMN_EXPIRY];
+            $result->value = unserialize($item[self::COLUMN_DATA]);
+        }
+        return $result;
     }
 
     public function has(string $key): bool
@@ -122,6 +132,8 @@ class Sqlite3Driver extends BaseCacheDriver
         $query->bindValue(':key', $key, SQLITE3_TEXT);
         $query->bindValue(':data', serialize($value), SQLITE3_BLOB);
         $query->bindValue(':expiry', $expiry);
+
+        return $query->execute() instanceof SQLite3Result;
     }
 
 }
