@@ -40,4 +40,55 @@ class PHPCache extends CachePool
         parent::__construct(new ChainDriver($drivers), $defaultLifetime, $namespace);
     }
 
+    /**
+     * Append driver to the ChainDriver
+     * @param TaggedCacheDriver $driver
+     * @return void
+     */
+    public function appendDriver(TaggedCacheDriver $driver): void
+    {
+        $drivers = [];
+
+        if ($this->driver instanceof \Traversable) {
+            foreach ($this->driver as $provider) {
+
+                if ($provider === $driver) {
+                    throw new CacheError('Cannot chain the same driver twice.');
+                }
+                $drivers[] = $provider;
+            }
+        } else $drivers[] = $this->driver;
+
+
+        $drivers[] = $driver;
+
+        $this->driver = new ChainDriver($drivers);
+        $this->driver->setDefaultLifetime($this->defaultLifetime);
+    }
+
+    /**
+     * Prepend Driver to the ChainDriver
+     *
+     * @param TaggedCacheDriver $driver
+     * @return void
+     */
+    public function prependDriver(TaggedCacheDriver $driver): void
+    {
+
+        $drivers = [$driver];
+
+        if ($this->driver instanceof \Traversable) {
+            foreach ($this->driver as $provider) {
+
+                if ($provider === $driver) {
+                    throw new CacheError('Cannot chain the same driver twice.');
+                }
+                $drivers[] = $provider;
+            }
+        } else $drivers[] = $this->driver;
+
+        $this->driver = new ChainDriver($drivers);
+        $this->driver->setDefaultLifetime($this->defaultLifetime);
+    }
+
 }

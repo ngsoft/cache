@@ -21,8 +21,8 @@ class CachePool extends NamespaceAble implements CacheItemPoolInterface
     use Unserializable;
 
     /** @var Item[] */
-    private array $queue = [];
-    private ?EventDispatcherInterface $eventDispatcher = null;
+    protected array $queue = [];
+    protected ?EventDispatcherInterface $eventDispatcher = null;
 
     public function __construct(
             TaggedCacheDriver $driver,

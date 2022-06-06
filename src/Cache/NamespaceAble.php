@@ -35,10 +35,10 @@ abstract class NamespaceAble implements Stringable, LoggerAwareInterface
      */
     protected ?int $namespaceVersion = null;
     protected string $namespace = '';
-    protected TaggedCacheDriver $driver;
+    protected TaggedCacheDriver|CacheDriver $driver;
 
     public function __construct(
-            TaggedCacheDriver $driver,
+            TaggedCacheDriver|CacheDriver $driver,
             string $namespace = ''
     )
     {
