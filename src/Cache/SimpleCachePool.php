@@ -112,6 +112,7 @@ final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Str
         try {
 
             $ttl = $ttl ?? $this->defaultLifetime;
+
             $item = $this->items[$key] ?? $this->cachePool->getItem($key);
             unset($this->items[$key]);
             return $this->cachePool->save(
