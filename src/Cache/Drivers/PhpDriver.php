@@ -153,7 +153,7 @@ class PhpDriver extends BaseCacheDriver
     {
 
         $extensions = explode('|', $extension);
-        $extensions = array_map(fn($ex) => str_starts_with($ex, '.') ? $ex : ".$ex", $extensions);
+        $extensions = array_map(fn($ex) => (empty($ex) || str_starts_with($ex, '.')) ? $ex : ".$ex", $extensions);
 
         foreach ($this->getDirs($root) as $dir) {
             foreach (scandir($dir, SCANDIR_SORT_NONE) ?: [] as $file) {
@@ -228,6 +228,7 @@ class PhpDriver extends BaseCacheDriver
                     }
                 }
             } catch (\Throwable $error) {
+                // tmpFile busy?
                 $this->tmpFile = null;
                 $this->logger?->debug('Cache write error.', [
                     'driver' => static::class,
