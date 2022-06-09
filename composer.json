@@ -3,7 +3,7 @@
     "description": "A PSR-6/PSR-16/React/Laravel/Doctrine cache implementation that supports OPCache, APCu, Doctrine, Illuminate or any PSR-6/16 implementations and can chain them all.",
     "keywords": [
         "psr-6", "psr-16", "cache", "caching", "opcache", "phpfilecache",
-        "react", "promise", "doctrine", "illuminate", "chain", "apcu"
+        "react", "promise", "doctrine", "illuminate", "laravel", "chain", "apcu"
     ],
     "license": "MIT",
     "authors": [{

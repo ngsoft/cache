@@ -39,7 +39,7 @@ class IlluminateStore extends NamespaceAble implements Store, Cache
     public function increment($key, $value = 1): int
     {
         $current = $this->get($key);
-        // if value not int we use the value
+
         if (is_int($current)) {
             $value = $current + $value;
         }
@@ -50,7 +50,6 @@ class IlluminateStore extends NamespaceAble implements Store, Cache
 
     public function decrement($key, $value = 1): int
     {
-
         return $this->increment($key, $value * -1);
     }
 
@@ -58,7 +57,7 @@ class IlluminateStore extends NamespaceAble implements Store, Cache
     {
         $result = [];
         foreach ($keys as $key) {
-            $result[$key] = $this->driver->getRaw($this->getCacheKey($key));
+            $result[$key] = $this->get($key);
         }
         return $result;
     }
