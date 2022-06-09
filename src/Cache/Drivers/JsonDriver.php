@@ -38,6 +38,11 @@ class JsonDriver extends BaseCacheDriver
         }
     }
 
+    public function getProvider(): SimpleObject
+    {
+        return $this->provider;
+    }
+
     protected function update(): bool
     {
         return $this->provider->saveToJson($this->file);
