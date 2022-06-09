@@ -8,12 +8,13 @@ use NGSOFT\Cache;
 use React\{
     Cache\CacheInterface, Promise\PromiseInterface
 };
-use Throwable;
+use RuntimeException,
+    Throwable;
 use function React\Promise\resolve;
 
 if (!interface_exists(CacheInterface::class)) {
 
-    throw new \RuntimeException('react/cache not installed, please run: composer require react/cache:^1.1');
+    throw new RuntimeException('react/cache not installed, please run: composer require react/cache:^1.1');
 }
 
 final class ReactCache extends NamespaceAble implements Cache, CacheInterface
