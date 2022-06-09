@@ -98,7 +98,7 @@ class CachePool extends NamespaceAble implements CacheItemPoolInterface
             $entry = $this->driver->get($this->getCacheKey($key));
             if ($entry->isHit()) {
                 $this->dispatch(new CacheHit($key, $entry->value));
-                return Item::create($key, $entry->value, $entry->expiry === 0 ? null : $entry->expiry);
+                return Item::create($key, $entry->value);
             }
 
             $this->dispatch(new CacheMiss($key));

@@ -26,6 +26,7 @@ final class Item implements TaggableCacheItem, Cache, Stringable
 
     public ?int $expiry = null;
     public mixed $value = null;
+    protected bool $hit = false;
     public array $tags = [];
 
     public static function validateKey(mixed $key): void
@@ -50,11 +51,11 @@ final class Item implements TaggableCacheItem, Cache, Stringable
         }
     }
 
-    public static function create(string $key, mixed $value = null, ?int $expiry = null): static
+    public static function create(string $key, mixed $value = null): static
     {
         $instance = new static($key);
         $instance->value = $value;
-        $instance->expiry = $expiry;
+        $instance->hit = $value !== null;
         return $instance;
     }
 
@@ -123,12 +124,7 @@ final class Item implements TaggableCacheItem, Cache, Stringable
     /** {@inheritdoc} */
     public function isHit(): bool
     {
-
-        if ($this->value === null) {
-            return false;
-        }
-
-        return $this->expiry === null || $this->expiry > microtime(true);
+        return $this->hit;
     }
 
     /** {@inheritdoc} */
