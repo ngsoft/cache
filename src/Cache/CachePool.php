@@ -184,7 +184,9 @@ class CachePool extends NamespaceAble implements CacheItemPoolInterface
             // pass 1: sort by expiry
             /** @var Item $item */
             foreach ($queue as $nkey => $item) {
-                if (!$item->isHit()) {
+
+
+                if (!$this->isHit($item)) {
                     $result = $this->driver->delete($nkey) && $result;
                     continue;
                 }
@@ -282,6 +284,15 @@ class CachePool extends NamespaceAble implements CacheItemPoolInterface
             return $expiry;
         }
         return $this->defaultLifetime > 0 ? time() + $this->defaultLifetime : 0;
+    }
+
+    protected function isHit(Item $item)
+    {
+
+        if ($item->value === null) {
+            return false;
+        }
+        return $item->expiry === null || $item->expiry > microtime(true);
     }
 
 }
