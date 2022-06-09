@@ -25,7 +25,7 @@ abstract class NamespaceAble implements Stringable, LoggerAwareInterface
      * A Reserved Cache Key that is used to retrieve and save the current namespace version
      * the %s stands for the namespace
      */
-    protected const NAMESPACE_VERSION_KEY = 'NAMESPACE_%s_VERSION';
+    protected const NAMESPACE_VERSION_KEY = '%s[NAMESPACE_VERSION]';
 
     /**
      * Used to hold current namespace version
