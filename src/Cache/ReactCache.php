@@ -11,6 +11,11 @@ use React\{
 use Throwable;
 use function React\Promise\resolve;
 
+if (!interface_exists(CacheInterface::class)) {
+
+    throw new \RuntimeException('react/cache not installed, please run: composer require react/cache:^1.1');
+}
+
 final class ReactCache extends NamespaceAble implements Cache, CacheInterface
 {
 
