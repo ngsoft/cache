@@ -313,7 +313,7 @@ class PhpDriver extends BaseCacheDriver
 
         foreach (['php', 'txt'] as $ext) {
             $this->invalidate("{$fileName}.{$ext}");
-            $result = (!is_file("{$fileName}.{$ext}") || $this->unlink("{$fileName}.{$ext}")) && $result;
+            $result = $this->unlink("{$fileName}.{$ext}") && $result;
         }
 
         return $result;
