@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace NGSOFT\Cache;
 
 use Illuminate\Contracts\Cache\Store,
+    NGSOFT\Cache,
     RuntimeException;
 
 if (!interface_exists(Store::class)) {
     throw new RuntimeException('illuminate/contracts not installed, please run: composer require illuminate/contracts:^9.0');
 }
 
-class IlluminateStore extends NamespaceAble implements Store
+class IlluminateStore extends NamespaceAble implements Store, Cache
 {
 
     public function flush(): bool
@@ -38,6 +39,7 @@ class IlluminateStore extends NamespaceAble implements Store
     public function increment($key, $value = 1): int
     {
         $current = $this->get($key);
+        // if value not int we use the value
         if (is_int($current)) {
             $value = $current + $value;
         }
