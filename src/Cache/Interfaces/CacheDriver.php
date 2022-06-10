@@ -11,6 +11,9 @@ use IteratorAggregate,
 interface CacheDriver extends IteratorAggregate, LoggerAwareInterface
 {
 
+    public const TAGGED_KEY_PREFIX = 'TAGS_FOR[%s]';
+    public const TAG_PREFIX = 'TAG[%s]';
+
     /**
      * set the default ttl
      *

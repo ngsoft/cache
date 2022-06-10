@@ -38,12 +38,12 @@ final class CacheEntry implements \Stringable
 
     public function __serialize(): array
     {
-        return [$this->key, $this->expiry, $this->value];
+        return [$this->key, $this->expiry, $this->value, $this->tags];
     }
 
     public function __unserialize(array $data): void
     {
-        list($this->key, $this->expiry, $this->value) = $data;
+        list($this->key, $this->expiry, $this->value, $this->tags) = $data;
     }
 
     public function __toString(): string
