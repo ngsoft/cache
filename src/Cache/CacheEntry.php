@@ -10,7 +10,8 @@ final class CacheEntry implements \Stringable
     public function __construct(
             public readonly string $key,
             public int $expiry = 0,
-            public mixed $value = null
+            public mixed $value = null,
+            public array $tags = []
     )
     {
 
@@ -25,7 +26,7 @@ final class CacheEntry implements \Stringable
         return $this->expiry === 0 || $this->expiry > microtime(true);
     }
 
-    public static function create(string $key, int $expiry, mixed $value): static
+    public static function create(string $key, mixed $value, int $expiry, array $tags): static
     {
         return new static($key, $expiry, $value);
     }
