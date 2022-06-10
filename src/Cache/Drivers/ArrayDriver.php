@@ -78,11 +78,12 @@ class ArrayDriver extends BaseDriver
     public function set(string $key, mixed $value, mixed $ttl = null): bool
     {
 
+        if (!$this->isTag($key) && !$this->isTaggedKey($key)) {
+            $this->clearTags($key);
+        }
 
-        $this->clearTags($key);
         $expiry = $this->lifetimeToExpiry($ttl);
         $serialized = $this->serializeEntry($value);
-        var_dump(__METHOD__, func_get_args(), $expiry, $serialized);
 
         if ($this->isExpired($expiry) || $serialized === null) {
             $this->delete($key);

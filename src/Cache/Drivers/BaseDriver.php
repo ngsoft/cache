@@ -6,7 +6,7 @@ namespace NGSOFT\Cache\Drivers;
 
 use ErrorException;
 use NGSOFT\{
-    Cache\Interfaces\CacheDriver, Traits\StringableObject, Traits\Unserializable
+    Cache\CacheEntry, Cache\Interfaces\CacheDriver, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\Log\LoggerAwareTrait,
     Stringable,
@@ -63,6 +63,9 @@ abstract class BaseDriver implements CacheDriver, Stringable
     /** {@inheritdoc} */
     public function get(string $key, mixed $default = null): mixed
     {
+
+
+
         $entry = $this->getCacheEntry($key);
         if ($entry->isHit()) {
             return $entry->value;
@@ -102,8 +105,6 @@ abstract class BaseDriver implements CacheDriver, Stringable
     /** {@inheritdoc} */
     public function tag(string $key, string|iterable $tags): bool
     {
-
-
         $taggedKey = sprintf(static::TAGGED_KEY_PREFIX, $key);
         $result = true;
 
@@ -164,6 +165,16 @@ abstract class BaseDriver implements CacheDriver, Stringable
             }
         }
         return array_values($result);
+    }
+
+    protected function isTag(string $key): bool
+    {
+        return 0 !== sscanf($key, self::TAG_PREFIX, $impl);
+    }
+
+    protected function isTaggedKey(string $key): bool
+    {
+        return 0 !== sscanf($key, self::TAGGED_KEY_PREFIX, $impl);
     }
 
     /**
@@ -292,21 +303,17 @@ abstract class BaseDriver implements CacheDriver, Stringable
         ];
     }
 
-    protected function createCacheEntry(string $key, ?array $entry)
+    protected function createCacheEntry(string $key, ?array $entry): CacheEntry
     {
 
-        $cacheEntry = \NGSOFT\Cache\CacheEntry::createEmpty($key);
-
+        $cacheEntry = CacheEntry::createEmpty($key);
         if (is_array($entry)) {
-
             if (!$this->isExpired($entry[self::KEY_EXPIRY]) && null !== $entry[self::KEY_VALUE]) {
                 $cacheEntry->expiry = $entry[self::KEY_EXPIRY];
                 $cacheEntry->value = $entry[self::KEY_VALUE];
                 $cacheEntry->tags = $this->getTags($key);
             }
         }
-
-
         return $cacheEntry;
     }
 
