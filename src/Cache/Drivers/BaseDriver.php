@@ -22,6 +22,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
 
     protected const KEY_EXPIRY = 0;
     protected const KEY_VALUE = 1;
+    protected const KEY_TAGS = 2;
 
     protected int $defaultLifetime = 0;
 
@@ -63,9 +64,6 @@ abstract class BaseDriver implements CacheDriver, Stringable
     /** {@inheritdoc} */
     public function get(string $key, mixed $default = null): mixed
     {
-
-
-
         $entry = $this->getCacheEntry($key);
         if ($entry->isHit()) {
             return $entry->value;
@@ -105,6 +103,10 @@ abstract class BaseDriver implements CacheDriver, Stringable
     /** {@inheritdoc} */
     public function tag(string $key, string|iterable $tags): bool
     {
+        if (!$this->has($key)) {
+            return $this->clearTags($key);
+        }
+
         $taggedKey = sprintf(static::TAGGED_KEY_PREFIX, $key);
         $result = true;
 
@@ -127,9 +129,19 @@ abstract class BaseDriver implements CacheDriver, Stringable
             }
         }
 
-        $result = $this->set($taggedKey, array_values($names), 0) && $result;
+        if (empty($result)) {
+            $result = $this->set($taggedKey, array_values($names), 0) && $result;
+        }
+
 
         return $result;
+    }
+
+    public function untag(string $key, string|iterable $tags): bool
+    {
+        if (!is_iterable($tags)) {
+            $tags = [$tags];
+        }
     }
 
     /** {@inheritdoc} */
@@ -295,11 +307,12 @@ abstract class BaseDriver implements CacheDriver, Stringable
         } catch (Throwable) { return null; } finally { \restore_error_handler(); }
     }
 
-    protected function createEntry(mixed $value, int $expiry): array
+    protected function createEntry(mixed $value, int $expiry, array $tags = []): array
     {
         return [
             self::KEY_EXPIRY => $expiry,
-            self::KEY_VALUE => $value
+            self::KEY_VALUE => $value,
+            self::KEY_TAGS => $tags,
         ];
     }
 
@@ -311,7 +324,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
             if (!$this->isExpired($entry[self::KEY_EXPIRY]) && null !== $entry[self::KEY_VALUE]) {
                 $cacheEntry->expiry = $entry[self::KEY_EXPIRY];
                 $cacheEntry->value = $entry[self::KEY_VALUE];
-                $cacheEntry->tags = $this->getTags($key);
+                $cacheEntry->tags = $entry[self::KEY_TAGS];
             }
         }
         return $cacheEntry;

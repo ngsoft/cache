@@ -139,6 +139,15 @@ interface CacheDriver extends IteratorAggregate, LoggerAwareInterface
     public function tag(string $key, string|iterable $tags): bool;
 
     /**
+     * Removes tag from specific entry
+     *
+     * @param string $key
+     * @param string|iterable $tags
+     * @return bool
+     */
+    public function untag(string $key, string|iterable $tags): bool;
+
+    /**
      * Removes tags for a specific entry
      *
      * @param string $key
