@@ -99,6 +99,8 @@ abstract class BaseDriver implements CacheDriver, Stringable
     /** {@inheritdoc} */
     public function tag(string $key, string|iterable $tags): bool
     {
+
+
         $taggedKey = sprintf(static::TAGGED_KEY_PREFIX, $key);
         $result = true;
 
@@ -109,10 +111,10 @@ abstract class BaseDriver implements CacheDriver, Stringable
         $names = [];
 
         foreach ($tags as $tagName) {
-            $names[$tagName] = $tagName;
             if (isset($names[$tagName])) {
                 continue;
             }
+            $names[$tagName] = $tagName;
             $tagKey = sprintf(self::TAG_PREFIX, $tagName);
             $current = $this->get($tagKey, []);
             if (!in_array($key, $current)) {
@@ -203,7 +205,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
             return $this->defaultLifetime > 0 ? time() + $this->defaultLifetime : 0;
         }
 
-        return time() + $ttl;
+        return $ttl === 0 ? 0 : time() + $ttl;
     }
 
     /**

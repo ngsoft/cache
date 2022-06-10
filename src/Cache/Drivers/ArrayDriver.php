@@ -84,6 +84,8 @@ class ArrayDriver extends BaseDriver
         $this->clearTags($key);
         $expiry = $this->lifetimeToExpiry($ttl);
         $serialized = $this->serializeEntry($value);
+        var_dump(__METHOD__, func_get_args(), $expiry, $serialized);
+
         if ($this->isExpired($expiry) || $serialized === null) {
             $this->delete($key);
             return $serialized !== null;
