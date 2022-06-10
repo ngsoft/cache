@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Interfaces;
 
-use NGSOFT\Cache\CacheEntry;
+use IteratorAggregate,
+    NGSOFT\Cache\CacheEntry,
+    Psr\Log\LoggerAwareInterface;
 
-interface CacheDriver extends \IteratorAggregate
+interface CacheDriver extends IteratorAggregate, LoggerAwareInterface
 {
 
     /**
@@ -143,7 +145,7 @@ interface CacheDriver extends \IteratorAggregate
      * Get list of entries that have the specified tag
      *
      * @param string $tag
-     * @return iterable<string, string>
+     * @return iterable<string, string> indexed by tag => key
      */
     public function getTagged(string $tag): iterable;
 }
