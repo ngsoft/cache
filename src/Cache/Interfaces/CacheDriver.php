@@ -115,17 +115,17 @@ interface CacheDriver extends IteratorAggregate, LoggerAwareInterface
      *
      * @param iterable $values
      * @param ?int $ttl
-     * @return iterable<string, bool>
+     * @return bool
      */
-    public function setMany(iterable $values, ?int $ttl = null): iterable;
+    public function setMany(iterable $values, ?int $ttl = null): bool;
 
     /**
      * Deletes multiple cache items
      *
      * @param iterable $keys
-     * @return iterable<string, bool>
+     * @return bool
      */
-    public function deleteMany(iterable $keys): iterable;
+    public function deleteMany(iterable $keys): bool;
 
     ////////////////////////////   Tag Support   ////////////////////////////
 
@@ -133,10 +133,10 @@ interface CacheDriver extends IteratorAggregate, LoggerAwareInterface
      * Tag a specific entry with given tags
      *
      * @param string $key
-     * @param string|array $tags
+     * @param string|string[] $tags
      * @return bool
      */
-    public function tag(string $key, string|array $tags): bool;
+    public function tag(string $key, string|iterable $tags): bool;
 
     /**
      * Removes tags for a specific entry
@@ -166,7 +166,7 @@ interface CacheDriver extends IteratorAggregate, LoggerAwareInterface
      * Get list of entries that have the specified tag
      *
      * @param string|string[] $tags
-     * @return iterable<string, string> indexed by tag => key
+     * @return string[] keys
      */
     public function getTagged(string|iterable $tags): iterable;
 }

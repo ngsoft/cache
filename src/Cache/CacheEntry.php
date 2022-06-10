@@ -26,9 +26,9 @@ final class CacheEntry implements \Stringable
         return $this->expiry === 0 || $this->expiry > microtime(true);
     }
 
-    public static function create(string $key, mixed $value, int $expiry, array $tags): static
+    public static function create(string $key, int $expiry, mixed $value, array $tags): static
     {
-        return new static($key, $expiry, $value);
+        return new static($key, $expiry, $value, $tags);
     }
 
     public static function createEmpty(string $key): static

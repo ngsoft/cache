@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
-use ErrorException,
-    NGSOFT\Cache\Interfaces\CacheDriver,
-    Psr\Log\LoggerAwareTrait,
+use ErrorException;
+use NGSOFT\{
+    Cache\Interfaces\CacheDriver, Traits\StringableObject, Traits\Unserializable
+};
+use Psr\Log\LoggerAwareTrait,
+    Stringable,
+    Throwable,
     Traversable;
 
-class BaseDriver implements CacheDriver
+abstract class BaseDriver implements CacheDriver, Stringable
 {
 
-    use LoggerAwareTrait;
+    use LoggerAwareTrait,
+        StringableObject,
+        Unserializable;
 
     protected int $defaultLifetime = 0;
 
@@ -62,12 +68,14 @@ class BaseDriver implements CacheDriver
     }
 
     /** {@inheritdoc} */
-    public function deleteMany(iterable $keys): iterable
+    public function deleteMany(iterable $keys): bool
     {
 
+        $result = true;
         foreach ($keys as $key) {
-            yield $key => $this->delete($key);
+            $result = $this->delete($key) && $result;
         }
+        return $result;
     }
 
     /** {@inheritdoc} */
@@ -79,18 +87,43 @@ class BaseDriver implements CacheDriver
     }
 
     /** {@inheritdoc} */
-    public function setMany(iterable $values, ?int $ttl = null): iterable
+    public function setMany(iterable $values, ?int $ttl = null): bool
     {
-
+        $result = true;
         foreach ($values as $key => $value) {
-
-            yield $key => $this->set($key, $value);
+            $result = $this->set($key, $value, $ttl) && $result;
         }
+        return $result;
     }
 
-    public function tag(string $key, string|array $tags): bool
+    /** {@inheritdoc} */
+    public function tag(string $key, string|iterable $tags): bool
     {
+        $taggedKey = sprintf(static::TAGGED_KEY_PREFIX, $key);
+        $result = true;
 
+        if (!is_iterable($tags)) {
+            $tags = [$tags];
+        }
+
+        $names = [];
+
+        foreach ($tags as $tagName) {
+            $names[$tagName] = $tagName;
+            if (isset($names[$tagName])) {
+                continue;
+            }
+            $tagKey = sprintf(self::TAG_PREFIX, $tagName);
+            $current = $this->get($tagKey, []);
+            if (!in_array($key, $current)) {
+                $current[] = $key;
+                $result = $this->set($tagKey, $current, 0) && $result;
+            }
+        }
+
+        $result = $this->set($taggedKey, array_values($names), 0) && $result;
+
+        return $result;
     }
 
     /** {@inheritdoc} */
@@ -105,35 +138,27 @@ class BaseDriver implements CacheDriver
         return $this->get(sprintf(static::TAGGED_KEY_PREFIX, $key), []);
     }
 
+    /** {@inheritdoc} */
     public function invalidateTag(string|iterable $tags): bool
     {
-        $result = true;
-
-        $removed = [];
-
-        foreach ($this->getTagged($tags) as $tag => $key) {
-            if (isset($removed[$key])) {
-                continue;
-            }
-
-            if ($this->delete($key)) {
-                $removed[$key] = $key;
-            } else $result = false;
-        }
-        return $result;
+        return $this->deleteMany($this->getTagged($tags));
     }
 
+    /** {@inheritdoc} */
     public function getTagged(string|iterable $tags): iterable
     {
         if (!is_iterable($tags)) {
             $tags = [$tags];
         }
+
+        $result = [];
         foreach ($tags as $tagName) {
             $tagKey = sprintf(static::TAG_PREFIX, $tagName);
             foreach ($this->get($tagKey, []) as $key) {
-                yield $tagName => $key;
+                $result[$key] = $key;
             }
         }
+        return array_values($result);
     }
 
     /**
@@ -175,7 +200,7 @@ class BaseDriver implements CacheDriver
     {
 
         if (null === $ttl) {
-            return $this->defaultLifetime === 0 ? 0 : time() + $this->defaultLifetime;
+            return $this->defaultLifetime > 0 ? time() + $this->defaultLifetime : 0;
         }
 
         return time() + $ttl;
@@ -183,10 +208,10 @@ class BaseDriver implements CacheDriver
 
     /**
      * Convenience function to check if item is expired status against current time
-     * @param int|null $expiry
+     * @param int $expiry
      * @return bool
      */
-    protected function isExpired(int $expiry = null): bool
+    protected function isExpired(int $expiry): bool
     {
         return $expiry !== 0 && microtime(true) > $expiry;
     }
@@ -227,7 +252,7 @@ class BaseDriver implements CacheDriver
         try {
             $this->setErrorHandler();
             return is_object($value) || is_array($value) ? \serialize($value) : $values;
-        } catch (\Throwable) { return null; } finally { \restore_error_handler(); }
+        } catch (Throwable) { return null; } finally { \restore_error_handler(); }
     }
 
     protected function unserializeEntry(mixed $value): mixed
@@ -247,7 +272,7 @@ class BaseDriver implements CacheDriver
             }
 
             return $value;
-        } catch (\Throwable) { return null; } finally { \restore_error_handler(); }
+        } catch (Throwable) { return null; } finally { \restore_error_handler(); }
     }
 
 }
