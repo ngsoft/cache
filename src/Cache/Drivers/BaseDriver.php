@@ -213,11 +213,15 @@ abstract class BaseDriver implements CacheDriver, Stringable
 
     /**
      * Convenience function to check if item is expired status against current time
-     * @param int $expiry
+     * @param ?int $expiry
      * @return bool
      */
-    protected function isExpired(int $expiry): bool
+    protected function isExpired(?int $expiry): bool
     {
+        if (null === $expiry) {
+            return true;
+        }
+
         return $expiry !== 0 && microtime(true) > $expiry;
     }
 
@@ -278,6 +282,32 @@ abstract class BaseDriver implements CacheDriver, Stringable
 
             return $value;
         } catch (Throwable) { return null; } finally { \restore_error_handler(); }
+    }
+
+    protected function createEntry(mixed $value, int $expiry): array
+    {
+        return [
+            self::KEY_EXPIRY => $expiry,
+            self::KEY_VALUE => $value
+        ];
+    }
+
+    protected function createCacheEntry(string $key, ?array $entry)
+    {
+
+        $cacheEntry = \NGSOFT\Cache\CacheEntry::createEmpty($key);
+
+        if (is_array($entry)) {
+
+            if (!$this->isExpired($entry[self::KEY_EXPIRY]) && null !== $entry[self::KEY_VALUE]) {
+                $cacheEntry->expiry = $entry[self::KEY_EXPIRY];
+                $cacheEntry->value = $entry[self::KEY_VALUE];
+                $cacheEntry->tags = $this->getTags($key);
+            }
+        }
+
+
+        return $cacheEntry;
     }
 
 }
