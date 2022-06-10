@@ -20,6 +20,9 @@ abstract class BaseDriver implements CacheDriver, Stringable
         StringableObject,
         Unserializable;
 
+    protected const KEY_EXPIRY = 0;
+    protected const KEY_VALUE = 1;
+
     protected int $defaultLifetime = 0;
 
     public function getIterator(): Traversable

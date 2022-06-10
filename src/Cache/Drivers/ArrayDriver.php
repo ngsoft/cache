@@ -12,8 +12,6 @@ class ArrayDriver extends BaseDriver
 {
 
     protected const DEFAULT_SIZE = 255;
-    protected const KEY_EXPIRY = 0;
-    protected const KEY_VALUE = 1;
 
     protected int $size;
     protected FixedArray $entries;
