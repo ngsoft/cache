@@ -6,7 +6,7 @@ namespace NGSOFT\Cache\Interfaces;
 
 use NGSOFT\Cache\CacheEntry;
 
-interface CacheDriver
+interface CacheDriver extends \IteratorAggregate
 {
 
     /**
@@ -106,11 +106,44 @@ interface CacheDriver
 
     ////////////////////////////   Tag Support   ////////////////////////////
 
-
-
+    /**
+     * Tag a specific entry with given tags
+     *
+     * @param string $key
+     * @param string|array $tags
+     * @return bool
+     */
     public function tag(string $key, string|array $tags): bool;
 
+    /**
+     * Removes tags for a specific entry
+     *
+     * @param string $key
+     * @return bool
+     */
+    public function clearTags(string $key): bool;
+
+    /**
+     * Gat tags assigned to a specific entry
+     *
+     * @param string $key
+     * @return array
+     */
     public function getTags(string $key): array;
 
-    public function deleteTagged(string|array $tags): bool;
+    /**
+     * Removes entry that have the specified tags
+     *
+     * @param string|array $tags
+     * @return bool
+     */
+    public function invalidateTag(string|array $tags): bool;
+
+    /**
+     * Gat list of entries that have the specified tag
+     *
+     * @param string $tag
+     * @return iterable<string, string>
+     */
+    public function getTagged(string $tag): iterable;
 }
