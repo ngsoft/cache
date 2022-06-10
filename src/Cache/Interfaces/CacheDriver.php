@@ -157,16 +157,16 @@ interface CacheDriver extends IteratorAggregate, LoggerAwareInterface
     /**
      * Removes entry that have the specified tags
      *
-     * @param string|array $tags
+     * @param string|string[] $tags
      * @return bool
      */
-    public function invalidateTag(string|array $tags): bool;
+    public function invalidateTag(string|iterable $tags): bool;
 
     /**
      * Get list of entries that have the specified tag
      *
-     * @param string $tag
+     * @param string|string[] $tags
      * @return iterable<string, string> indexed by tag => key
      */
-    public function getTagged(string $tag): iterable;
+    public function getTagged(string|iterable $tags): iterable;
 }
