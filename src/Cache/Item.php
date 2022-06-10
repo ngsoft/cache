@@ -27,6 +27,7 @@ final class Item implements TaggableCacheItem, Cache, Stringable
     public ?int $expiry = null;
     public mixed $value = null;
     protected bool $hit = false;
+    protected array $metadata = [];
     public array $tags = [];
 
     public static function validateKey(mixed $key): void
@@ -51,19 +52,24 @@ final class Item implements TaggableCacheItem, Cache, Stringable
         }
     }
 
-    public static function create(string $key, mixed $value = null): static
+    public static function create(string $key, mixed $value = null, ?array $metadata = null): static
     {
-        $instance = new static($key);
+        $instance = new static($key, $metadata);
         $instance->value = $value;
         $instance->hit = $value !== null;
         return $instance;
     }
 
     public function __construct(
-            public readonly string $key
+            public readonly string $key,
+            ?array $metadata = null
     )
     {
         static::validateKey($key);
+        $this->metadata = $metadata ?? [
+            'expiry' => null,
+            'tags' => []
+        ];
     }
 
     /**

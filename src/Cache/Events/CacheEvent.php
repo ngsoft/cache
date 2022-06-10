@@ -6,7 +6,7 @@ namespace NGSOFT\Cache\Events;
 
 use Psr\EventDispatcher\StoppableEventInterface;
 
-abstract class CacheEvent implements StoppableEventInterface
+class CacheEvent implements StoppableEventInterface
 {
 
     protected bool $propagationStopped = false;
