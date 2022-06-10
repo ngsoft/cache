@@ -140,7 +140,7 @@ interface CacheDriver extends \IteratorAggregate
     public function invalidateTag(string|array $tags): bool;
 
     /**
-     * Gat list of entries that have the specified tag
+     * Get list of entries that have the specified tag
      *
      * @param string $tag
      * @return iterable<string, string>
