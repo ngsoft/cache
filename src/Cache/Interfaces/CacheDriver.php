@@ -69,9 +69,10 @@ interface CacheDriver extends IteratorAggregate, LoggerAwareInterface
      * @param string $key
      * @param mixed $value
      * @param int|null $ttl a value of 0 never expires, a null value uses the default value set in the driver
+     * @param string[] $tags
      * @return bool
      */
-    public function set(string $key, mixed $value, ?int $ttl = null): bool;
+    public function set(string $key, mixed $value, ?int $ttl = null, array $tags = []): bool;
 
     /**
      * Increments a cache entry
@@ -115,9 +116,10 @@ interface CacheDriver extends IteratorAggregate, LoggerAwareInterface
      *
      * @param iterable $values
      * @param ?int $ttl
+     * @param string[] $tags
      * @return bool
      */
-    public function setMany(iterable $values, ?int $ttl = null): bool;
+    public function setMany(iterable $values, ?int $ttl = null, array $tags = []): bool;
 
     /**
      * Deletes multiple cache items
