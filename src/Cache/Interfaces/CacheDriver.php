@@ -75,16 +75,16 @@ interface CacheDriver extends IteratorAggregate, LoggerAwareInterface
      *
      * @param string $key
      * @param int $value
-     * @return int
+     * @return int new value
      */
     public function increment(string $key, int $value = 1): int;
 
     /**
      * Decrement a cache entry
-     * 
+     *
      * @param string $key
      * @param int $value
-     * @return int
+     * @return int new value
      */
     public function decrement(string $key, int $value = 1): int;
 
