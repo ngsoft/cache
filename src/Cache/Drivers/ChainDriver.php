@@ -71,10 +71,7 @@ class ChainDriver extends BaseDriver implements Countable
     public function set(string $key, mixed $value, ?int $ttl = null, string|array $tags = []): bool
     {
 
-        $tags = is_array($tags) ? $tags : [$tags];
-        $expiry = $this->lifetimeToExpiry($ttl);
-
-        if ($this->isExpired($expiry)) {
+        if ($this->isExpired($this->lifetimeToExpiry($ttl))) {
             return $this->delete($key);
         }
 

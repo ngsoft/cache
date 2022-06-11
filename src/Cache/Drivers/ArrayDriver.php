@@ -45,7 +45,7 @@ class ArrayDriver extends BaseDriver
     /** {@inheritdoc} */
     public function delete(string $key): bool
     {
-        unset($this->entries[$this->getHashedKey($key)]);
+        unset($this->entries[$key]);
         return true;
     }
 
@@ -53,7 +53,7 @@ class ArrayDriver extends BaseDriver
     public function getCacheEntry(string $key): CacheEntry
     {
         $this->purge();
-        $cacheEntry = $this->createCacheEntry($key, $this->entries[$this->getHashedKey($key)]);
+        $cacheEntry = $this->createCacheEntry($key, $this->entries[$key]);
         $cacheEntry->value = $cacheEntry->isHit() ? $this->unserializeEntry($cacheEntry->value) : null;
         return $cacheEntry;
     }
@@ -66,7 +66,7 @@ class ArrayDriver extends BaseDriver
 
     protected function doSet(string $key, mixed $value, int $expiry, array $tags): bool
     {
-        $this->entries[$this->getHashedKey($key)] = $this->createEntry($this->serializeEntry($value), $expiry, $tags);
+        $this->entries[$key] = $this->createEntry($this->serializeEntry($value), $expiry, $tags);
         return true;
     }
 
