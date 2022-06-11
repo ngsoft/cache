@@ -27,10 +27,6 @@ class ChainDriver extends BaseDriver implements Countable
                 throw new ValueError(sprintf('Driver of type "%s" is invalid.', get_debug_type($driver)));
             }
 
-            if ($driver === $this) {
-                throw new ValueError('Are you trying to crash your server?');
-            }
-
             if (in_array($driver, $this->drivers, true)) {
                 throw new ValueError('Cannot chain the same driver twice.');
             }
