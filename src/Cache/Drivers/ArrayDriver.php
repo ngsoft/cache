@@ -64,6 +64,7 @@ class ArrayDriver extends BaseDriver
         return $this->get($key) !== null;
     }
 
+    /** {@inheritdoc} */
     public function set(string $key, mixed $value, ?int $ttl = null, string|array $tags = []): bool
     {
 
@@ -76,6 +77,10 @@ class ArrayDriver extends BaseDriver
 
 
         $this->entries[$this->getHashedKey($key)] = $this->createEntry($this->serializeEntry($value), $expiry, $tags);
+
+        if ($this->isTag($key)) {
+            return true;
+        }
 
         return $this->tag($key, $tags);
     }
