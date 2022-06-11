@@ -91,11 +91,11 @@ abstract class BaseDriver implements CacheDriver, Stringable
     }
 
     /** {@inheritdoc} */
-    public function setMany(iterable $values, ?int $ttl = null, array $tags = []): bool
+    public function setMany(iterable $values, ?int $ttl = null): bool
     {
         $result = true;
         foreach ($values as $key => $value) {
-            $result = $this->set($key, $value, $ttl, $tags) && $result;
+            $result = $this->set($key, $value, $ttl) && $result;
         }
         return $result;
     }
@@ -133,7 +133,13 @@ abstract class BaseDriver implements CacheDriver, Stringable
 
         $result = true;
         foreach ($tags as $tagName) {
+            $tagKey = sprintf(self::TAG_PREFIX, $tagName);
+            $entry = $this->get($tagKey, []);
 
+            if (!isset($entry[$key])) {
+                $entry[$key] = $key;
+                $result = $this->set($tagKey, $entry, 0) && $result;
+            }
         }
 
         return $result;
