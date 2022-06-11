@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Cache;
+namespace NGSOFT\Cache\Utils;
 
+use NGSOFT\Cache\Exceptions\CacheError;
 use Psr\{
     Cache\CacheException, Cache\InvalidArgumentException, Log\LoggerAwareTrait, Log\LogLevel
 };
@@ -31,7 +32,7 @@ trait ExceptionLogger
         if ($exception instanceof InvalidArgumentException) $level = LogLevel::WARNING;
 
         if ($exception instanceof CacheException === false) {
-            $exception = new CacheError('An error has occured.', 0, $exception);
+            $exception = new CacheError('An error has occured.', previous: $exception);
         }
 
         if ($exception instanceof CacheException && $method) {
