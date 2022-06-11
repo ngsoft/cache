@@ -20,9 +20,9 @@ abstract class BaseDriver implements CacheDriver, Stringable
         StringableObject,
         Unserializable;
 
-    protected const KEY_EXPIRY = 0;
-    protected const KEY_VALUE = 1;
-    protected const KEY_TAGS = 2;
+    public const KEY_EXPIRY = 0;
+    public const KEY_VALUE = 1;
+    public const KEY_TAGS = 2;
 
     protected int $defaultLifetime = 0;
 
@@ -88,11 +88,15 @@ abstract class BaseDriver implements CacheDriver, Stringable
         $tags = is_array($tags) ? $tags : [$tags];
         $expiry = $this->lifetimeToExpiry($ttl);
 
-        if ($this->isExpired($expiry)) {
+        if ($this->isExpired($expiry) || null === $value) {
             return $this->delete($key);
         }
 
         $result = $this->doSet($key, $value, $expiry, $tags);
+
+        if (false === $result) {
+            $this->delete($key);
+        }
 
         if ($this->isTag($key)) {
             return $result;
