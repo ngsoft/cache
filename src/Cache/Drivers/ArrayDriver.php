@@ -45,7 +45,6 @@ class ArrayDriver extends BaseDriver
     /** {@inheritdoc} */
     public function delete(string $key): bool
     {
-
         unset($this->entries[$this->getHashedKey($key)]);
         return true;
     }

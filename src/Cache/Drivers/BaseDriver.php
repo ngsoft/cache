@@ -100,6 +100,45 @@ abstract class BaseDriver implements CacheDriver, Stringable
         return $result;
     }
 
+    /** {@inheritdoc} */
+    public function invalidateTag(string|iterable $tags): bool
+    {
+
+        if (!is_iterable($tags)) {
+            $tags = [$tags];
+        }
+
+        $result = true;
+
+        foreach ($tags as $tagName) {
+
+            $entry = $this->get(sprintf(self::TAG_PREFIX, $tagName), []);
+
+            foreach ($entry as $key) {
+                $cacheEntry = $this->getCacheEntry($key);
+                if (!in_array($tagName, $cacheEntry->tags)) {
+                    continue;
+                }
+                $result = $this->delete($key) && $result;
+            }
+        }
+        return $result;
+    }
+
+    public function tag(string $key, string|iterable $tags): bool
+    {
+        if (!is_iterable($tags)) {
+            $tags = [$tags];
+        }
+
+        $result = true;
+        foreach ($tags as $tagName) {
+
+        }
+
+        return $result;
+    }
+
     protected function isTag(string $key): bool
     {
         return 0 !== sscanf($key, self::TAG_PREFIX, $impl);
