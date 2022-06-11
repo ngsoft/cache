@@ -96,6 +96,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
 
         if (false === $result) {
             $this->delete($key);
+            return false;
         }
 
         if ($this->isTag($key)) {
@@ -360,7 +361,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
             ) {
                 $cacheEntry->expiry = $entry[self::KEY_EXPIRY];
                 $cacheEntry->value = $entry[self::KEY_VALUE];
-                $cacheEntry->tags = $entry[self::KEY_TAGS];
+                $cacheEntry->tags = $entry[self::KEY_TAGS] ?? [];
             }
         }
         return $cacheEntry;

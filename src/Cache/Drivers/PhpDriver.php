@@ -335,6 +335,18 @@ class PhpDriver extends BaseDriver
         $fileContents .= sprintf("    %d => %s,\n", self::KEY_VALUE, $contents);
         $fileContents .= sprintf("    %d => %s,\n", self::KEY_TAGS, $this->varExporter($tags));
         $fileContents .= "];";
+
+        $phpFile = $filename . self::EXTENSION_PHP;
+        if (is_file($phpFile)) {
+            $this->invalidate($phpFile);
+        }
+
+        if ($this->write($phpFile, $fileContents)) {
+            $this->compile($phpFile);
+            return true;
+        }
+
+        return false;
     }
 
     public function delete(string $key): bool
@@ -351,7 +363,7 @@ class PhpDriver extends BaseDriver
 
     public function getCacheEntry(string $key): CacheEntry
     {
-
+        return $this->createCacheEntry($key, $this->read($this->getFilename($key, self::EXTENSION_PHP)));
     }
 
     public function has(string $key): bool
