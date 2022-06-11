@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Utils;
 
 use NGSOFT\Cache\{
-    Interfaces\CacheDriver, InvalidArgument, Item
+    Exceptions\InvalidArgument, Interfaces\CacheDriver, Item
 };
 
 trait PrefixAble
@@ -21,11 +21,6 @@ trait PrefixAble
     {
 
         $this->setPrefix($prefix);
-    }
-
-    public function getPrefix(): string
-    {
-        return $this->prefix;
     }
 
     /**
@@ -75,7 +70,7 @@ trait PrefixAble
 
     final protected function getPrefixVersion(): int
     {
-        $this->version = -1 === $this->version || $this->driver->get($this->getPrefixVersionKey(), 0);
+        $this->version = -1 === $this->version ? $this->driver->get($this->getPrefixVersionKey(), 0) : $this->version;
         return $this->version;
     }
 
