@@ -8,7 +8,8 @@ use Countable;
 use NGSOFT\Cache\{
     CacheEntry, Interfaces\CacheDriver
 };
-use ValueError;
+use Traversable,
+    ValueError;
 use function get_debug_type;
 
 class ChainDriver extends BaseDriver implements Countable
