@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-use DateInterval;
+use Closure,
+    DateInterval;
 use NGSOFT\{
     Cache\Utils\ExceptionLogger, Traits\StringableObject, Traits\Unserializable
 };
@@ -73,9 +74,14 @@ final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Str
 
         try {
             $item = $this->items[$key] = $this->cachePool->getItem($key);
-            return $item->isHit() ?
-                    $item->get() :
-                    $default;
+
+            if ($item->isHit()) {
+                return $item->get();
+            }
+            if ($default instanceof Closure) {
+                $default = $default($this, $key);
+            }
+            return $default;
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
@@ -84,8 +90,6 @@ final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Str
     /** {@inheritdoc} */
     public function getMultiple(iterable $keys, mixed $default = null): iterable
     {
-
-
         try {
 
             foreach ($keys as $key) {
