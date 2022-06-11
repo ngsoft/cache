@@ -77,11 +77,7 @@ class ArrayDriver extends BaseDriver
 
         $this->entries[$this->getHashedKey($key)] = $this->createEntry($this->serializeEntry($value), $expiry, $tags);
 
-        if (!empty($tags)) {
-            return $this->tag($key, $tags);
-        }
-
-        return true;
+        return $this->tag($key, $tags);
     }
 
 }
