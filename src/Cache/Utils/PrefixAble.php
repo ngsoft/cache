@@ -32,7 +32,7 @@ trait PrefixAble
      */
     public function setPrefix(string $prefix): void
     {
-        if (false !== strpbrk($namespace, Item::RESERVED_CHAR_KEY)) {
+        if (false !== strpbrk($prefix, Item::RESERVED_CHAR_KEY)) {
             throw new InvalidArgument(sprintf('Cache prefix "%s" contains reserved characters "%s".', $prefix, Item::RESERVED_CHAR_KEY));
         }
         $this->prefix = $prefix;
@@ -49,7 +49,7 @@ trait PrefixAble
      *
      * @return bool
      */
-    public function invalidatePrefix(): bool
+    public function invalidate(): bool
     {
 
         if ($this->prefix === '') {

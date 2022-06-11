@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace NGSOFT\Cache;
 
 use DateInterval;
-use NGSOFT\Traits\{
-    StringableObject, Unserializable
+use NGSOFT\{
+    Cache\Utils\ExceptionLogger, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\{
     Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerAwareInterface, SimpleCache\CacheInterface

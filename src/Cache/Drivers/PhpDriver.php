@@ -76,7 +76,7 @@ class PhpDriver extends BaseDriver
             $file = [$file];
         }
         foreach ($file as $path) {
-            $result = (!is_file($file) || unlink($file)) && $result;
+            $result = (!is_file($path) || unlink($path)) && $result;
         }
         return $result;
     }
@@ -301,8 +301,8 @@ class PhpDriver extends BaseDriver
         $result = true;
 
         foreach ($this->getFiles($this->root, ['.php', '.txt']) as $path) {
-            $this->invalidate($file);
-            $result = $this->unlink($file) && $result;
+            $this->invalidate($path);
+            $result = $this->unlink($path) && $result;
             $this->rmdir(dirname($path));
         }
         return $result;
