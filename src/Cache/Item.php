@@ -8,7 +8,7 @@ use DateInterval,
     DateTime,
     DateTimeInterface;
 use NGSOFT\{
-    Cache, Traits\StringableObject, Traits\Unserializable
+    Cache, Cache\Exceptions\InvalidArgument, Cache\Interfaces\TaggableCacheItem, Traits\StringableObject, Traits\Unserializable
 };
 use Stringable;
 use function get_debug_type;
@@ -26,9 +26,9 @@ final class Item implements TaggableCacheItem, Cache, Stringable
 
     public ?int $expiry = null;
     public mixed $value = null;
-    protected bool $hit = false;
-    protected array $metadata = [];
     public array $tags = [];
+    protected array $metadata = [];
+    protected ?bool $hit = null;
 
     public static function validateKey(mixed $key): void
     {
@@ -52,11 +52,9 @@ final class Item implements TaggableCacheItem, Cache, Stringable
         }
     }
 
-    public static function create(string $key, mixed $value = null, ?array $metadata = null): static
+    public static function create(string $key, ?array $metadata = null): static
     {
         $instance = new static($key, $metadata);
-        $instance->value = $value;
-        $instance->hit = $value !== null;
         return $instance;
     }
 
@@ -67,22 +65,17 @@ final class Item implements TaggableCacheItem, Cache, Stringable
     {
         static::validateKey($key);
         $this->metadata = $metadata ?? [
-            'expiry' => null,
-            'tags' => []
+            self::METADATA_EXPIRY => null,
+            self::METADATA_TAGS => [],
+            self::METADATA_VALUE => null,
         ];
+
+        if ($this->isHit()) {
+            $this->value = $this->metadata[self::METADATA_VALUE];
+        }
     }
 
-    /**
-     * Adds a tag to a cache item.
-     *
-     * Tags are strings that follow the same validation rules as keys.
-     *
-     * @param string|string[] $tags A tag or array of tags
-     *
-     * @return $this
-     *
-     * @throws InvalidArgument  When $tag is not valid
-     */
+    /** {@inheritdoc} */
     public function tag(string|iterable $tags): static
     {
         $tags = is_string($tags) ? [$tags] : $tags;
@@ -92,6 +85,11 @@ final class Item implements TaggableCacheItem, Cache, Stringable
             $this->tags[$tag] = $tag;
         }
         return $this;
+    }
+
+    public function getMetadata(): array
+    {
+        return $this->metadata;
     }
 
     /** {@inheritdoc} */
@@ -118,7 +116,7 @@ final class Item implements TaggableCacheItem, Cache, Stringable
     /** {@inheritdoc} */
     public function get(): mixed
     {
-        return $this->isHit() ? $this->value : null;
+        return $this->value;
     }
 
     /** {@inheritdoc} */
@@ -130,6 +128,12 @@ final class Item implements TaggableCacheItem, Cache, Stringable
     /** {@inheritdoc} */
     public function isHit(): bool
     {
+        if (null === $this->hit) {
+            if ($this->metadata[self::METADATA_VALUE] !== null) {
+                $this->hit = false;
+            } else $this->hit = $this->metadata[self::METADATA_EXPIRY] === null || $this->metadata[self::METADATA_EXPIRY] > microtime(true);
+        }
+
         return $this->hit;
     }
 
@@ -153,7 +157,7 @@ final class Item implements TaggableCacheItem, Cache, Stringable
         return [
             'key' => $this->key,
             'expiry' => $this->expiry,
-            'valueType' => get_debug_type($this->value),
+            'valueType' => get_debug_type($this->get()),
             'hit' => $this->isHit(),
         ];
     }
