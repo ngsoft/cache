@@ -91,102 +91,18 @@ abstract class BaseDriver implements CacheDriver, Stringable
     }
 
     /** {@inheritdoc} */
-    public function setMany(iterable $values, ?int $ttl = null): bool
+    public function setMany(iterable $values, ?int $ttl = null, array $tags = []): bool
     {
         $result = true;
         foreach ($values as $key => $value) {
-            $result = $this->set($key, $value, $ttl) && $result;
+            $result = $this->set($key, $value, $ttl, $tags) && $result;
         }
         return $result;
-    }
-
-    /** {@inheritdoc} */
-    public function tag(string $key, string|iterable $tags): bool
-    {
-        if (!$this->has($key)) {
-            return $this->clearTags($key);
-        }
-
-        $taggedKey = sprintf(static::TAGGED_KEY_PREFIX, $key);
-        $result = true;
-
-        if (!is_iterable($tags)) {
-            $tags = [$tags];
-        }
-
-        $names = [];
-
-        foreach ($tags as $tagName) {
-            if (isset($names[$tagName])) {
-                continue;
-            }
-            $names[$tagName] = $tagName;
-            $tagKey = sprintf(self::TAG_PREFIX, $tagName);
-            $current = $this->get($tagKey, []);
-            if (!in_array($key, $current)) {
-                $current[] = $key;
-                $result = $this->set($tagKey, $current, 0) && $result;
-            }
-        }
-
-        if (empty($result)) {
-            $result = $this->set($taggedKey, array_values($names), 0) && $result;
-        }
-
-
-        return $result;
-    }
-
-    public function untag(string $key, string|iterable $tags): bool
-    {
-        if (!is_iterable($tags)) {
-            $tags = [$tags];
-        }
-    }
-
-    /** {@inheritdoc} */
-    public function clearTags(string $key): bool
-    {
-        return $this->delete(sprintf(self::TAGGED_KEY_PREFIX, $key));
-    }
-
-    /** {@inheritdoc} */
-    public function getTags(string $key): array
-    {
-        return $this->get(sprintf(static::TAGGED_KEY_PREFIX, $key), []);
-    }
-
-    /** {@inheritdoc} */
-    public function invalidateTag(string|iterable $tags): bool
-    {
-        return $this->deleteMany($this->getTagged($tags));
-    }
-
-    /** {@inheritdoc} */
-    public function getTagged(string|iterable $tags): iterable
-    {
-        if (!is_iterable($tags)) {
-            $tags = [$tags];
-        }
-
-        $result = [];
-        foreach ($tags as $tagName) {
-            $tagKey = sprintf(static::TAG_PREFIX, $tagName);
-            foreach ($this->get($tagKey, []) as $key) {
-                $result[$key] = $key;
-            }
-        }
-        return array_values($result);
     }
 
     protected function isTag(string $key): bool
     {
         return 0 !== sscanf($key, self::TAG_PREFIX, $impl);
-    }
-
-    protected function isTaggedKey(string $key): bool
-    {
-        return 0 !== sscanf($key, self::TAGGED_KEY_PREFIX, $impl);
     }
 
     /**
@@ -316,12 +232,15 @@ abstract class BaseDriver implements CacheDriver, Stringable
         ];
     }
 
-    protected function createCacheEntry(string $key, ?array $entry): CacheEntry
+    protected function createCacheEntry(string $key, mixed $entry): CacheEntry
     {
 
         $cacheEntry = CacheEntry::createEmpty($key);
         if (is_array($entry)) {
-            if (!$this->isExpired($entry[self::KEY_EXPIRY]) && null !== $entry[self::KEY_VALUE]) {
+            if (
+                    !$this->isExpired($entry[self::KEY_EXPIRY]) &&
+                    null !== $entry[self::KEY_VALUE]
+            ) {
                 $cacheEntry->expiry = $entry[self::KEY_EXPIRY];
                 $cacheEntry->value = $entry[self::KEY_VALUE];
                 $cacheEntry->tags = $entry[self::KEY_TAGS];

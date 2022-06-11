@@ -11,7 +11,6 @@ use IteratorAggregate,
 interface CacheDriver extends IteratorAggregate, LoggerAwareInterface
 {
 
-    public const TAGGED_KEY_PREFIX = 'TAGS_FOR[%s]';
     public const TAG_PREFIX = 'TAG[%s]';
 
     /**
@@ -141,43 +140,10 @@ interface CacheDriver extends IteratorAggregate, LoggerAwareInterface
     public function tag(string $key, string|iterable $tags): bool;
 
     /**
-     * Removes tag from specific entry
-     *
-     * @param string $key
-     * @param string|iterable $tags
-     * @return bool
-     */
-    public function untag(string $key, string|iterable $tags): bool;
-
-    /**
-     * Removes tags for a specific entry
-     *
-     * @param string $key
-     * @return bool
-     */
-    public function clearTags(string $key): bool;
-
-    /**
-     * Gat tags assigned to a specific entry
-     *
-     * @param string $key
-     * @return array
-     */
-    public function getTags(string $key): array;
-
-    /**
      * Removes entry that have the specified tags
      *
      * @param string|string[] $tags
      * @return bool
      */
     public function invalidateTag(string|iterable $tags): bool;
-
-    /**
-     * Get list of entries that have the specified tag
-     *
-     * @param string|string[] $tags
-     * @return string[] keys
-     */
-    public function getTagged(string|iterable $tags): iterable;
 }

@@ -53,17 +53,8 @@ class ArrayDriver extends BaseDriver
     /** {@inheritdoc} */
     public function getCacheEntry(string $key): CacheEntry
     {
-        $cacheEntry = CacheEntry::createEmpty($key);
-
-        if ($entry = $this->entries[$this->getHashedKey($key)]) {
-
-            $unserialized = $this->unserializeEntry($entry[self::KEY_VALUE]);
-            if ($unserialized !== null) {
-                $cacheEntry->expiry = $entry[self::KEY_EXPIRY];
-                $cacheEntry->value = $unserialized;
-                $cacheEntry->tags = $this->getTags($key);
-            } else $this->delete($key);
-        }
+        $cacheEntry = $this->createCacheEntry($key, $this->entries[$this->getHashedKey($key)]);
+        $cacheEntry->value = $cacheEntry->isHit() ? $this->unserializeEntry($cacheEntry->value) : null;
         return $cacheEntry;
     }
 
@@ -72,31 +63,6 @@ class ArrayDriver extends BaseDriver
     {
         $this->purge();
         return $this->get($key) !== null;
-    }
-
-    /** {@inheritdoc} */
-    public function set(string $key, mixed $value, mixed $ttl = null): bool
-    {
-
-        if (!$this->isTag($key) && !$this->isTaggedKey($key)) {
-            $this->clearTags($key);
-        }
-
-        $expiry = $this->lifetimeToExpiry($ttl);
-        $serialized = $this->serializeEntry($value);
-
-        if ($this->isExpired($expiry) || $serialized === null) {
-            $this->delete($key);
-            return $serialized !== null;
-        }
-
-
-        $this->entries[$this->getHashedKey($key)] = [
-            self::KEY_EXPIRY => $expiry,
-            self::KEY_VALUE => $serialized,
-        ];
-
-        return true;
     }
 
 }
