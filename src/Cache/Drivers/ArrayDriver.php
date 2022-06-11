@@ -64,4 +64,24 @@ class ArrayDriver extends BaseDriver
         return $this->get($key) !== null;
     }
 
+    public function set(string $key, mixed $value, ?int $ttl = null, string|array $tags = []): bool
+    {
+
+        $tags = is_array($tags) ? $tags : [$tags];
+        $expiry = $this->lifetimeToExpiry($ttl);
+
+        if ($this->isExpired($expiry)) {
+            return $this->delete($key);
+        }
+
+
+        $this->entries[$this->getHashedKey($key)] = $this->createEntry($this->serializeEntry($value), $expiry, $tags);
+
+        if (!empty($tags)) {
+            return $this->tag($key, $tags);
+        }
+
+        return true;
+    }
+
 }

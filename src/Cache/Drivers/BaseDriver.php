@@ -91,11 +91,11 @@ abstract class BaseDriver implements CacheDriver, Stringable
     }
 
     /** {@inheritdoc} */
-    public function setMany(iterable $values, ?int $ttl = null): bool
+    public function setMany(iterable $values, ?int $ttl = null, string|array $tags = []): bool
     {
         $result = true;
         foreach ($values as $key => $value) {
-            $result = $this->set($key, $value, $ttl) && $result;
+            $result = $this->set($key, $value, $ttl, $tags) && $result;
         }
         return $result;
     }
@@ -108,24 +108,51 @@ abstract class BaseDriver implements CacheDriver, Stringable
             $tags = [$tags];
         }
 
-        $result = true;
+        $removed = [];
 
         foreach ($tags as $tagName) {
 
-            $entry = $this->get(sprintf(self::TAG_PREFIX, $tagName), []);
+
+            $tagKey = sprintf(self::TAG_PREFIX, $tagName);
+            $entry = $this->get($tagKey, []);
+
+            if (empty($entry)) {
+                continue;
+            }
 
             foreach ($entry as $key) {
                 $cacheEntry = $this->getCacheEntry($key);
                 if (!in_array($tagName, $cacheEntry->tags)) {
                     continue;
                 }
-                $result = $this->delete($key) && $result;
+                $removed[$key] = $this->delete($key);
             }
+
+            $removed[$tagKey] = $this->delete($tagKey);
         }
-        return $result;
+        return count($removed) > 0 && $this->every(fn($val) => $val === true, $removed);
     }
 
-    public function tag(string $key, string|iterable $tags): bool
+    protected function every(callable $callable, iterable $iterable): bool
+    {
+        foreach ($iterable as $key => $value) {
+
+            if (!$callable($value, $key, $iterable)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Tag a specific entry with given tags
+     *
+     * @param string $key
+     * @param string|string[] $tags
+     * @return bool
+     */
+    protected function tag(string $key, string|iterable $tags): bool
     {
         if (!is_iterable($tags)) {
             $tags = [$tags];
