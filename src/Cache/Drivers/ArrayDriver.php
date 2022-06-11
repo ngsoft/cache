@@ -52,6 +52,7 @@ class ArrayDriver extends BaseDriver
     /** {@inheritdoc} */
     public function getCacheEntry(string $key): CacheEntry
     {
+        $this->purge();
         $cacheEntry = $this->createCacheEntry($key, $this->entries[$this->getHashedKey($key)]);
         $cacheEntry->value = $cacheEntry->isHit() ? $this->unserializeEntry($cacheEntry->value) : null;
         return $cacheEntry;
@@ -60,7 +61,6 @@ class ArrayDriver extends BaseDriver
     /** {@inheritdoc} */
     public function has(string $key): bool
     {
-        $this->purge();
         return $this->get($key) !== null;
     }
 

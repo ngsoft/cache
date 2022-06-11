@@ -48,6 +48,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
     {
 
         $current = $this->get($key);
+
         if (is_int($current)) {
             $value += $current;
         }
@@ -271,7 +272,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
     {
         try {
             $this->setErrorHandler();
-            return is_object($value) || is_array($value) ? \serialize($value) : $values;
+            return is_object($value) || is_array($value) ? \serialize($value) : $value;
         } catch (Throwable) { return null; } finally { \restore_error_handler(); }
     }
 
