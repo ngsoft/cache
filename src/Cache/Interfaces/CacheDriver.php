@@ -57,7 +57,7 @@ interface CacheDriver extends IteratorAggregate, LoggerAwareInterface
      * Fetches an item from the cache
      *
      * @param string $key
-     * @param mixed $default
+     * @param mixed $default can be a closure(CacheDriver $driver, string $key)
      * @return mixed
      */
     public function get(string $key, mixed $default = null): mixed;
