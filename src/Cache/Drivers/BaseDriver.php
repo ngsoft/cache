@@ -160,7 +160,18 @@ abstract class BaseDriver implements CacheDriver, Stringable
 
             $removed[$tagKey] = $this->delete($tagKey);
         }
-        return count($removed) > 0 && $this->every(fn($val) => $val === true, $removed);
+        return count($removed) > 0 && $this->every(fn($val) => $val, $removed);
+    }
+
+    protected function some(callable $callable, iterable $iterable): bool
+    {
+
+        foreach ($iterable as $key => $value) {
+            if ($callable($value, $key, $iterable)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected function every(callable $callable, iterable $iterable): bool

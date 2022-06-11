@@ -138,13 +138,7 @@ class ChainDriver extends BaseDriver implements Countable
 
     public function has(string $key): bool
     {
-
-        foreach ($this as $driver) {
-            if ($driver->has($key)) {
-                return true;
-            }
-        }
-        return false;
+        return $this->some(fn($driver) => $driver->has($key), $this);
     }
 
 }
