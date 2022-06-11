@@ -8,11 +8,8 @@ use NGSOFT\Cache\{
     Interfaces\CacheDriver, InvalidArgument, Item
 };
 
-class PrefixAble
+trait PrefixAble
 {
-
-    protected const PREFIX_KEY_MODIFIER = '%s[%s][%u]';
-    protected const PREFIX_VERSION_KEY = '%s[VERSION]';
 
     protected string $prefix = '';
     protected int $version = -1;
@@ -67,13 +64,13 @@ class PrefixAble
         return true;
     }
 
-    final protected function getPrefixedKey(string $key): string
+    final protected function getCacheKey(string $key): string
     {
         Item::validateKey($key);
         return
                 $this->prefix === '' ?
                 $key :
-                sprintf(self::PREFIX_KEY_MODIFIER, $this->prefix, $key, $this->getPrefixVersion());
+                sprintf('%s[%s][%u]', $this->prefix, $key, $this->getPrefixVersion());
     }
 
     final protected function getPrefixVersion(): int
@@ -84,7 +81,7 @@ class PrefixAble
 
     final protected function getPrefixVersionKey(): string
     {
-        return sprintf(static::PREFIX_VERSION_KEY, $this->prefix);
+        return sprintf('%s[VERSION]', $this->prefix);
     }
 
 }
