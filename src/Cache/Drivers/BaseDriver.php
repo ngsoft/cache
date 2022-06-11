@@ -28,7 +28,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
 
     public function getIterator(): Traversable
     {
-        yield 0 => $this;
+        yield $this;
     }
 
     /** {@inheritdoc} */
@@ -70,6 +70,35 @@ abstract class BaseDriver implements CacheDriver, Stringable
             return $entry->value;
         }
         return $default instanceof \Closure ? $default($this, $key) : $default;
+    }
+
+    /**
+     * @param string $key
+     * @param mixed $value
+     * @param int $expiry
+     * @param array $tags
+     * @return bool
+     */
+    abstract protected function doSet(string $key, mixed $value, int $expiry, array $tags): bool;
+
+    /** {@inheritdoc} */
+    public function set(string $key, mixed $value, ?int $ttl = null, string|array $tags = []): bool
+    {
+
+        $tags = is_array($tags) ? $tags : [$tags];
+        $expiry = $this->lifetimeToExpiry($ttl);
+
+        if ($this->isExpired($expiry)) {
+            return $this->delete($key);
+        }
+
+        $result = $this->doSet($key, $value, $expiry, $tags);
+
+        if ($this->isTag($key)) {
+            return $result;
+        }
+
+        return $this->tag($key, $tags) && $result;
     }
 
     /** {@inheritdoc} */
