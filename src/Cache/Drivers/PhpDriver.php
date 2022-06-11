@@ -149,13 +149,13 @@ class PhpDriver extends BaseDriver
         return touch($file, static::COMPILE_OFFSET) && opcache_invalidate($file, true);
     }
 
-    protected function read(string $file): ?CacheEntry
+    protected function read(string $file): mixed
     {
         static $handler;
 
         if (!$handler) {
             $handler = static function () {
-                return include func_get_arg(0);
+                return require func_get_arg(0);
             };
         }
 
@@ -230,7 +230,9 @@ class PhpDriver extends BaseDriver
             foreach ($data as $key => $value) {
                 $tmp = $this->varExporter($value);
                 if ($tmp === null) return null;
-                $result .= sprintf('%s=>%s,', var_export($key, true), $tmp);
+                if (is_int($key)) {
+                    $result .= sprintf('%s,', $tmp);
+                } else { $result .= sprintf('%s=>%s,', var_export($key, true), $tmp); }
             }
             return $result . ']';
         }
@@ -331,9 +333,9 @@ class PhpDriver extends BaseDriver
         }
 
         $fileContents .= "[\n";
-        $fileContents .= sprintf("    %d => %d,\n", self::KEY_EXPIRY, $expiry);
-        $fileContents .= sprintf("    %d => %s,\n", self::KEY_VALUE, $contents);
-        $fileContents .= sprintf("    %d => %s,\n", self::KEY_TAGS, $this->varExporter($tags));
+        $fileContents .= sprintf("    %d,\n", $expiry);
+        $fileContents .= sprintf("    %s,\n", $contents);
+        $fileContents .= sprintf("    %s,\n", $this->varExporter($tags));
         $fileContents .= "];";
 
         $phpFile = $filename . self::EXTENSION_PHP;
