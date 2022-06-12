@@ -39,6 +39,14 @@ class ChainDriver extends BaseDriver implements Countable
         }
     }
 
+    public function setDefaultLifetime(int $defaultLifetime): void
+    {
+        parent::setDefaultLifetime($defaultLifetime);
+        foreach ($this as $driver) {
+            $driver->setDefaultLifetime($this->defaultLifetime);
+        }
+    }
+
     public function count(): int
     {
         return count($this->drivers);
@@ -135,6 +143,11 @@ class ChainDriver extends BaseDriver implements Countable
     public function has(string $key): bool
     {
         return $this->some(fn($driver) => $driver->has($key), $this);
+    }
+
+    public function __debugInfo(): array
+    {
+        return $this->drivers;
     }
 
 }

@@ -49,4 +49,12 @@ class IlluminateDriver extends BaseDriver
         return $this->provider->get($key) !== null;
     }
 
+    public function __debugInfo(): array
+    {
+        return [
+            'defaultLifetime' => $this->defaultLifetime,
+            'provider' => get_class($this->provider),
+        ];
+    }
+
 }

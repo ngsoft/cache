@@ -206,4 +206,16 @@ class Sqlite3Driver extends BaseDriver
         return $this->find($key, false) !== null;
     }
 
+    public function __debugInfo(): array
+    {
+
+        $filename = $this->driver->query('PRAGMA database_list')->fetchArray(SQLITE3_ASSOC)['file'];
+
+        return [
+            'defaultLifetime' => $this->defaultLifetime,
+            'database' => $filename,
+            'table' => $this->table
+        ];
+    }
+
 }

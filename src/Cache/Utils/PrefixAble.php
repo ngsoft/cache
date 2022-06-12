@@ -79,4 +79,13 @@ trait PrefixAble
         return sprintf('%s[VERSION]', $this->prefix);
     }
 
+    public function __debugInfo(): array
+    {
+        return [
+            'prefix' => $this->prefix,
+            'version' => $this->getPrefixVersion(),
+            CacheDriver::class => $this->driver,
+        ];
+    }
+
 }

@@ -82,4 +82,12 @@ class PSR6Driver extends BaseDriver
         return $this->provider->hasItem($key);
     }
 
+    public function __debugInfo(): array
+    {
+        return [
+            'defaultLifetime' => $this->defaultLifetime,
+            'provider' => get_class($this->provider),
+        ];
+    }
+
 }

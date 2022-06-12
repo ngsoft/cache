@@ -373,4 +373,12 @@ class PhpDriver extends BaseDriver
         return $this->getCacheEntry($key)->isHit();
     }
 
+    public function __debugInfo(): array
+    {
+        return [
+            'defaultLifetime' => $this->defaultLifetime,
+            'root' => $this->root,
+        ];
+    }
+
 }

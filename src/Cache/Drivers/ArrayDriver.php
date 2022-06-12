@@ -70,4 +70,13 @@ class ArrayDriver extends BaseDriver
         return true;
     }
 
+    public function __debugInfo(): array
+    {
+        return [
+            'defaultLifetime' => $this->defaultLifetime,
+            'size' => $this->size,
+            'entries' => count($this->entries),
+        ];
+    }
+
 }

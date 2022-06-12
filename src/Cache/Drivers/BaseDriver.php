@@ -325,4 +325,11 @@ abstract class BaseDriver implements CacheDriver, Stringable
         return $cacheEntry;
     }
 
+    public function __debugInfo(): array
+    {
+        return [
+            'defaultLifetime' => $this->defaultLifetime,
+        ];
+    }
+
 }

@@ -51,6 +51,17 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         $this->commit();
     }
 
+    public function __debugInfo(): array
+    {
+        return [
+            'prefix' => $this->prefix,
+            'version' => $this->getPrefixVersion(),
+            EventDispatcherInterface::class => $this->eventDispatcher ? get_class($this->eventDispatcher) : null,
+            LoggerInterface::class => $this->logger ? get_class($this->logger) : null,
+            CacheDriver::class => $this->driver,
+        ];
+    }
+
     public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): void
     {
         $this->eventDispatcher = $eventDispatcher;

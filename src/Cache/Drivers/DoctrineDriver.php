@@ -41,4 +41,12 @@ class DoctrineDriver extends BaseDriver
         return $this->provider->contains($key);
     }
 
+    public function __debugInfo(): array
+    {
+        return [
+            'defaultLifetime' => $this->defaultLifetime,
+            'provider' => get_class($this->provider),
+        ];
+    }
+
 }

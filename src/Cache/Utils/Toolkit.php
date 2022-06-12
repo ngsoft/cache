@@ -65,9 +65,4 @@ trait Toolkit
         return true;
     }
 
-    public function __debugInfo(): array
-    {
-        return [];
-    }
-
 }

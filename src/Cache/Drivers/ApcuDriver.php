@@ -82,4 +82,12 @@ class ApcuDriver extends BaseDriver
         return apcu_exists($key);
     }
 
+    public function __debugInfo(): array
+    {
+        return [
+            'defaultLifetime' => $this->defaultLifetime,
+            'apcu_cache_info' => apcu_cache_info(true),
+        ];
+    }
+
 }
