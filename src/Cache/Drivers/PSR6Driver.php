@@ -18,6 +18,7 @@ class PSR6Driver extends BaseDriver
      * @var CacheItemInterface[]
      */
     protected array $items = [];
+    protected int $defaultLifetime = self::LIFETIME_5YEARS;
 
     public function __construct(
             protected CacheItemPoolInterface $provider
