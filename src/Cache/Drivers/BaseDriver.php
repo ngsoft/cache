@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
-use Closure,
-    ErrorException;
+use Closure;
 use NGSOFT\{
-    Cache\CacheEntry, Cache\Interfaces\CacheDriver, Traits\StringableObject, Traits\Unserializable
+    Cache\CacheEntry, Cache\Interfaces\CacheDriver, Cache\Utils\Toolkit, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\Log\LoggerAwareTrait,
     Stringable,
@@ -19,7 +18,8 @@ abstract class BaseDriver implements CacheDriver, Stringable
 
     use LoggerAwareTrait,
         StringableObject,
-        Unserializable;
+        Unserializable,
+        Toolkit;
 
     protected const KEY_EXPIRY = 0;
     protected const KEY_VALUE = 1;
@@ -27,11 +27,6 @@ abstract class BaseDriver implements CacheDriver, Stringable
     protected const TAG_PREFIX = 'TAG[%s]';
 
     protected int $defaultLifetime = 0;
-
-    public function __debugInfo(): array
-    {
-        return [];
-    }
 
     public function getIterator(): Traversable
     {
@@ -186,29 +181,6 @@ abstract class BaseDriver implements CacheDriver, Stringable
         return count($removed) > 0 && $this->every(fn($val) => $val, $removed);
     }
 
-    protected function some(callable $callable, iterable $iterable): bool
-    {
-
-        foreach ($iterable as $key => $value) {
-            if ($callable($value, $key, $iterable)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    protected function every(callable $callable, iterable $iterable): bool
-    {
-        foreach ($iterable as $key => $value) {
-
-            if (!$callable($value, $key, $iterable)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     /**
      * Creates a tag entry into the cache that points to specific key(s)
      *
@@ -280,42 +252,10 @@ abstract class BaseDriver implements CacheDriver, Stringable
     {
 
         if (null === $ttl) {
-            return $this->defaultLifetime > 0 ? time() + $this->defaultLifetime : 0;
+            return $this->defaultLifetime !== 0 ? time() + $this->defaultLifetime : 0;
         }
 
         return $ttl === 0 ? 0 : time() + $ttl;
-    }
-
-    /**
-     * Convenience function to check if item is expired status against current time
-     * @param ?int $expiry
-     * @return bool
-     */
-    protected function isExpired(?int $expiry): bool
-    {
-        if (null === $expiry) {
-            return true;
-        }
-
-        return $expiry !== 0 && microtime(true) > $expiry;
-    }
-
-    /**
-     * Convenient Function used to convert php errors, warning, ... as ErrorException
-     *
-     * @suppress PhanTypeMismatchArgumentInternal
-     * @staticvar Closure $handler
-     * @return void
-     */
-    protected function setErrorHandler(): void
-    {
-        static $handler;
-        if (!$handler) {
-            $handler = static function ($type, $msg, $file, $line) {
-                throw new ErrorException($msg, 0, $type, $file, $line);
-            };
-        }
-        set_error_handler($handler);
     }
 
     /**

@@ -59,7 +59,7 @@ final class Item implements TaggableCacheItem, Cache, Stringable
     }
 
     public function __construct(
-            public readonly string $key,
+            protected readonly string $key,
             ?array $metadata = null
     )
     {

@@ -8,12 +8,13 @@ class CacheHit extends CacheEvent
 {
 
     public function __construct(
+            CacheItemPoolInterface $cachePool,
             string $key,
             public mixed $value
     )
     {
 
-        parent::__construct($key);
+        parent::__construct($cachePool, $key);
     }
 
 }
