@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace NGSOFT\Cache;
 
 use NGSOFT\{
-    Cache\Events\CacheEvent, Cache\Events\KeyDeleted, Cache\Exceptions\InvalidArgument, Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem,
-    Cache\Utils\ExceptionLogger, Cache\Utils\PrefixAble, Cache\Utils\Toolkit, Traits\StringableObject, Traits\Unserializable
+    Cache\Events\CacheEvent, Cache\Events\CacheHit, Cache\Events\CacheMiss, Cache\Events\KeyDeleted, Cache\Events\KeySaved, Cache\Exceptions\InvalidArgument,
+    Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Cache\Utils\ExceptionLogger, Cache\Utils\PrefixAble, Cache\Utils\Toolkit, Traits\StringableObject,
+    Traits\Unserializable
 };
 use Psr\{
     Cache\CacheItemInterface, Cache\CacheItemPoolInterface, EventDispatcher\EventDispatcherInterface, Log\LoggerAwareInterface, Log\LoggerInterface
@@ -23,21 +24,21 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         StringableObject,
         Toolkit;
 
+    /** @var Item[] */
     protected array $queue = [];
 
     public function __construct(
-            CacheDriver $driver,
+            protected CacheDriver $driver,
             string $prefix = '',
-            ?int $defaultLifeTime = null,
+            int $defaultLifetime = 0,
             LoggerInterface $logger = null,
             protected ?EventDispatcherInterface $eventDispatcher = null,
     )
     {
-        parent::__construct($driver, $prefix);
 
-        if ($defaultLifeTime !== null) {
-            $this->driver->setDefaultLifetime($defaultLifetime);
-        }
+        $this->setPrefix($prefix);
+
+        $this->driver->setDefaultLifetime($defaultLifetime);
 
         if ($logger !== null) {
             $this->setLogger($logger);
@@ -56,13 +57,12 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
 
     public function setLogger(LoggerInterface $logger): void
     {
-        parent::setLogger($logger);
-        $this->driver->setLogger($logger);
+        $this->driver->setLogger($this->logger = $logger);
     }
 
     protected function isHit(Item $item): bool
     {
-        if ($item->value === null) {
+        if ($item->get() === null) {
             return false;
         }
 
@@ -71,7 +71,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
 
     protected function expiryToLifetime(?int $expiry): ?int
     {
-        if ($expiry > 0) {
+        if ($expiry !== null) {
             return $expiry - time();
         }
 
@@ -91,35 +91,59 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
      * This allows replacing old tagged values by new ones without
      * race conditions.
      *
-     * @param string[] $tags An array of tags to invalidate
+     * @param string[]|string $tags An array of tags to invalidate
      *
      * @return bool True on success
      *
      * @throws InvalidArgument When $tags is not valid
      */
-    public function invalidateTags(array $tags): bool
+    public function invalidateTags(array|string $tags): bool
     {
         try {
-            return $this->driver->invalidateTag(array_map(fn($tag) => $this->getCacheKey($tag), $tags));
+
+            $tags = is_string($tags) ? [$tags] : $tags;
+            return $this->driver->invalidateTag($tags);
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
     }
 
+    /** {@inheritdoc} */
     public function clear(): bool
     {
         return $this->driver->clear();
     }
 
+    /** {@inheritdoc} */
     public function commit(): bool
     {
         try {
 
+            $queue = $this->queue;
+            $this->queue = [];
+
+            $result = [];
+
+            /** @var Item $item */
+            foreach ($queue as $prefixed => $item) {
+
+                if (!$this->isHit($item)) {
+                    $result[] = $this->deleteItem($item->getKey());
+                    continue;
+                }
+                $ttl = $this->expiryToLifetime($item->expiry);
+                if ($result[] = $this->driver->set($prefixed, $item->get(), $ttl, $item->tags)) {
+                    $this->dispatchEvent(new KeySaved($this, $item->getKey(), $item->get()));
+                } else $this->deleteItem($item->getKey());
+            }
+
+            return $this->every(fn($bool) => $bool, $result);
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
     }
 
+    /** {@inheritdoc} */
     public function deleteItem(string $key): bool
     {
         try {
@@ -134,6 +158,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         }
     }
 
+    /** {@inheritdoc} */
     public function deleteItems(array $keys): bool
     {
         try {
@@ -148,6 +173,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         }
     }
 
+    /** {@inheritdoc} */
     public function getItem(string $key): TaggableCacheItem
     {
         try {
@@ -155,8 +181,8 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
             $cacheEntry = $this->driver->getCacheEntry($prefixed);
 
             if ($cacheEntry->isHit()) {
-                $this->dispatchEvent(new Events\CacheHit($this, $key, $cacheEntry->value));
-            } else { $this->dispatchEvent(new Events\CacheMiss($this, $key)); }
+                $this->dispatchEvent(new CacheHit($this, $key, $cacheEntry->value));
+            } else { $this->dispatchEvent(new CacheMiss($this, $key)); }
 
             return $cacheEntry->getCacheItem($key);
         } catch (Throwable $error) {
@@ -164,15 +190,20 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         }
     }
 
+    /** {@inheritdoc} */
     public function getItems(array $keys = []): iterable
     {
         try {
 
+            foreach ($keys as $key) {
+                yield $key => $this->getItem($key);
+            }
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
     }
 
+    /** {@inheritdoc} */
     public function hasItem(string $key): bool
     {
         try {
@@ -186,6 +217,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         }
     }
 
+    /** {@inheritdoc} */
     public function save(CacheItemInterface $item): bool
     {
         try {
@@ -195,6 +227,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         }
     }
 
+    /** {@inheritdoc} */
     public function saveDeferred(CacheItemInterface $item): bool
     {
 

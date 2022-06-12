@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Events;
 
+use Psr\Cache\CacheItemPoolInterface;
+
 class CacheHit extends CacheEvent
 {
 

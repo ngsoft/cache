@@ -25,7 +25,7 @@ final class Item implements TaggableCacheItem, Cache, Stringable
     public const RESERVED_CHAR_KEY = '{}()/\@:';
 
     public ?int $expiry = null;
-    public mixed $value = null;
+    protected mixed $value = null;
     public array $tags = [];
     protected array $metadata = [];
     protected ?bool $hit = null;
