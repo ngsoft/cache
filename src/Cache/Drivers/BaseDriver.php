@@ -82,7 +82,18 @@ abstract class BaseDriver implements CacheDriver, Stringable
         if ($entry->isHit()) {
             return $entry->value;
         }
-        return $default instanceof Closure ? $default() : $default;
+
+        if ($default instanceof Closure) {
+            $save = true;
+
+            $value = $default($save);
+            if ($save === true && !is_null($value)) {
+                $this->set($key, $value);
+            }
+            return $value;
+        }
+
+        return $default;
     }
 
     /**
