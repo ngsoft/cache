@@ -145,7 +145,7 @@ final class Item implements TaggableCacheItem, Cache, Stringable
     }
 
     /** {@inheritdoc} */
-    public function __clone()
+    public function __clone(): void
     {
         if (is_object($this->value)) {
             $this->value = clone $this->value;
