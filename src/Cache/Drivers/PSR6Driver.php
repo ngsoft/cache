@@ -41,7 +41,7 @@ class PSR6Driver extends BaseDriver
 
     protected function pullItem(string $key): CacheItemInterface
     {
-        $item = $this->getItem($key);
+        $item = $this->items[$key] ?? $this->provider->getItem($key);
         unset($this->items[$key]);
         return $item;
     }

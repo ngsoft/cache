@@ -33,6 +33,7 @@ class PSR16Driver extends BaseDriver
 
     protected function doSet(string $key, mixed $value, int $expiry, array $tags): bool
     {
+        var_dump([$key => $expiry === 0 ? null : $this->expiryToLifetime($expiry)]);
         return $this->provider->set($key, $this->createEntry($value, $expiry, $tags), $expiry === 0 ? null : $this->expiryToLifetime($expiry));
     }
 
