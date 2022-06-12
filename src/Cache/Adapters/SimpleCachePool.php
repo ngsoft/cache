@@ -7,7 +7,7 @@ namespace NGSOFT\Cache\Adapters;
 use Closure,
     DateInterval;
 use NGSOFT\{
-    Cache\Utils\ExceptionLogger, Traits\StringableObject, Traits\Unserializable
+    Cache, Cache\Utils\ExceptionLogger, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\{
     Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerAwareInterface, SimpleCache\CacheInterface
@@ -18,7 +18,7 @@ use Stringable,
 /**
  * PSR-6 to PSR-16 Adapter
  */
-final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Stringable
+final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Stringable, Cache
 {
 
     use ExceptionLogger,
