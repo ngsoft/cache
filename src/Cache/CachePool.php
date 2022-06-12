@@ -6,7 +6,7 @@ namespace NGSOFT\Cache;
 
 use Closure;
 use NGSOFT\{
-    Cache\Events\CacheEvent, Cache\Events\CacheHit, Cache\Events\CacheMiss, Cache\Events\KeyDeleted, Cache\Events\KeySaved, Cache\Exceptions\InvalidArgument,
+    Cache, Cache\Events\CacheEvent, Cache\Events\CacheHit, Cache\Events\CacheMiss, Cache\Events\KeyDeleted, Cache\Events\KeySaved, Cache\Exceptions\InvalidArgument,
     Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Cache\Utils\ExceptionLogger, Cache\Utils\PrefixAble, Cache\Utils\Toolkit, Traits\StringableObject,
     Traits\Unserializable
 };
@@ -16,7 +16,7 @@ use Psr\{
 use Stringable,
     Throwable;
 
-class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterface
+class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterface, Cache
 {
 
     use Unserializable,
