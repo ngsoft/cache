@@ -5,6 +5,13 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Drivers;
 
 use Doctrine\Common\Cache\CacheProvider;
+use NGSOFT\Cache\{
+    CacheEntry, Exceptions\CacheError
+};
+
+if (!interface_exists(CacheProvider::class)) {
+    throw new CacheError('doctrine/cache not installed, please run: composer require doctrine/cache:^1.10.1');
+}
 
 class DoctrineDriver extends BaseDriver
 {
@@ -31,7 +38,7 @@ class DoctrineDriver extends BaseDriver
         return $this->provider->delete($key);
     }
 
-    public function getCacheEntry(string $key): \NGSOFT\Cache\CacheEntry
+    public function getCacheEntry(string $key): CacheEntry
     {
         return $this->createCacheEntry($key, $this->provider->fetch($key));
     }

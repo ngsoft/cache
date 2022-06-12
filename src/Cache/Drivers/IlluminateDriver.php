@@ -9,6 +9,10 @@ use NGSOFT\{
     Cache, Cache\CacheEntry, Cache\Exceptions\InvalidArgument
 };
 
+if (!interface_exists(Store::class)) {
+    throw new CacheError('illuminate/cache not installed, please run: composer require illuminate/cache:^9.0');
+}
+
 class IlluminateDriver extends BaseDriver
 {
 
