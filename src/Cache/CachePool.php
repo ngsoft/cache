@@ -29,7 +29,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
     protected array $queue = [];
 
     public function __construct(
-            protected CacheDriver $driver,
+            CacheDriver $driver,
             string $prefix = '',
             int $defaultLifetime = 0,
             LoggerInterface $logger = null,
@@ -198,6 +198,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
     /** {@inheritdoc} */
     public function clear(): bool
     {
+        $this->setPrefix($this->prefix);
         return $this->driver->clear();
     }
 

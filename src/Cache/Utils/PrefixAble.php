@@ -11,14 +11,21 @@ use NGSOFT\Cache\{
 trait PrefixAble
 {
 
+    protected CacheDriver $driver;
     protected string $prefix = '';
     protected int $version = -1;
 
     public function __construct(
-            protected CacheDriver $driver,
-            string $prefix = ''
+            CacheDriver $driver,
+            string $prefix = '',
+            int $defaultLifetime = 0
     )
     {
+        $this->driver = $driver;
+
+        if ($defaultLifetime > 0) {
+            $driver->setDefaultLifetime($defaultLifetime);
+        }
 
         $this->setPrefix($prefix);
     }
