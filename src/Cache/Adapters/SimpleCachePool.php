@@ -87,7 +87,12 @@ final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Str
                 return $item->get();
             }
             if ($default instanceof Closure) {
-                $default = $default();
+                $save = true;
+                $value = $default($save);
+                if ($save === true && !is_null($value)) {
+                    $this->set($key, $value);
+                }
+                return $value;
             }
             return $default;
         } catch (Throwable $error) {
