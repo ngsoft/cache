@@ -159,7 +159,9 @@ abstract class BaseDriver implements CacheDriver, Stringable
     {
         $result = true;
         foreach ($values as $key => $value) {
-            $result = $this->set($key, $value, $ttl, $tags) && $result;
+            if (!$this->set($key, $value, $ttl, $tags)) {
+                $result = false;
+            }
         }
         return $result;
     }
