@@ -39,7 +39,9 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
 
         $this->setPrefix($prefix);
 
-        $this->driver->setDefaultLifetime($defaultLifetime);
+        if ($defaultLifetime > 0) {
+            $this->driver->setDefaultLifetime($defaultLifetime);
+        }
 
         if ($logger !== null) {
             $this->setLogger($logger);

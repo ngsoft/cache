@@ -82,11 +82,11 @@ abstract class BaseDriver implements CacheDriver, Stringable
     /**
      * @param string $key
      * @param mixed $value
-     * @param int $ttl
+     * @param ?int $ttl
      * @param array $tags
      * @return bool
      */
-    abstract protected function doSet(string $key, mixed $value, int $ttl, array $tags): bool;
+    abstract protected function doSet(string $key, mixed $value, ?int $ttl, array $tags): bool;
 
     /** {@inheritdoc} */
     public function set(string $key, mixed $value, ?int $ttl = null, string|array $tags = []): bool
@@ -94,13 +94,10 @@ abstract class BaseDriver implements CacheDriver, Stringable
 
         $tags = is_array($tags) ? $tags : [$tags];
 
-        if ($value === null || $this->isExpiredLifetime($ttl)) {
+        if ($value === null) {
             return $this->delete($key);
         }
 
-        if (is_null($ttl)) {
-            $ttl = $this->defaultLifetime;
-        }
 
         try {
             $result = $this->doSet($key, $value, $ttl, array_values($tags));
@@ -228,6 +225,11 @@ abstract class BaseDriver implements CacheDriver, Stringable
         return hash('MD5', static::class . $key);
     }
 
+    protected function getLifetime(?int $ttl): int
+    {
+        return $ttl ?? $this->defaultLifetime;
+    }
+
     /**
      * Converts ttl to expiry
      *
@@ -236,25 +238,8 @@ abstract class BaseDriver implements CacheDriver, Stringable
      */
     protected function lifetimeToExpiry(?int $ttl): int
     {
-
-        if (null === $ttl) {
-            return $this->defaultLifetime !== 0 ? time() + $this->defaultLifetime : 0;
-        }
-
-        return $ttl === 0 ? 0 : time() + $ttl;
-    }
-
-    protected function isExpiredLifetime(?int $ttl)
-    {
-
-        if (is_null($ttl)) {
-            if ($this->defaultLifetime === 0) {
-                return false;
-            }
-            $ttl = $this->defaultLifetime;
-        }
-
-        return $ttl < 1;
+        $ttl = $this->getLifetime($ttl);
+        return $ttl !== 0 ? time() + $ttl : $ttl;
     }
 
     /**
