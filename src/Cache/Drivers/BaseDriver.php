@@ -25,6 +25,11 @@ abstract class BaseDriver implements CacheDriver, Stringable
     protected const KEY_VALUE = TaggableCacheItem::METADATA_VALUE;
     protected const KEY_TAGS = TaggableCacheItem::METADATA_TAGS;
     protected const TAG_PREFIX = 'TAG[%s]';
+
+    /**
+     * If you are not sure which ttl the drivers implements
+     * you can use it as defaultLifetime
+     */
     protected const LIFETIME_5YEARS = 157784760;
 
     protected int $defaultLifetime = 0;

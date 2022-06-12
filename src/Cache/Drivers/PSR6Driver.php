@@ -53,7 +53,7 @@ class PSR6Driver extends BaseDriver
                         $this
                                 ->pullItem($key)
                                 ->set($this->createEntry($value, $this->lifetimeToExpiry($ttl), $tags))
-                                ->expiresAfter($ttl)
+                                ->expiresAfter($this->getLifetime($ttl))
         );
     }
 
