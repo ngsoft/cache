@@ -28,6 +28,11 @@ abstract class BaseDriver implements CacheDriver, Stringable
 
     protected int $defaultLifetime = 0;
 
+    public function __debugInfo(): array
+    {
+        return [];
+    }
+
     public function getIterator(): Traversable
     {
         yield $this;

@@ -28,9 +28,16 @@ final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Str
     /** @var CacheItemInterface[] */
     private array $items = [];
 
-    public function __construct(private CacheItemPoolInterface $cachePool, private int $defaultLifetime = 0)
+    public function __construct(private CacheItemPoolInterface $cachePool, private ?int $defaultLifetime = null)
     {
 
+    }
+
+    protected function pullItem(string $key): CacheItemInterface
+    {
+        $item = $this->items[$key] ?? $this->cachePool->getItem($key);
+        unset($this->items[$key]);
+        return $item;
     }
 
     /** {@inheritdoc} */
@@ -73,7 +80,8 @@ final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Str
     {
 
         try {
-            $item = $this->items[$key] = $this->cachePool->getItem($key);
+            $this->items[$key] = $this->items[$key] ?? $this->cachePool->getItem($key);
+            $item = $this->items[$key];
 
             if ($item->isHit()) {
                 return $item->get();
@@ -114,15 +122,10 @@ final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Str
     public function set(string $key, mixed $value, null|int|DateInterval $ttl = null): bool
     {
         try {
-
-            $ttl = $ttl ?? $this->defaultLifetime;
-
-            $item = $this->items[$key] ?? $this->cachePool->getItem($key);
-            unset($this->items[$key]);
             return $this->cachePool->save(
-                            $item
+                            $this->pullItem($key)
                                     ->set($value)
-                                    ->expiresAfter($ttl === 0 ? null : $ttl)
+                                    ->expiresAfter($ttl ?? $this->defaultLifetime)
             );
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
@@ -135,11 +138,14 @@ final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Str
 
         try {
             $result = true;
-            $ttl = $ttl ?? $this->defaultLifetime;
+
             foreach ($values as $key => $value) {
-                $item = $this->items[$key] ?? $this->cachePool->getItem($key);
-                unset($this->items[$key]);
-                $result = $this->cachePool->saveDeferred($item->set($value)->expiresAfter($ttl === 0 ? null : $ttl)) && $result;
+                $result = $this->cachePool->saveDeferred(
+                                $this
+                                        ->pullItem($key)
+                                        ->set($value)
+                                        ->expiresAfter($ttl ?? $this->defaultLifetime)
+                        ) && $result;
             }
 
             return $this->cachePool->commit() && $result;
@@ -152,7 +158,6 @@ final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Str
     {
         return [
             CacheItemPoolInterface::class => get_class($this->cachePool),
-            'defaultLifetime' => $this->defaultLifetime,
         ];
     }
 
