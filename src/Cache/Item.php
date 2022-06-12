@@ -66,8 +66,8 @@ final class Item implements TaggableCacheItem, Cache, Stringable
         static::validateKey($key);
         $this->metadata = $metadata ?? [
             self::METADATA_EXPIRY => null,
-            self::METADATA_TAGS => [],
             self::METADATA_VALUE => null,
+            self::METADATA_TAGS => [],
         ];
 
         if ($this->isHit()) {

@@ -10,9 +10,9 @@ use NGSOFT\Cache\Exceptions\InvalidArgument,
 interface TaggableCacheItem extends CacheItemInterface
 {
 
-    public const METADATA_EXPIRY = 'expiry';
-    public const METADATA_TAGS = 'tags';
-    public const METADATA_VALUE = 'value';
+    public const METADATA_EXPIRY = 0;
+    public const METADATA_VALUE = 1;
+    public const METADATA_TAGS = 2;
 
     /**
      * Adds a tag to a cache item.
