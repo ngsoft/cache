@@ -17,6 +17,20 @@ final class CacheEntry implements \Stringable
 
     }
 
+    public function getCacheItem(): Item
+    {
+
+        if ($this->isHit()) {
+            return Item::create($this->key, [
+                        Item::METADATA_EXPIRY => $this->expiry === 0 ? null : $this->expiry,
+                        Item::METADATA_VALUE => $this->value,
+                        Item::METADATA_TAGS => $this->tags
+            ]);
+        }
+
+        return Item::create($this->key);
+    }
+
     public function isHit(): bool
     {
         if (null === $this->value) {
