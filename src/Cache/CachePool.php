@@ -192,7 +192,22 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         if ($value === null) {
             return false;
         }
-        return $this->save($item->set($value));
+        $result = $this->save($item->set($value));
+
+        $dump = [
+            $key => [
+                $this->driver::class => $this->driver->getCacheEntry($this->getCacheKey($key))->getCacheItem($key)
+            ]
+        ];
+
+        foreach ($this->driver as $driver) {
+
+            $dump[$key] [$driver::class] = $driver->getCacheEntry($this->getCacheKey($key))->getCacheItem($key);
+        }
+
+        var_dump($dump);
+
+        return $result;
     }
 
     /** {@inheritdoc} */
