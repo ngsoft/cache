@@ -146,7 +146,7 @@ class Sqlite3Driver extends BaseDriver
         $query->bindValue(':key', $key, SQLITE3_TEXT);
         $query->bindValue(':data', $this->serializeEntry($value), SQLITE3_BLOB);
         $query->bindValue(':expiry', $expiry, SQLITE3_INTEGER);
-        $query->bindValue(':tags', json_encode($tags), SQLITE3_BLOB);
+        $query->bindValue(':tags', json_encode(array_values($tags)), SQLITE3_BLOB);
 
         return $query->execute() instanceof SQLite3Result;
     }

@@ -335,7 +335,7 @@ class PhpDriver extends BaseDriver
         $fileContents .= "[\n";
         $fileContents .= sprintf("    %d,\n", $expiry);
         $fileContents .= sprintf("    %s,\n", $contents);
-        $fileContents .= sprintf("    %s,\n", json_encode($tags));
+        $fileContents .= sprintf("    %s,\n", json_encode(array_values($tags)));
         $fileContents .= "];";
 
         $phpFile = $filename . self::EXTENSION_PHP;
