@@ -6,7 +6,7 @@ namespace NGSOFT\Cache\Drivers;
 
 use Illuminate\Contracts\Cache\Store;
 use NGSOFT\{
-    Cache, Cache\CacheEntry, Cache\Exceptions\InvalidArgument
+    Cache, Cache\CacheEntry, Cache\Exceptions\CacheError, Cache\Exceptions\InvalidArgument
 };
 
 if (!interface_exists(Store::class)) {
