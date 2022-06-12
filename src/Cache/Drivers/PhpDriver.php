@@ -125,7 +125,7 @@ class PhpDriver extends BaseDriver
                 if ($file === '.' || $file === '..' || strpos($file, '.') !== 32) {
                     continue;
                 }
-                if ($this->some(fn($extension) => str_ends_with($file, $extension), $extensions)) {
+                if (Tools::some(fn($extension) => str_ends_with($file, $extension), $extensions)) {
                     yield $file => $dir . DIRECTORY_SEPARATOR . $file;
                 }
             }
@@ -382,7 +382,9 @@ class PhpDriver extends BaseDriver
         $count = 0;
         foreach ($this->getFiles($this->root, [self::EXTENSION_PHP, self::EXTENSION_TXT]) as $path) {
             $usage += filesize($path) ?: 0;
-            $count++;
+            if (str_ends_with($path, self::EXTENSION_PHP)) {
+                $count++;
+            }
         }
 
 

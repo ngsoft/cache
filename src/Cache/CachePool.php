@@ -272,11 +272,13 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
     {
         try {
 
-            $result = [];
+            $result = true;
             foreach ($keys as $key) {
-                $result[$key] = $this->deleteItem($key);
+                if (!$this->deleteItem($key)) {
+                    $result = false;
+                }
             }
-            return $this->every(fn($bool) => $bool, $result);
+            return $result;
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }

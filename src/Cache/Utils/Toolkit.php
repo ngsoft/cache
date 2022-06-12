@@ -57,28 +57,4 @@ trait Toolkit
         return $expiry !== 0 && microtime(true) > $expiry;
     }
 
-    protected function some(callable $callable, iterable $iterable): bool
-    {
-
-        foreach ($iterable as $key => $value) {
-            if (!$callable($value, $key, $iterable)) {
-                continue;
-            }
-            return true;
-        }
-        return false;
-    }
-
-    protected function every(callable $callable, iterable $iterable): bool
-    {
-        foreach ($iterable as $key => $value) {
-
-            if (!$callable($value, $key, $iterable)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
 }

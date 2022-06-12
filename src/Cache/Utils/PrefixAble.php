@@ -15,6 +15,12 @@ trait PrefixAble
     protected string $prefix = '';
     protected int $version = -1;
 
+    /**
+     *
+     * @param CacheDriver $driver
+     * @param string $prefix
+     * @param int $defaultLifetime
+     */
     public function __construct(
             CacheDriver $driver,
             string $prefix = '',

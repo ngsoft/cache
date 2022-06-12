@@ -147,53 +147,79 @@ class Sqlite3Driver extends BaseDriver
 
     protected function doSet(string $key, mixed $value, ?int $ttl, array $tags): bool
     {
-        $query = $this->driver->prepare(
-                sprintf(
-                        'INSERT OR REPLACE INTO %s (%s) VALUES (:key, :data, :expiry, :tags)',
-                        $this->table,
-                        implode(',', $this->getColumns())
-                )
-        );
-        $query->bindValue(':key', $key, SQLITE3_TEXT);
-        $query->bindValue(':data', $this->serializeEntry($value), SQLITE3_BLOB);
-        $query->bindValue(':expiry', $this->lifetimeToExpiry($ttl), SQLITE3_INTEGER);
-        $query->bindValue(':tags', json_encode($tags), SQLITE3_BLOB);
 
-        return $query->execute() instanceof SQLite3Result;
+
+        try {
+            $this->setErrorHandler();
+            $query = $this->driver->prepare(
+                    sprintf(
+                            'INSERT OR REPLACE INTO %s (%s) VALUES (:key, :data, :expiry, :tags)',
+                            $this->table,
+                            implode(',', $this->getColumns())
+                    )
+            );
+            $query->bindValue(':key', $key, SQLITE3_TEXT);
+            $query->bindValue(':data', $this->serializeEntry($value), SQLITE3_BLOB);
+            $query->bindValue(':expiry', $this->lifetimeToExpiry($ttl), SQLITE3_INTEGER);
+            $query->bindValue(':tags', json_encode($tags), SQLITE3_BLOB);
+
+            return $query->execute() instanceof SQLite3Result;
+        } catch (\Throwable) {
+            return false;
+        } finally { \restore_error_handler(); }
     }
 
     public function purge(): void
     {
-        $query = $this->driver->prepare(
-                sprintf(
-                        'DELETE FROM %s WHERE %s > 0 AND %s < :now',
-                        $this->table,
-                        self::COLUMN_EXPIRY,
-                        self::COLUMN_EXPIRY
-                )
-        );
 
-        $query->bindValue(':now', time());
-        $query->execute();
+        try {
+            $this->setErrorHandler();
+
+            $query = $this->driver->prepare(
+                    sprintf(
+                            'DELETE FROM %s WHERE %s > 0 AND %s < :now',
+                            $this->table,
+                            self::COLUMN_EXPIRY,
+                            self::COLUMN_EXPIRY
+                    )
+            );
+
+            $query->bindValue(':now', time());
+            $query->execute();
+        } catch (\Throwable) {
+
+        } finally { \restore_error_handler(); }
     }
 
     public function clear(): bool
     {
-        return $this->driver->exec(sprintf('DELETE FROM %s', $this->table));
+        try {
+            $this->setErrorHandler();
+            return $this->driver->exec(sprintf('DELETE FROM %s', $this->table));
+        } catch (\Throwable) {
+            return false;
+        } finally { \restore_error_handler(); }
     }
 
     public function delete(string $key): bool
     {
-        $query = $this->driver->prepare(
-                sprintf(
-                        'DELETE FROM %s WHERE %s = :key',
-                        $this->table,
-                        self::COLUMN_KEY
-                )
-        );
 
-        $query->bindValue(':key', $key, SQLITE3_TEXT);
-        return $query->execute() instanceof SQLite3Result;
+        try {
+            $this->setErrorHandler();
+
+            $query = $this->driver->prepare(
+                    sprintf(
+                            'DELETE FROM %s WHERE %s = :key',
+                            $this->table,
+                            self::COLUMN_KEY
+                    )
+            );
+
+            $query->bindValue(':key', $key, SQLITE3_TEXT);
+            return $query->execute() instanceof SQLite3Result;
+        } catch (\Throwable) {
+            return false;
+        } finally { \restore_error_handler(); }
     }
 
     public function getCacheEntry(string $key): CacheEntry

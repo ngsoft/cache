@@ -6,7 +6,7 @@ namespace NGSOFT\Cache\Adapters;
 
 use Doctrine\Common\Cache\CacheProvider;
 use NGSOFT\{
-    Cache, Cache\Exceptions\CacheError, Cache\Utils\PrefixAble, Cache\Utils\Toolkit, Traits\StringableObject, Traits\Unserializable
+    Cache, Cache\Exceptions\CacheError, Cache\Interfaces\CacheDriver, Cache\Utils\PrefixAble, Cache\Utils\Toolkit, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\Log\{
     LoggerAwareInterface, LoggerInterface
@@ -26,6 +26,27 @@ class DoctrineCacheProvider extends CacheProvider implements Cache, LoggerAwareI
         StringableObject;
 
     protected ?LoggerInterface $logger = null;
+
+    /**
+     *
+     * @param CacheDriver $driver
+     * @param string $prefix
+     * @param int $defaultLifetime
+     */
+    public function __construct(
+            CacheDriver $driver,
+            string $prefix = '',
+            int $defaultLifetime = 0
+    )
+    {
+        $this->driver = $driver;
+
+        if ($defaultLifetime > 0) {
+            $driver->setDefaultLifetime($defaultLifetime);
+        }
+
+        $this->setPrefix($prefix);
+    }
 
     public function getNamespace(): string
     {

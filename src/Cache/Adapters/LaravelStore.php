@@ -6,7 +6,7 @@ namespace NGSOFT\Cache\Adapters;
 
 use Illuminate\Contracts\Cache\Store;
 use NGSOFT\{
-    Cache, Cache\Exceptions\CacheError, Cache\Utils\PrefixAble, Cache\Utils\Toolkit, Traits\StringableObject, Traits\Unserializable
+    Cache, Cache\Exceptions\CacheError, Cache\Interfaces\CacheDriver, Cache\Utils\PrefixAble, Cache\Utils\Toolkit, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\Log\{
     LoggerAwareInterface, LoggerInterface
@@ -26,6 +26,27 @@ class LaravelStore implements Cache, Store, LoggerAwareInterface, Stringable
         Toolkit;
 
     protected ?LoggerInterface $logger = null;
+
+    /**
+     *
+     * @param CacheDriver $driver
+     * @param string $prefix
+     * @param int $defaultLifetime
+     */
+    public function __construct(
+            CacheDriver $driver,
+            string $prefix = '',
+            int $defaultLifetime = 0
+    )
+    {
+        $this->driver = $driver;
+
+        if ($defaultLifetime > 0) {
+            $driver->setDefaultLifetime($defaultLifetime);
+        }
+
+        $this->setPrefix($prefix);
+    }
 
     /** {@inheritdoc} */
     public function setLogger(LoggerInterface $logger): void
@@ -98,12 +119,14 @@ class LaravelStore implements Cache, Store, LoggerAwareInterface, Stringable
     public function putMany(array $values, $seconds): bool
     {
 
-        $result = [];
+        $result = true;
 
         foreach ($values as $key => $value) {
-            $result[] = $this->put($key, $value, $seconds);
+            if (!$this->put($key, $value, $seconds)) {
+                $result = false;
+            }
         }
-        return $this->every(fn($bool) => $bool, $result);
+        return $result;
     }
 
 }
