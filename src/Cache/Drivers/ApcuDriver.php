@@ -7,7 +7,6 @@ namespace NGSOFT\Cache\Drivers;
 use NGSOFT\Cache\{
     CacheEntry, Exceptions\CacheError
 };
-use Throwable;
 
 class ApcuDriver extends BaseDriver
 {

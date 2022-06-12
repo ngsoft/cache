@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
-use Illuminate\Contracts\Cache\Store,
-    NGSOFT\Cache\CacheEntry;
+use Illuminate\Contracts\Cache\Store;
+use NGSOFT\{
+    Cache, Cache\CacheEntry, Cache\Exceptions\InvalidArgument
+};
 
 class IlluminateDriver extends BaseDriver
 {
@@ -15,6 +17,9 @@ class IlluminateDriver extends BaseDriver
     )
     {
 
+        if ($provider instanceof Cache) {
+            throw new InvalidArgument(sprintf('Cannot use %s adapter.', $provider::class));
+        }
     }
 
     protected function doSet(string $key, mixed $value, int $expiry, array $tags): bool
