@@ -17,7 +17,7 @@ if (!interface_exists(Store::class)) {
     throw new CacheError('illuminate/contracts not installed, please run: composer require illuminate/contracts:^9.0');
 }
 
-class LaravelStore implements Cache, Store, LoggerAwareInterface, Stringable
+final class LaravelStore implements Cache, Store, LoggerAwareInterface, Stringable
 {
 
     use Unserializable,

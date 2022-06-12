@@ -17,7 +17,7 @@ if (!interface_exists(CacheProvider::class)) {
     throw new CacheError('doctrine/cache not installed, please run: composer require doctrine/cache');
 }
 
-class DoctrineCacheProvider extends CacheProvider implements Cache, LoggerAwareInterface, Stringable
+final class DoctrineCacheProvider extends CacheProvider implements Cache, LoggerAwareInterface, Stringable
 {
 
     use PrefixAble,

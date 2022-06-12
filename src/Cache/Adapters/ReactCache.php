@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Adapters;
 
+use Closure;
 use NGSOFT\{
     Cache, Cache\Exceptions\CacheError, Cache\Interfaces\CacheDriver, Cache\Utils\ExceptionLogger, Cache\Utils\PrefixAble, Cache\Utils\Toolkit, Tools, Traits\StringableObject,
     Traits\Unserializable
@@ -24,7 +25,7 @@ if (!interface_exists(CacheInterface::class)) {
     throw new CacheError('react/cache not installed, please run: composer require react/cache:^1.1');
 }
 
-class ReactCache implements Cache, CacheInterface, Stringable, LoggerAwareInterface
+final class ReactCache implements Cache, CacheInterface, Stringable, LoggerAwareInterface
 {
 
     use Unserializable,
@@ -72,12 +73,70 @@ class ReactCache implements Cache, CacheInterface, Stringable, LoggerAwareInterf
         return all($values);
     }
 
+    /**
+     * Increment the value of an item in the cache.
+     *
+     * @param string $key
+     * @param int $value
+     * @return PromiseInterface<int> new value
+     */
+    public function increment(string $key, int $value = 1): PromiseInterface
+    {
+        try {
+            return $this->resolve($this->driver->increment($this->getCacheKey($key), $value));
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
+    }
+
+    /**
+     * Decrement the value of an item in the cache.
+     *
+     * @param string $key
+     * @param int $value
+     * @return PromiseInterface<int> new value
+     */
+    public function decrement(string $key, int $value = 1): PromiseInterface
+    {
+        try {
+            return $this->resolve($this->driver->decrement($this->getCacheKey($key), $value));
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
+    }
+
+    /**
+     * Adds data if it doesn't already exists
+     *
+     * @param string $key
+     * @param mixed|Closure $value
+     * @return PromiseInterface<bool> True if the data have been added, false otherwise
+     */
+    public function add(string $key, mixed $value): PromiseInterface
+    {
+        $resolveFalse = $this->resolve(false);
+        $prefixed = $this->getCacheKey($key);
+        if ($this->driver->has($prefixed)) {
+            return $resolveFalse;
+        }
+
+        if ($value instanceof Closure) {
+            $value = $value();
+        }
+        if ($value === null) {
+            return $resolveFalse;
+        }
+        return $this->resolve($this->driver->set($prefixed, $value));
+    }
+
+    /** {@inheritdoc} */
     public function clear(): PromiseInterface
     {
         $this->setPrefix($this->prefix);
         return $this->resolve($this->driver->clear());
     }
 
+    /** {@inheritdoc} */
     public function delete($key): PromiseInterface
     {
         try {
@@ -87,6 +146,7 @@ class ReactCache implements Cache, CacheInterface, Stringable, LoggerAwareInterf
         }
     }
 
+    /** {@inheritdoc} */
     public function has($key): PromiseInterface
     {
         try {
@@ -96,6 +156,7 @@ class ReactCache implements Cache, CacheInterface, Stringable, LoggerAwareInterf
         }
     }
 
+    /** {@inheritdoc} */
     public function get($key, $default = null): PromiseInterface
     {
         try {
@@ -105,15 +166,22 @@ class ReactCache implements Cache, CacheInterface, Stringable, LoggerAwareInterf
         }
     }
 
+    /** {@inheritdoc} */
     public function set($key, $value, $ttl = null): PromiseInterface
     {
         try {
+
+            if (null !== $ttl) {
+                $ttl = (int) ceil($ttl);
+            }
+
             return $this->resolve($this->driver->set($this->getCacheKey($key), $value, $ttl));
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
     }
 
+    /** {@inheritdoc} */
     public function deleteMultiple(array $keys): PromiseInterface
     {
 
@@ -124,6 +192,7 @@ class ReactCache implements Cache, CacheInterface, Stringable, LoggerAwareInterf
         }
     }
 
+    /** {@inheritdoc} */
     public function getMultiple(array $keys, $default = null): PromiseInterface
     {
 
