@@ -134,7 +134,7 @@ class PhpDriver extends BaseDriver
 
     protected function compile(string $file): bool
     {
-        if (!static::opCacheSupported() || !is_file($file) || !str_ends_with($file, '.php')) {
+        if (!static::opCacheSupported() || !is_file($file) || !str_ends_with($file, self::EXTENSION_PHP)) {
             return false;
         }
         $this->invalidate($file);
@@ -143,7 +143,7 @@ class PhpDriver extends BaseDriver
 
     protected function invalidate(string $file): bool
     {
-        if (!static::opCacheSupported() || !is_file($file) || !str_ends_with($file, '.php')) {
+        if (!static::opCacheSupported() || !is_file($file) || !str_ends_with($file, self::EXTENSION_PHP)) {
             return true;
         }
         return touch($file, static::COMPILE_OFFSET) && opcache_invalidate($file, true);
@@ -300,7 +300,7 @@ class PhpDriver extends BaseDriver
     {
         $result = true;
 
-        foreach ($this->getFiles($this->root, ['.php', '.txt']) as $path) {
+        foreach ($this->getFiles($this->root, [self::EXTENSION_PHP, self::EXTENSION_TXT]) as $path) {
             $this->invalidate($path);
             $result = $this->unlink($path) && $result;
             $this->rmdir(dirname($path));

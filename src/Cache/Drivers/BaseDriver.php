@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
-use ErrorException;
+use Closure,
+    ErrorException;
 use NGSOFT\{
     Cache\CacheEntry, Cache\Interfaces\CacheDriver, Traits\StringableObject, Traits\Unserializable
 };
@@ -66,11 +67,17 @@ abstract class BaseDriver implements CacheDriver, Stringable
     /** {@inheritdoc} */
     public function get(string $key, mixed $default = null): mixed
     {
-        $entry = $this->getCacheEntry($key);
+
+        try {
+            $entry = $this->getCacheEntry($key);
+        } catch (Throwable) {
+            $entry = CacheEntry::createEmpty($key);
+        }
+
         if ($entry->isHit()) {
             return $entry->value;
         }
-        return $default instanceof \Closure ? $default($this, $key) : $default;
+        return $default instanceof Closure ? $default($this, $key) : $default;
     }
 
     /**
@@ -93,7 +100,12 @@ abstract class BaseDriver implements CacheDriver, Stringable
             return $this->delete($key);
         }
 
-        $result = $this->doSet($key, $value, $expiry, $tags);
+        try {
+            $result = $this->doSet($key, $value, $expiry, $tags);
+        } catch (Throwable) {
+            $result = false;
+        }
+
 
         if (false === $result) {
             $this->delete($key);

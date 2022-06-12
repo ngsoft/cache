@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
-use Illuminate\Contracts\Cache\Store;
+use Illuminate\Contracts\Cache\Store,
+    NGSOFT\Cache\CacheEntry;
 
 class IlluminateDriver extends BaseDriver
 {
@@ -28,12 +29,12 @@ class IlluminateDriver extends BaseDriver
 
     public function delete(string $key): bool
     {
-        // some drivers returns false if entry not exists in the first place
+        // some drivers returns false if entry does not exists in the first place
         $this->provider->forget($key);
         return true;
     }
 
-    public function getCacheEntry(string $key): \NGSOFT\Cache\CacheEntry
+    public function getCacheEntry(string $key): CacheEntry
     {
         return $this->createCacheEntry($key, $this->provider->get($key));
     }

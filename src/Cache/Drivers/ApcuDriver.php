@@ -58,12 +58,7 @@ class ApcuDriver extends BaseDriver
     {
 
         $ttl = $this->getMaxLifetime($this->expiryToLifetime($expiry));
-
-        try {
-            return apcu_store($key, $this->createEntry($value, $expiry, $tags), $ttl);
-        } catch (Throwable) {
-            return false;
-        }
+        return apcu_store($key, $this->createEntry($value, $expiry, $tags), $ttl);
     }
 
     public function clear(): bool
@@ -80,12 +75,7 @@ class ApcuDriver extends BaseDriver
 
     public function getCacheEntry(string $key): CacheEntry
     {
-
-        try {
-            return $this->createCacheEntry($key, apcu_fetch($key));
-        } catch (Throwable) {
-            return CacheEntry::createEmpty($key);
-        }
+        return $this->createCacheEntry($key, apcu_fetch($key));
     }
 
     public function has(string $key): bool
