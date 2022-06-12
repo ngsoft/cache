@@ -10,8 +10,19 @@ use NGSOFT\Cache\Exceptions\InvalidArgument,
 interface TaggableCacheItem extends CacheItemInterface
 {
 
+    /**
+     * References the Unix timestamp stating when the item will expire.
+     */
     public const METADATA_EXPIRY = 0;
+
+    /**
+     * References the value assigned to the item.
+     */
     public const METADATA_VALUE = 1;
+
+    /**
+     * References the list of tags that were assigned to the item, as string[].
+     */
     public const METADATA_TAGS = 2;
 
     /**

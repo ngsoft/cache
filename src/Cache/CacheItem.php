@@ -64,15 +64,21 @@ final class CacheItem implements TaggableCacheItem, Cache, Stringable
     )
     {
         static::validateKey($key);
-        $this->metadata = $metadata ?? [
+        $metadata = $metadata ?? [
             self::METADATA_EXPIRY => null,
             self::METADATA_VALUE => null,
             self::METADATA_TAGS => [],
         ];
+        $hit = [
+            $metadata[self::METADATA_VALUE] !== null,
+            $metadata[self::METADATA_EXPIRY] === null || $metadata[self::METADATA_EXPIRY] > microtime(true)
+        ];
 
-        if ($this->isHit()) {
-            $this->value = $this->metadata[self::METADATA_VALUE];
+        if ($this->hit = $hit[0] && $hit[1]) {
+            $this->value = $metadata[self::METADATA_VALUE];
         }
+
+        $this->metadata = $metadata;
     }
 
     /** {@inheritdoc} */
@@ -100,8 +106,6 @@ final class CacheItem implements TaggableCacheItem, Cache, Stringable
         } elseif (is_int($time)) {
             $this->expiry = time() + $time;
         } else $this->expiry = (new DateTime())->add($time)->getTimestamp();
-
-
         return $this;
     }
 
@@ -128,12 +132,6 @@ final class CacheItem implements TaggableCacheItem, Cache, Stringable
     /** {@inheritdoc} */
     public function isHit(): bool
     {
-        if (null === $this->hit) {
-            if ($this->metadata[self::METADATA_VALUE] === null) {
-                $this->hit = false;
-            } else $this->hit = $this->metadata[self::METADATA_EXPIRY] === null || $this->metadata[self::METADATA_EXPIRY] > microtime(true);
-        }
-
         return $this->hit;
     }
 

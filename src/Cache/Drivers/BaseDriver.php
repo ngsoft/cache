@@ -6,7 +6,7 @@ namespace NGSOFT\Cache\Drivers;
 
 use Closure;
 use NGSOFT\{
-    Cache\CacheEntry, Cache\Interfaces\CacheDriver, Cache\Utils\Toolkit, Traits\StringableObject, Traits\Unserializable
+    Cache\CacheEntry, Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Cache\Utils\Toolkit, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\Log\LoggerAwareTrait,
     Stringable,
@@ -21,9 +21,9 @@ abstract class BaseDriver implements CacheDriver, Stringable
         Unserializable,
         Toolkit;
 
-    protected const KEY_EXPIRY = 0;
-    protected const KEY_VALUE = 1;
-    protected const KEY_TAGS = 2;
+    protected const KEY_EXPIRY = TaggableCacheItem::METADATA_EXPIRY;
+    protected const KEY_VALUE = TaggableCacheItem::METADATA_VALUE;
+    protected const KEY_TAGS = TaggableCacheItem::METADATA_TAGS;
     protected const TAG_PREFIX = 'TAG[%s]';
 
     protected int $defaultLifetime = 0;

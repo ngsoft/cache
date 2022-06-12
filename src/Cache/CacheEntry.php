@@ -22,8 +22,6 @@ final class CacheEntry implements Stringable
     public function getCacheItem(string $key): CacheItem
     {
 
-
-
         if ($this->isHit()) {
             return CacheItem::create($key, [
                         CacheItem::METADATA_EXPIRY => $this->expiry === 0 ? null : $this->expiry,
