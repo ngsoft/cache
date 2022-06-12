@@ -64,9 +64,13 @@ class ArrayDriver extends BaseDriver
         return $this->get($key) !== null;
     }
 
-    protected function doSet(string $key, mixed $value, int $expiry, array $tags): bool
+    protected function doSet(string $key, mixed $value, int $ttl, array $tags): bool
     {
-        $this->entries[$key] = $this->createEntry($this->serializeEntry($value), $expiry, $tags);
+
+
+
+
+        $this->entries[$key] = $this->createEntry($this->serializeEntry($value), $this->lifetimeToExpiry($ttl), $tags);
         return true;
     }
 

@@ -53,10 +53,10 @@ class ApcuDriver extends BaseDriver
                 0;
     }
 
-    protected function doSet(string $key, mixed $value, int $expiry, array $tags): bool
+    protected function doSet(string $key, mixed $value, int $ttl, array $tags): bool
     {
 
-        $ttl = $this->getMaxLifetime($this->expiryToLifetime($expiry));
+        $ttl = $this->getMaxLifetime($ttl);
         return apcu_store($key, $this->createEntry($value, $expiry, $tags), $ttl);
     }
 
