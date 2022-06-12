@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
-final class CacheEntry implements \Stringable
+use Stringable;
+
+final class CacheEntry implements Stringable
 {
 
     public function __construct(
@@ -17,18 +19,18 @@ final class CacheEntry implements \Stringable
 
     }
 
-    public function getCacheItem(): Item
+    public function getCacheItem(string $key): Item
     {
 
         if ($this->isHit()) {
-            return Item::create($this->key, [
+            return Item::create($key, [
                         Item::METADATA_EXPIRY => $this->expiry === 0 ? null : $this->expiry,
                         Item::METADATA_VALUE => $this->value,
                         Item::METADATA_TAGS => $this->tags
             ]);
         }
 
-        return Item::create($this->key);
+        return Item::create($key);
     }
 
     public function isHit(): bool

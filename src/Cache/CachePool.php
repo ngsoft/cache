@@ -125,7 +125,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         try {
 
             if ($this->driver->delete($this->getCacheKey($key))) {
-                $this->dispatchEvent(new KeyDeleted($key));
+                $this->dispatchEvent(new KeyDeleted($this, $key));
                 return true;
             }
             return false;
@@ -155,8 +155,10 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
             $cacheEntry = $this->driver->getCacheEntry($prefixed);
 
             if ($cacheEntry->isHit()) {
-                $this->dispatchEvent(new Events\CacheHit($key, $cacheEntry->value));
-            } else { $this->dispatchEvent(new Events\CacheMiss($key)); }
+                $this->dispatchEvent(new Events\CacheHit($this, $key, $cacheEntry->value));
+            } else { $this->dispatchEvent(new Events\CacheMiss($this, $key)); }
+
+            return $cacheEntry->getCacheItem($key);
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
