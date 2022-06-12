@@ -156,7 +156,14 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
      */
     public function increment(string $key, int $value = 1): int
     {
-        return $this->driver->increment($this->getCacheKey($key), $value);
+
+        try {
+            $prefixed = $this->getCacheKey($key);
+            unset($this->queue[$prefixed]);
+            return $this->driver->increment($prefixed, $value);
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
     }
 
     /**
@@ -168,7 +175,14 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
      */
     public function decrement(string $key, int $value = 1): int
     {
-        return $this->driver->decrement($this->getCacheKey($key), $value);
+
+        try {
+            $prefixed = $this->getCacheKey($key);
+            unset($this->queue[$prefixed]);
+            return $this->driver->decrement($prefixed, $value);
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
     }
 
     /**
@@ -180,6 +194,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
      */
     public function add(string $key, mixed $value): bool
     {
+        // also commits
         if ($this->hasItem($key)) {
             return false;
         }
@@ -192,22 +207,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         if ($value === null) {
             return false;
         }
-        $result = $this->save($item->set($value));
-
-        $dump = [
-            $key => [
-                $this->driver::class => $this->driver->getCacheEntry($this->getCacheKey($key))->getCacheItem($key)
-            ]
-        ];
-
-        foreach ($this->driver as $driver) {
-
-            $dump[$key] [$driver::class] = $driver->getCacheEntry($this->getCacheKey($key))->getCacheItem($key);
-        }
-
-        var_dump($dump);
-
-        return $result;
+        return $this->save($item->set($value));
     }
 
     /** {@inheritdoc} */
@@ -293,7 +293,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
             } else { $item = $this->driver->getCacheEntry($prefixed)->getCacheItem($key); }
 
             if ($item->isHit()) {
-                $this->dispatchEvent(new CacheHit($this, $key, $cacheEntry->value));
+                $this->dispatchEvent(new CacheHit($this, $key, $item->get()));
             } else { $this->dispatchEvent(new CacheMiss($this, $key)); }
 
             return $item;

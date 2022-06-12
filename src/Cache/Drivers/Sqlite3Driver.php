@@ -72,33 +72,36 @@ class Sqlite3Driver extends BaseDriver
             $columns = $this->getColumns();
         } else $columns = [self::COLUMN_KEY, self::COLUMN_EXPIRY];
 
-        $query = $this->driver->prepare(
-                sprintf('SELECT %s FROM %s WHERE %s = :key LIMIT 1',
-                        implode(',', $columns),
-                        $this->table,
-                        $columns[0]
-                )
-        );
 
-        $query->bindValue(':key', $key, SQLITE3_TEXT);
-        $result = $query->execute();
 
-        if (false === $result) {
+        try {
+            $this->setErrorHandler();
+
+            $query = $this->driver->prepare(
+                    sprintf('SELECT %s FROM %s WHERE %s = :key LIMIT 1',
+                            implode(',', $columns),
+                            $this->table,
+                            $columns[0]
+                    )
+            );
+
+            $query->bindValue(':key', $key, SQLITE3_TEXT);
+            //there can return false twice
+            $result = $query->execute()->fetchArray(SQLITE3_ASSOC);
+
+            if (false === $result) {
+                return null;
+            }
+
+            if ($this->isExpired($result[static::COLUMN_EXPIRY])) {
+                $this->delete($key);
+                return null;
+            }
+
+            return $result;
+        } catch (\Throwable) {
             return null;
-        }
-
-        $result = $result->fetchArray(SQLITE3_ASSOC);
-
-        if (false === $result) {
-            return null;
-        }
-
-        if ($this->isExpired($result[static::COLUMN_EXPIRY])) {
-            $this->delete($key);
-            return null;
-        }
-
-        return $result;
+        } finally { \restore_error_handler(); }
     }
 
     protected function unserializeEntry(mixed $value): mixed
