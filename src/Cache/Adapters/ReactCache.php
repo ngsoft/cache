@@ -128,7 +128,13 @@ class ReactCache implements Cache, CacheInterface, Stringable, LoggerAwareInterf
     {
 
         try {
-            return $this->all($this->driver->getMany(array_map(fn($key) => $this->getCacheKey($key), $keys), $default));
+
+            $result = [];
+
+            foreach ($keys as $key) {
+                $result[$key] = $this->driver->get($this->getCacheKey($key), $default);
+            }
+            return $this->all($result);
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
@@ -138,13 +144,13 @@ class ReactCache implements Cache, CacheInterface, Stringable, LoggerAwareInterf
     {
 
         try {
+            $callable = function ($val, &$key) {
+                $key = $this->getCacheKey($key);
+                return $val;
+            };
 
-            $prefixed = Tools::map(function ($val, &$key) {
-                        $key = $this->getCacheKey($key);
-                        return $val;
-                    }, $values);
+            $prefixed = Tools::map($callable, $values);
 
-            var_dump($prefixed);
             $result = $this->driver->setMany($prefixed, $ttl);
 
             return $this->resolve($result);

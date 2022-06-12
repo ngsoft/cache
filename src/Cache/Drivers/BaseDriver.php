@@ -149,9 +149,11 @@ abstract class BaseDriver implements CacheDriver, Stringable
     /** {@inheritdoc} */
     public function getMany(iterable $keys, mixed $default = null): iterable
     {
+        $result = [];
         foreach ($keys as $key) {
-            yield $key => $this->get($key, $default);
+            $result[$key] = $this->get($key, $default);
         }
+        return $result;
     }
 
     /** {@inheritdoc} */
