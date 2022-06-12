@@ -76,5 +76,6 @@ return [
         'PhanRedefinedInheritedInterface',
         'PhanRedefinedClassReference',
         'PhanRedefinedUsedTrait',
+        'PhanTypeMismatchArgumentInternalProbablyReal',
     ]
 ];

@@ -15,7 +15,7 @@ use function get_debug_type;
 class ChainDriver extends BaseDriver implements Countable
 {
 
-    /** @var CacheDriver */
+    /** @var CacheDriver[] */
     protected array $drivers = [];
 
     public function __construct(
