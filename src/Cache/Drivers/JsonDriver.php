@@ -32,7 +32,7 @@ class JsonDriver extends BaseDriver
 
     public function purge(): void
     {
-        $cache = $this->provider[$this->key];
+        $cache = &$this->provider[$this->key];
 
         foreach ($cache as $key => $entry) {
             if ($this->isExpired($entry[self::KEY_EXPIRY])) {
