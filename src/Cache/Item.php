@@ -129,7 +129,7 @@ final class Item implements TaggableCacheItem, Cache, Stringable
     public function isHit(): bool
     {
         if (null === $this->hit) {
-            if ($this->metadata[self::METADATA_VALUE] !== null) {
+            if ($this->metadata[self::METADATA_VALUE] === null) {
                 $this->hit = false;
             } else $this->hit = $this->metadata[self::METADATA_EXPIRY] === null || $this->metadata[self::METADATA_EXPIRY] > microtime(true);
         }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache;
 
+use Closure;
 use NGSOFT\{
     Cache\Events\CacheEvent, Cache\Events\CacheHit, Cache\Events\CacheMiss, Cache\Events\KeyDeleted, Cache\Events\KeySaved, Cache\Exceptions\InvalidArgument,
     Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Cache\Utils\ExceptionLogger, Cache\Utils\PrefixAble, Cache\Utils\Toolkit, Traits\StringableObject,
@@ -106,6 +107,79 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
+    }
+
+    /**
+     * Fetches a value from the pool or computes it if not found.
+     *
+     * @param string $key
+     * @param mixed|Closure $default if set the item will be saved with that value
+     * @return mixed
+     */
+    public function get(string $key, mixed $default = null): mixed
+    {
+
+        $item = $this->getItem($key);
+        if (!$item->isHit()) {
+            if ($default instanceof Closure) {
+                $value = $default($item);
+            } else $value = $default;
+            if ($value !== null) {
+                $this->save($item->set($value));
+            }
+        }
+
+        return $item->get();
+    }
+
+    /**
+     * Increment a number under the key and return incremented value
+     *
+     * @param string $key
+     * @param int $value
+     * @return int
+     */
+    public function increment(string $key, int $value = 1): int
+    {
+        return $this->driver->increment($this->getCacheKey($key), $value);
+    }
+
+    /**
+     * Decrement a number under the key and return decremented value
+     *
+     * @param string $key
+     * @param int $value
+     * @return int
+     */
+    public function decrement(string $key, int $value = 1): int
+    {
+        return $this->driver->decrement($this->getCacheKey($key), $value);
+    }
+
+    /**
+     * Adds data if it doesn't already exists
+     *
+     * @param string $key
+     * @param mixed|Closure $value
+     * @return bool True if the data have been added, false otherwise
+     */
+    public function add(string $key, mixed $value): bool
+    {
+
+        $item = $this->getItem($key);
+
+        if ($item->isHit()) {
+            return false;
+        }
+
+        if ($value instanceof Closure) {
+            $value = $value($item);
+        }
+        if ($value === null) {
+            return false;
+        }
+
+        return $this->save($item->set($value));
     }
 
     /** {@inheritdoc} */
