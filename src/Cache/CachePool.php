@@ -27,13 +27,14 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
 
     /** @var CacheItem[] */
     protected array $queue = [];
+    protected ?EventDispatcherInterface $eventDispatcher = null;
 
     public function __construct(
             CacheDriver $driver,
             string $prefix = '',
             int $defaultLifetime = 0,
-            LoggerInterface $logger = null,
-            protected ?EventDispatcherInterface $eventDispatcher = null,
+            ?LoggerInterface $logger = null,
+            ?EventDispatcherInterface $eventDispatcher = null,
     )
     {
 
@@ -47,6 +48,10 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
 
         if ($logger !== null) {
             $this->setLogger($logger);
+        }
+
+        if ($eventDispatcher !== null) {
+            $this->eventDispatcher = $eventDispatcher;
         }
     }
 
@@ -122,6 +127,16 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
+    }
+
+    /**
+     * Removes expired item entries if supported
+     *
+     * @return void
+     */
+    public function purge(): void
+    {
+        $this->driver->purge();
     }
 
     /**
