@@ -101,7 +101,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
         }
 
         try {
-            $result = $this->doSet($key, $value, $expiry, $tags);
+            $result = $this->doSet($key, $value, $expiry, array_values($tags));
         } catch (Throwable) {
             $result = false;
         }
