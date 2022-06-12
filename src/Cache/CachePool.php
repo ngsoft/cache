@@ -144,7 +144,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
     }
 
     /**
-     * Increment a number under the key and return incremented value
+     * Increment the value of an item in the cache.
      *
      * @param string $key
      * @param int $value
@@ -156,7 +156,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
     }
 
     /**
-     * Decrement a number under the key and return decremented value
+     * Decrement the value of an item in the cache.
      *
      * @param string $key
      * @param int $value

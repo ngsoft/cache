@@ -72,7 +72,7 @@ interface CacheDriver extends IteratorAggregate, LoggerAwareInterface
     public function set(string $key, mixed $value, ?int $ttl = null, string|array $tags = []): bool;
 
     /**
-     * Increments a cache entry
+     * Increment the value of an item in the cache.
      *
      * @param string $key
      * @param int $value
@@ -81,7 +81,7 @@ interface CacheDriver extends IteratorAggregate, LoggerAwareInterface
     public function increment(string $key, int $value = 1): int;
 
     /**
-     * Decrement a cache entry
+     * Decrement the value of an item in the cache.
      *
      * @param string $key
      * @param int $value
