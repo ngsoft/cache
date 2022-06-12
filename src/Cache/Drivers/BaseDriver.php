@@ -100,7 +100,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
 
         $tags = is_array($tags) ? $tags : [$tags];
 
-        if ($value === null) {
+        if ($value === null || $ttl < 0) {
             return $this->delete($key);
         }
 

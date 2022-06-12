@@ -51,7 +51,7 @@ trait Toolkit
     protected function isExpired(?int $expiry): bool
     {
         if (null === $expiry) {
-            return false;
+            return true;
         }
 
         return $expiry !== 0 && microtime(true) > $expiry;
