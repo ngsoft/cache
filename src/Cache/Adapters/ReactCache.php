@@ -209,6 +209,7 @@ final class ReactCache implements Cache, CacheInterface, Stringable, LoggerAware
         }
     }
 
+    /** {@inheritdoc} */
     public function setMultiple(array $values, $ttl = null): PromiseInterface
     {
 
@@ -217,6 +218,10 @@ final class ReactCache implements Cache, CacheInterface, Stringable, LoggerAware
                 $key = $this->getCacheKey($key);
                 return $val;
             };
+
+            if (null !== $ttl) {
+                $ttl = (int) ceil($ttl);
+            }
 
             $prefixed = Tools::map($callable, $values);
 
