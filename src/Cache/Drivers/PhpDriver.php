@@ -340,9 +340,8 @@ class PhpDriver extends BaseDriver
         $fileContents .= "];";
 
         $phpFile = $filename . self::EXTENSION_PHP;
-        if (is_file($phpFile)) {
-            $this->invalidate($phpFile);
-        }
+
+        $this->invalidate($phpFile);
 
         if ($this->write($phpFile, $fileContents)) {
             $this->compile($phpFile);

@@ -25,7 +25,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         StringableObject,
         Toolkit;
 
-    /** @var Item[] */
+    /** @var CacheItem[] */
     protected array $queue = [];
 
     public function __construct(
@@ -72,7 +72,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         $this->driver->setLogger($this->logger = $logger);
     }
 
-    protected function isHit(Item $item): bool
+    protected function isHit(CacheItem $item): bool
     {
         if ($item->get() === null) {
             return false;
@@ -209,7 +209,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
 
             $result = [];
 
-            /** @var Item $item */
+            /** @var CacheItem $item */
             foreach ($queue as $prefixed => $item) {
 
                 if (!$this->isHit($item)) {
@@ -317,10 +317,10 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
     {
 
         try {
-            if ($item instanceof Item === false) {
+            if ($item instanceof CacheItem === false) {
                 throw new InvalidArgument(sprintf(
                                         'Cache items are not transferable between pools. "%s" requested, "%s" given.',
-                                        Item::class,
+                                        CacheItem::class,
                                         get_class($item)
                 ));
             }

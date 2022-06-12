@@ -16,7 +16,7 @@ use function get_debug_type;
 /**
  * A Cache Item
  */
-final class Item implements TaggableCacheItem, Cache, Stringable
+final class CacheItem implements TaggableCacheItem, Cache, Stringable
 {
 
     use Unserializable,

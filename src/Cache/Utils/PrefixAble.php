@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Utils;
 
 use NGSOFT\Cache\{
-    Exceptions\InvalidArgument, Interfaces\CacheDriver, Item
+    Exceptions\InvalidArgument, Interfaces\CacheDriver, CacheItem
 };
 
 trait PrefixAble
@@ -32,8 +32,8 @@ trait PrefixAble
      */
     public function setPrefix(string $prefix): void
     {
-        if (false !== strpbrk($prefix, Item::RESERVED_CHAR_KEY)) {
-            throw new InvalidArgument(sprintf('Cache prefix "%s" contains reserved characters "%s".', $prefix, Item::RESERVED_CHAR_KEY));
+        if (false !== strpbrk($prefix, CacheItem::RESERVED_CHAR_KEY)) {
+            throw new InvalidArgument(sprintf('Cache prefix "%s" contains reserved characters "%s".', $prefix, CacheItem::RESERVED_CHAR_KEY));
         }
         $this->prefix = $prefix;
         $this->version = -1;
@@ -61,7 +61,7 @@ trait PrefixAble
 
     final protected function getCacheKey(string $key): string
     {
-        Item::validateKey($key);
+        CacheItem::validateKey($key);
         return
                 $this->prefix === '' ?
                 $key :

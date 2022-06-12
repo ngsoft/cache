@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Cache;
+namespace NGSOFT\Cache\Adapters;
 
 use Closure,
     DateInterval;
