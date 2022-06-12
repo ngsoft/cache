@@ -180,12 +180,11 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
      */
     public function add(string $key, mixed $value): bool
     {
-
-        $item = $this->getItem($key);
-
-        if ($item->isHit()) {
+        if ($this->hasItem($key)) {
             return false;
         }
+
+        $item = $this->getItem($key);
 
         if ($value instanceof Closure) {
             $value = $value($item);
@@ -193,7 +192,6 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         if ($value === null) {
             return false;
         }
-
         return $this->save($item->set($value));
     }
 
@@ -212,22 +210,27 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
             $queue = $this->queue;
             $this->queue = [];
 
-            $result = [];
+            $result = true;
 
             /** @var CacheItem $item */
             foreach ($queue as $prefixed => $item) {
 
                 if (!$this->isHit($item)) {
-                    $result[] = $this->deleteItem($item->getKey());
+
+                    if (!$this->deleteItem($item->getKey())) {
+                        $result = false;
+                    }
                     continue;
                 }
                 $ttl = $this->expiryToLifetime($item->expiry);
-                if ($result[] = $this->driver->set($prefixed, $item->get(), $ttl, $item->tags)) {
-                    $this->dispatchEvent(new KeySaved($this, $item->getKey(), $item->get()));
-                } else $this->deleteItem($item->getKey());
+
+                if (!$this->driver->set($prefixed, $item->get(), $ttl, $item->tags)) {
+                    $result = false;
+                    $this->deleteItem($item->getKey());
+                } else { $this->dispatchEvent(new KeySaved($this, $item->getKey(), $item->get())); }
             }
 
-            return $this->every(fn($bool) => $bool, $result);
+            return $result;
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
@@ -238,6 +241,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
     {
         try {
 
+            unset($this->queue[$this->getCacheKey($key)]);
             if ($this->driver->delete($this->getCacheKey($key))) {
                 $this->dispatchEvent(new KeyDeleted($this, $key));
                 return true;
@@ -268,13 +272,16 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
     {
         try {
             $prefixed = $this->getCacheKey($key);
-            $cacheEntry = $this->driver->getCacheEntry($prefixed);
 
-            if ($cacheEntry->isHit()) {
+            if (isset($this->queue[$prefixed])) {
+                $item = clone $this->queue[$prefixed];
+            } else { $item = $this->driver->getCacheEntry($prefixed)->getCacheItem($key); }
+
+            if ($item->isHit()) {
                 $this->dispatchEvent(new CacheHit($this, $key, $cacheEntry->value));
             } else { $this->dispatchEvent(new CacheMiss($this, $key)); }
 
-            return $cacheEntry->getCacheItem($key);
+            return $item;
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
@@ -322,16 +329,15 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
     {
 
         try {
-            if ($item instanceof CacheItem === false) {
-                throw new InvalidArgument(sprintf(
-                                        'Cache items are not transferable between pools. "%s" requested, "%s" given.',
-                                        CacheItem::class,
-                                        get_class($item)
-                ));
+            if ($item instanceof CacheItem) {
+                $this->queue[$this->getCacheKey($item->getKey())] = $item;
+                return true;
             }
-
-            $this->queue[$this->getCacheKey($item->getKey())] = $item;
-            return true;
+            throw new InvalidArgument(sprintf(
+                                    'Cache items are not transferable between pools. "%s" requested, "%s" given.',
+                                    CacheItem::class,
+                                    get_class($item)
+            ));
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }

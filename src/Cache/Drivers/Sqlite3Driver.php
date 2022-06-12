@@ -81,11 +81,13 @@ class Sqlite3Driver extends BaseDriver
         );
 
         $query->bindValue(':key', $key, SQLITE3_TEXT);
-        $result = $query->execute()->fetchArray(SQLITE3_ASSOC);
+        $result = $query->execute();
 
         if (false === $result) {
             return null;
         }
+
+        $result = $result->fetchArray(SQLITE3_ASSOC);
 
         if ($this->isExpired($result[static::COLUMN_EXPIRY])) {
             $this->delete($key);

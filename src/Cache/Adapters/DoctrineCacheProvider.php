@@ -66,10 +66,11 @@ class DoctrineCacheProvider extends CacheProvider implements Cache, LoggerAwareI
     /** {@inheritdoc} */
     public function save($id, $data, $lifeTime = 0): bool
     {
-
+        // defaultLifetime
         if ($lifeTime === 0) {
             $lifeTime = null;
         }
+
         return $this->driver->set($this->getCacheKey($id), $data, $lifeTime);
     }
 
@@ -129,6 +130,8 @@ class DoctrineCacheProvider extends CacheProvider implements Cache, LoggerAwareI
 
         return $result;
     }
+
+    // all is disabled after this
 
     public function getStats()
     {
