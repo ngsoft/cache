@@ -20,12 +20,17 @@ class Sqlite3Driver extends BaseDriver
 
     protected SQLite3 $driver;
 
+    /**
+     *
+     * @param SQLite3|string $provider A SQLite3 instance or a filename
+     * @param string $table
+     */
     public function __construct(
             SQLite3|string $provider = '',
             protected readonly string $table = 'cache'
     )
     {
-        $driver = empty($provider) ? sys_get_temp_dir() . DIRECTORY_SEPARATOR . $table . '.db3' : $driver;
+        $provider = empty($provider) ? sys_get_temp_dir() . DIRECTORY_SEPARATOR . $table . '.db3' : $provider;
         $this->driver = is_string($provider) ? new SQLite3($provider) : $provider;
         $this->createTable($this->table);
     }

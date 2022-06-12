@@ -20,9 +20,10 @@ abstract class BaseDriver implements CacheDriver, Stringable
         StringableObject,
         Unserializable;
 
-    public const KEY_EXPIRY = 0;
-    public const KEY_VALUE = 1;
-    public const KEY_TAGS = 2;
+    protected const KEY_EXPIRY = 0;
+    protected const KEY_VALUE = 1;
+    protected const KEY_TAGS = 2;
+    protected const TAG_PREFIX = 'TAG[%s]';
 
     protected int $defaultLifetime = 0;
 
@@ -149,7 +150,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
 
 
             $tagKey = sprintf(self::TAG_PREFIX, $tagName);
-            $entry = $this->get($tagKey, []);
+            $entry = $this->get($tagKey);
 
             if (empty($entry)) {
                 continue;
@@ -192,7 +193,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
     }
 
     /**
-     * Tag a specific entry with given tags
+     * Creates a tag entry into the cache that points to specific key(s)
      *
      * @param string $key
      * @param string|string[] $tags
