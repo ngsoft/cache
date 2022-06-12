@@ -6,8 +6,8 @@ namespace NGSOFT\Cache\Drivers;
 
 use FilesystemIterator,
     Generator;
-use NGSOFT\Cache\{
-    CacheEntry, Exceptions\CacheError, Exceptions\InvalidArgument
+use NGSOFT\{
+    Cache\CacheEntry, Cache\Exceptions\CacheError, Cache\Exceptions\InvalidArgument, Tools
 };
 use RecursiveDirectoryIterator,
     Symfony\Component\VarExporter\VarExporter,
@@ -162,6 +162,7 @@ class PhpDriver extends BaseDriver
         try {
             return $handler($file);
         } catch (Throwable $error) {
+
             $this->logger?->debug('Cache Miss ! A file failed to load.', [
                 "driver" => static::class,
                 "filename" => $file,
@@ -373,11 +374,28 @@ class PhpDriver extends BaseDriver
         return $this->getCacheEntry($key)->isHit();
     }
 
+    protected function getStats(): array
+    {
+        $usage = 0;
+        $count = 0;
+        foreach ($this->getFiles($this->root, [self::EXTENSION_PHP, self::EXTENSION_TXT]) as $path) {
+            $usage += filesize($path) ?: 0;
+            $count++;
+        }
+
+
+        return [
+            'File Count' => $count,
+            'File Usage' => Tools::getFilesize($usage),
+            'Free Space' => Tools::getFilesize(disk_free_space($this->root) ?: 0),
+        ];
+    }
+
     public function __debugInfo(): array
     {
         return [
             'defaultLifetime' => $this->defaultLifetime,
-            'root' => $this->root,
+            $this->root => $this->getStats(),
         ];
     }
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Drivers;
 
 use NGSOFT\{
-    Cache\CacheEntry, DataStructure\SimpleObject
+    Cache\CacheEntry, DataStructure\SimpleObject, Tools
 };
 
 class JsonDriver extends BaseDriver
@@ -66,7 +66,7 @@ class JsonDriver extends BaseDriver
 
     public function getCacheEntry(string $key): CacheEntry
     {
-
+        $this->purge();
         $entry = $this->provider[$this->key][$key]?->toArray();
         if (!is_null($entry)) {
             $value = $this->unserializeEntry($entry[self::KEY_VALUE]);
@@ -84,6 +84,17 @@ class JsonDriver extends BaseDriver
     public function has(string $key): bool
     {
         return $this->getCacheEntry($key)->isHit();
+    }
+
+    public function __debugInfo(): array
+    {
+        return [
+            'defaultLifetime' => $this->defaultLifetime,
+            $this->file . "[{$this->key}]" => [
+                'File Size' => Tools::getFilesize(filesize($this->file) ?: 0),
+                'Cache Entries' => count($this->provider[$this->key]),
+            ]
+        ];
     }
 
 }

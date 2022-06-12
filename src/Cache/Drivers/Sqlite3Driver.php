@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
-use JsonException,
-    NGSOFT\Cache\CacheEntry,
-    SQLite3,
+use JsonException;
+use NGSOFT\{
+    Cache\CacheEntry, Tools
+};
+use SQLite3,
     SQLite3Result,
     Throwable;
 
@@ -188,6 +190,7 @@ class Sqlite3Driver extends BaseDriver
     public function getCacheEntry(string $key): CacheEntry
     {
 
+        $this->purge();
 
         if ($item = $this->find($key)) {
 
@@ -211,10 +214,14 @@ class Sqlite3Driver extends BaseDriver
 
         $filename = $this->driver->query('PRAGMA database_list')->fetchArray(SQLITE3_ASSOC)['file'];
 
+        $count = $this->driver->querySingle(sprintf('SELECT COUNT(*) as count FROM %s', $this->table));
+
         return [
             'defaultLifetime' => $this->defaultLifetime,
-            'database' => $filename,
-            'table' => $this->table
+            $filename . "[{$this->table}]" => [
+                'File Size' => Tools::getFilesize(filesize($filename) ?: 0),
+                "Cache Entries" => $count,
+            ],
         ];
     }
 

@@ -67,7 +67,6 @@ abstract class BaseDriver implements CacheDriver, Stringable
     /** {@inheritdoc} */
     public function get(string $key, mixed $default = null): mixed
     {
-
         try {
             $entry = $this->getCacheEntry($key);
         } catch (Throwable) {
