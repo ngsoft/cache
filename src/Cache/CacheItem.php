@@ -8,7 +8,7 @@ use DateInterval,
     DateTime,
     DateTimeInterface;
 use NGSOFT\{
-    Cache, Cache\Exceptions\InvalidArgument, Cache\Interfaces\TaggableCacheItem, Traits\StringableObject, Traits\Unserializable
+    Cache, Cache\Exceptions\InvalidArgument, Cache\Interfaces\TaggableCacheItem, Cache\Utils\Toolkit, Traits\StringableObject, Traits\Unserializable
 };
 use Stringable;
 use function get_debug_type;
@@ -20,7 +20,8 @@ final class CacheItem implements TaggableCacheItem, Cache, Stringable
 {
 
     use Unserializable,
-        StringableObject;
+        StringableObject,
+        Toolkit;
 
     public const RESERVED_CHAR_KEY = '{}()/\@:';
 
@@ -69,12 +70,8 @@ final class CacheItem implements TaggableCacheItem, Cache, Stringable
             self::METADATA_VALUE => null,
             self::METADATA_TAGS => [],
         ];
-        $hit = [
-            $metadata[self::METADATA_VALUE] !== null,
-            $metadata[self::METADATA_EXPIRY] === null || $metadata[self::METADATA_EXPIRY] > microtime(true)
-        ];
 
-        if ($this->hit = $hit[0] && $hit[1]) {
+        if ($this->hit = $metadata[self::METADATA_VALUE] !== null && !$this->isExpired($metadata[self::METADATA_EXPIRY])) {
             $this->value = $metadata[self::METADATA_VALUE];
         }
 

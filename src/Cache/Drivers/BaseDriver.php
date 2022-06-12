@@ -76,7 +76,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
         if ($entry->isHit()) {
             return $entry->value;
         }
-        return $default instanceof Closure ? $default($this, $key) : $default;
+        return $default instanceof Closure ? $default() : $default;
     }
 
     /**
@@ -223,22 +223,6 @@ abstract class BaseDriver implements CacheDriver, Stringable
         // classname added to prevent conflicts on similar drivers
         // MD5 as we need speed and some filesystems are limited in length
         return hash('MD5', static::class . $key);
-    }
-
-    /**
-     * Convenience function to convert expiry into TTL
-     * A TTL/expiry of 0 never expires
-     *
-     *
-     * @param int $expiry
-     * @return int the ttl a negative ttl is already expired
-     */
-    protected function expiryToLifetime(int $expiry): int
-    {
-        return
-                $expiry !== 0 ?
-                $expiry - time() :
-                0;
     }
 
     /**
