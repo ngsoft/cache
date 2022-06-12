@@ -12,6 +12,12 @@ use Psr\SimpleCache\CacheInterface;
 class PSR16Driver extends BaseDriver
 {
 
+    /**
+     * 5 Years
+     * @var int
+     */
+    protected int $defaultLifetime = 157784760;
+
     public function __construct(
             protected CacheInterface $provider
     )
