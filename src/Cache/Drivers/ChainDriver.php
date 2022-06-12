@@ -87,7 +87,7 @@ class ChainDriver extends BaseDriver implements Countable
         return $result;
     }
 
-    protected function doSet(string $key, mixed $value, int $expiry, array $tags): bool
+    protected function doSet(string $key, mixed $value, ?int $ttl, array $tags): bool
     {
         return false;
     }

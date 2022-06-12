@@ -37,9 +37,9 @@ class PSR16Driver extends BaseDriver
         return $this->provider->delete($key);
     }
 
-    protected function doSet(string $key, mixed $value, int $expiry, array $tags): bool
+    protected function doSet(string $key, mixed $value, ?int $ttl, array $tags): bool
     {
-        return $this->provider->set($key, $this->createEntry($value, $expiry, $tags), $expiry === 0 ? null : $this->expiryToLifetime($expiry));
+        return $this->provider->set($key, $this->createEntry($value, $this->lifetimeToExpiry($ttl), $tags), $ttl);
     }
 
     public function getCacheEntry(string $key): CacheEntry

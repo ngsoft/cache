@@ -22,9 +22,9 @@ class IlluminateDriver extends BaseDriver
         }
     }
 
-    protected function doSet(string $key, mixed $value, int $expiry, array $tags): bool
+    protected function doSet(string $key, mixed $value, ?int $ttl, array $tags): bool
     {
-        return $this->provider->put($key, $this->createEntry($value, $expiry, $tags), $this->expiryToLifetime($expiry));
+        return $this->provider->put($key, $this->createEntry($value, $this->lifetimeToExpiry($ttl), $tags), $this->getLifetime($ttl));
     }
 
     public function clear(): bool

@@ -46,13 +46,13 @@ class PSR6Driver extends BaseDriver
         return $item;
     }
 
-    protected function doSet(string $key, mixed $value, int $expiry, array $tags): bool
+    protected function doSet(string $key, mixed $value, ?int $ttl, array $tags): bool
     {
         return $this->provider->save(
                         $this
                                 ->pullItem($key)
-                                ->set($this->createEntry($value, $expiry, $tags))
-                                ->expiresAfter($expiry === 0 ? null : $this->expiryToLifetime($expiry))
+                                ->set($this->createEntry($value, $this->lifetimeToExpiry($ttl), $tags))
+                                ->expiresAfter($ttl)
         );
     }
 

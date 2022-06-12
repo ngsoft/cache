@@ -309,7 +309,7 @@ class PhpDriver extends BaseDriver
         return $result;
     }
 
-    protected function doSet(string $key, mixed $value, int $expiry, array $tags): bool
+    protected function doSet(string $key, mixed $value, ?int $ttl, array $tags): bool
     {
 
 
@@ -327,6 +327,9 @@ class PhpDriver extends BaseDriver
         if (null === $contents) {
             return false;
         }
+
+
+        $expiry = $this->lifetimeToExpiry($ttl);
 
         $fileContents = "<?php\nreturn ";
         if ($expiry > 0) {

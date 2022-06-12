@@ -53,14 +53,14 @@ class JsonDriver extends BaseDriver
         return true;
     }
 
-    protected function doSet(string $key, mixed $value, int $expiry, array $tags): bool
+    protected function doSet(string $key, mixed $value, ?int $ttl, array $tags): bool
     {
 
         $serialized = $this->serializeEntry($value);
         if ($serialized === null) {
             return false;
         }
-        $this->provider[$this->key] [$key] = $this->createEntry($serialized, $expiry, $tags);
+        $this->provider[$this->key] [$key] = $this->createEntry($serialized, $this->lifetimeToExpiry($ttl), $tags);
         return true;
     }
 

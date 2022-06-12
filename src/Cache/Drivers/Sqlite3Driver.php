@@ -136,7 +136,7 @@ class Sqlite3Driver extends BaseDriver
         } catch (Throwable) { return null; } finally { restore_error_handler(); }
     }
 
-    protected function doSet(string $key, mixed $value, int $expiry, array $tags): bool
+    protected function doSet(string $key, mixed $value, ?int $ttl, array $tags): bool
     {
         $query = $this->driver->prepare(
                 sprintf(
@@ -147,7 +147,7 @@ class Sqlite3Driver extends BaseDriver
         );
         $query->bindValue(':key', $key, SQLITE3_TEXT);
         $query->bindValue(':data', $this->serializeEntry($value), SQLITE3_BLOB);
-        $query->bindValue(':expiry', $expiry, SQLITE3_INTEGER);
+        $query->bindValue(':expiry', $this->lifetimeToExpiry($ttl), SQLITE3_INTEGER);
         $query->bindValue(':tags', json_encode($tags), SQLITE3_BLOB);
 
         return $query->execute() instanceof SQLite3Result;
