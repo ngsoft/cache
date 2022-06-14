@@ -6,7 +6,7 @@ namespace NGSOFT\Cache\Adapters;
 
 use Closure;
 use NGSOFT\{
-    Cache, Cache\Exceptions\CacheError, Cache\Interfaces\CacheDriver, Cache\Utils\ExceptionLogger, Cache\Utils\PrefixAble, Cache\Utils\Toolkit, Tools, Traits\StringableObject,
+    Cache, Cache\Exceptions\CacheError, Cache\Interfaces\CacheDriver, Cache\Utils\ExceptionLogger, Cache\Utils\PrefixAble, Cache\Utils\Toolkit, Traits\StringableObject,
     Traits\Unserializable
 };
 use Psr\Log\{
@@ -17,6 +17,7 @@ use React\{
 };
 use Stringable,
     Throwable;
+use function NGSOFT\Tools\map;
 use function React\Promise\{
     all, resolve
 };
@@ -223,7 +224,7 @@ final class ReactCache implements Cache, CacheInterface, Stringable, LoggerAware
                 $ttl = (int) ceil($ttl);
             }
 
-            $prefixed = Tools::map($callable, $values);
+            $prefixed = map($callable, $values);
 
             $result = $this->driver->setMany($prefixed, $ttl);
 

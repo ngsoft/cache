@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Drivers;
 
 use Countable;
-use NGSOFT\{
-    Cache\CacheEntry, Cache\Interfaces\CacheDriver, Tools
+use NGSOFT\Cache\{
+    CacheEntry, Interfaces\CacheDriver
 };
 use Traversable,
     ValueError;
-use function get_debug_type;
+use function get_debug_type,
+             NGSOFT\Tools\some;
 
 class ChainDriver extends BaseDriver implements Countable
 {
@@ -141,7 +142,7 @@ class ChainDriver extends BaseDriver implements Countable
 
     public function has(string $key): bool
     {
-        return Tools::some(fn($driver) => $driver->has($key), $this);
+        return some(fn($driver) => $driver->has($key), $this);
     }
 
     public function __debugInfo(): array

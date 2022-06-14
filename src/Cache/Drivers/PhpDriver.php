@@ -13,6 +13,7 @@ use RecursiveDirectoryIterator,
     Symfony\Component\VarExporter\VarExporter,
     Throwable;
 use function mb_strlen,
+             NGSOFT\Tools\some,
              str_ends_with,
              str_starts_with;
 
@@ -125,7 +126,7 @@ class PhpDriver extends BaseDriver
                 if ($file === '.' || $file === '..' || strpos($file, '.') !== 32) {
                     continue;
                 }
-                if (Tools::some(fn($extension) => str_ends_with($file, $extension), $extensions)) {
+                if (some(fn($extension) => str_ends_with($file, $extension), $extensions)) {
                     yield $file => $dir . DIRECTORY_SEPARATOR . $file;
                 }
             }

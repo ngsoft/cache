@@ -6,12 +6,13 @@ namespace NGSOFT\Cache\Drivers;
 
 use Closure;
 use NGSOFT\{
-    Cache\CacheEntry, Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Cache\Utils\Toolkit, Tools, Traits\StringableObject, Traits\Unserializable
+    Cache\CacheEntry, Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Cache\Utils\Toolkit, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\Log\LoggerAwareTrait,
     Stringable,
     Throwable,
     Traversable;
+use function NGSOFT\Tools\every;
 
 abstract class BaseDriver implements CacheDriver, Stringable
 {
@@ -198,7 +199,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
 
             $removed[$tagKey] = $this->delete($tagKey);
         }
-        return count($removed) > 0 && Tools::every(fn($val) => $val, $removed);
+        return count($removed) > 0 && every(fn($val) => $val, $removed);
     }
 
     /**
