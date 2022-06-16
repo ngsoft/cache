@@ -11,7 +11,7 @@ use NGSOFT\{
 class JsonDriver extends BaseDriver
 {
 
-    protected SimpleObject $provider;
+    public SimpleObject $provider;
 
     public function __construct(
             protected string $file = '',
@@ -25,7 +25,7 @@ class JsonDriver extends BaseDriver
 
         $this->provider = SimpleObject::syncJsonFile($this->file);
 
-        if (!isset($this->provider[$this->key])) {
+        if ( ! isset($this->provider[$this->key])) {
             $this->provider[$this->key] = [];
         }
     }
@@ -68,7 +68,7 @@ class JsonDriver extends BaseDriver
     {
         $this->purge();
         $entry = $this->provider[$this->key][$key]?->toArray();
-        if (!is_null($entry)) {
+        if ( ! is_null($entry)) {
             $value = $this->unserializeEntry($entry[self::KEY_VALUE]);
 
             return $this->createCacheEntry($key, [
