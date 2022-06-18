@@ -6,97 +6,46 @@ namespace NGSOFT\Cache\Drivers;
 
 use JsonException;
 use NGSOFT\{
-    Cache\CacheEntry, Cache\Databases\DatabaseAdapter, Tools
+    Cache\CacheEntry, Cache\Databases\DatabaseAdapter, Cache\Databases\SQLite\PDOAdapter, Cache\Databases\SQLite\QueryEngine, Cache\Databases\SQLite\SQLite3Adapter,
+    Cache\Exceptions\InvalidArgument, Tools
 };
-use SQLite3,
-    SQLite3Result,
+use PDO,
+    SQLite3,
     Throwable;
 
 class Sqlite3Driver extends BaseDriver
 {
 
-    protected SQLite3 $driver;
+    protected QueryEngine $driver;
 
     /**
      *
-     * @param SQLite3|string $provider A SQLite3 instance or a filename
+     * @param SQLite3|PDO|string $driver A SQLite3 instance or a filename
      * @param string $table
      */
     public function __construct(
-            SQLite3|string $provider = '',
+            SQLite3|PDO|string $driver = '',
             protected readonly string $table = 'cache'
     )
     {
-        $provider = empty($provider) ? sys_get_temp_dir() . DIRECTORY_SEPARATOR . $table . '.db3' : $provider;
-        $this->driver = is_string($provider) ? new SQLite3($provider) : $provider;
-        $this->createTable($this->table);
-    }
 
-    protected function createTable(string $table): void
-    {
+        $driver = empty($driver) ? sys_get_temp_dir() . DIRECTORY_SEPARATOR . $table . '.db3' : $driver;
 
-        $this->driver->exec(
-                sprintf(
-                        'CREATE TABLE IF NOT EXISTS %s(%s TEXT PRIMARY KEY NOT NULL, %s BLOB, %s INTEGER, %s BLOB)',
-                        $table,
-                        DatabaseAdapter::COLUMN_KEY,
-                        DatabaseAdapter::COLUMN_DATA,
-                        DatabaseAdapter::COLUMN_EXPIRY,
-                        DatabaseAdapter::COLUMN_TAGS,
-                )
-        );
-    }
+        if (is_string($driver)) {
+            if (class_exists(\SQLite3::class)) {
+                $driver = new \SQLite3($driver);
+            } else { $driver = new PDO(sprintf('sqlite:%s', $driver)); }
+        }
 
-    protected function getColumns(): array
-    {
-        static $columns;
-        $columns = $columns ?? [
-            DatabaseAdapter::COLUMN_KEY,
-            DatabaseAdapter::COLUMN_DATA,
-            DatabaseAdapter::COLUMN_EXPIRY,
-            DatabaseAdapter::COLUMN_TAGS,
-        ];
+        if ($driver instanceof PDO) {
+            $type = $driver->getAttribute(PDO::ATTR_DRIVER_NAME);
 
-        return $columns;
-    }
-
-    protected function find(string $key, bool $withData = true): ?array
-    {
-
-        if ($withData) {
-            $columns = $this->getColumns();
-        } else $columns = [DatabaseAdapter::COLUMN_KEY, DatabaseAdapter::COLUMN_EXPIRY];
-
-
-
-        try {
-            $this->setErrorHandler();
-
-            $query = $this->driver->prepare(
-                    sprintf('SELECT %s FROM %s WHERE %s = :key LIMIT 1',
-                            implode(',', $columns),
-                            $this->table,
-                            $columns[0]
-                    )
-            );
-
-            $query->bindValue(':key', $key, SQLITE3_TEXT);
-            //there can return false twice
-            $result = $query->execute()->fetchArray(SQLITE3_ASSOC);
-
-            if (false === $result) {
-                return null;
+            if ($type !== 'sqlite') {
+                throw new InvalidArgument(sprintf('Invalid PDO driver, sqlite requested, %s given.', $type));
             }
-
-            if ($this->isExpired($result[DatabaseAdapter::COLUMN_EXPIRY])) {
-                $this->delete($key);
-                return null;
-            }
-
-            return $result;
-        } catch (\Throwable) {
-            return null;
-        } finally { \restore_error_handler(); }
+            $this->driver = new PDOAdapter($driver, $table);
+        } else { $this->driver = new SQLite3Adapter($driver, $table); }
+        $this->driver->createTable($table);
     }
 
     protected function unserializeEntry(mixed $value): mixed
@@ -142,79 +91,28 @@ class Sqlite3Driver extends BaseDriver
 
     protected function doSet(string $key, mixed $value, ?int $ttl, array $tags): bool
     {
-
-
-        try {
-            $this->setErrorHandler();
-            $query = $this->driver->prepare(
-                    sprintf(
-                            'INSERT OR REPLACE INTO %s (%s) VALUES (:key, :data, :expiry, :tags)',
-                            $this->table,
-                            implode(',', $this->getColumns())
-                    )
-            );
-            $query->bindValue(':key', $key, SQLITE3_TEXT);
-            $query->bindValue(':data', $this->serializeEntry($value), SQLITE3_BLOB);
-            $query->bindValue(':expiry', $this->lifetimeToExpiry($ttl), SQLITE3_INTEGER);
-            $query->bindValue(':tags', json_encode($tags), SQLITE3_BLOB);
-
-            return $query->execute() instanceof SQLite3Result;
-        } catch (\Throwable) {
-            return false;
-        } finally { \restore_error_handler(); }
+        return $this->driver->write([
+                    DatabaseAdapter::COLUMN_KEY => $key,
+                    DatabaseAdapter::COLUMN_DATA => $this->serializeEntry($value),
+                    DatabaseAdapter::COLUMN_EXPIRY => $this->lifetimeToExpiry($ttl),
+                    DatabaseAdapter::COLUMN_TAGS => json_encode($tags),
+        ]);
     }
 
     public function purge(): void
     {
 
-        try {
-            $this->setErrorHandler();
-
-            $query = $this->driver->prepare(
-                    sprintf(
-                            'DELETE FROM %s WHERE %s > 0 AND %s < :now',
-                            $this->table,
-                            DatabaseAdapter::COLUMN_EXPIRY,
-                            DatabaseAdapter::COLUMN_EXPIRY
-                    )
-            );
-
-            $query->bindValue(':now', time());
-            $query->execute();
-        } catch (\Throwable) {
-
-        } finally { \restore_error_handler(); }
+        $this->driver->purge();
     }
 
     public function clear(): bool
     {
-        try {
-            $this->setErrorHandler();
-            return $this->driver->exec(sprintf('DELETE FROM %s', $this->table));
-        } catch (\Throwable) {
-            return false;
-        } finally { \restore_error_handler(); }
+        return $this->driver->clear();
     }
 
     public function delete(string $key): bool
     {
-
-        try {
-            $this->setErrorHandler();
-
-            $query = $this->driver->prepare(
-                    sprintf(
-                            'DELETE FROM %s WHERE %s = :key',
-                            $this->table,
-                            DatabaseAdapter::COLUMN_KEY
-                    )
-            );
-
-            $query->bindValue(':key', $key, SQLITE3_TEXT);
-            return $query->execute() instanceof SQLite3Result;
-        } catch (\Throwable) {
-            return false;
-        } finally { \restore_error_handler(); }
+        return $this->driver->delete($key);
     }
 
     public function getCacheEntry(string $key): CacheEntry
@@ -222,7 +120,7 @@ class Sqlite3Driver extends BaseDriver
 
         $this->purge();
 
-        if ($item = $this->find($key)) {
+        if ($item = $this->driver->read($key)) {
 
             return $this->createCacheEntry($key, [
                         self::KEY_EXPIRY => $item[DatabaseAdapter::COLUMN_EXPIRY],
@@ -236,21 +134,22 @@ class Sqlite3Driver extends BaseDriver
 
     public function has(string $key): bool
     {
-        return $this->find($key, false) !== null;
+        return $this->driver->read($key, false) !== false;
     }
 
     public function __debugInfo(): array
     {
 
-        $filename = $this->driver->query('PRAGMA database_list')->fetchArray(SQLITE3_ASSOC)['file'];
 
-        $count = $this->driver->querySingle(sprintf('SELECT COUNT(*) as count FROM %s', $this->table));
+
+
+        $filename = $this->driver->getFilename();
 
         return [
             'defaultLifetime' => $this->defaultLifetime,
             $filename . "[{$this->table}]" => [
                 'File Size' => Tools::getFilesize(filesize($filename) ?: 0),
-                "Cache Entries" => $count,
+                "Cache Entries" => count($this->driver),
             ],
         ];
     }

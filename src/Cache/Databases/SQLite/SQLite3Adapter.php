@@ -41,4 +41,22 @@ class SQLite3Adapter extends QueryEngine
         return false;
     }
 
+    public function query(string $query): array|bool
+    {
+
+        try {
+            $this->setErrorHandler();
+
+            if ($result = $this->driver->query($query)) {
+                return $result->fetchArray(SQLITE3_ASSOC);
+            }
+        } catch (\throwable) {
+
+        } finally {
+            restore_error_handler();
+        }
+
+        return false;
+    }
+
 }

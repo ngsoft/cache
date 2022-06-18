@@ -30,6 +30,9 @@ abstract class Common implements DatabaseAdapter
      */
     protected function prepare(string $query, array $bindings = [])
     {
+
+
+
         try {
             $this->setErrorHandler();
 
@@ -50,7 +53,7 @@ abstract class Common implements DatabaseAdapter
         }
     }
 
-    protected function getColumns(): array
+    public function getColumns(): array
     {
         static $columns;
         $columns = $columns ?? [

@@ -14,6 +14,7 @@ class PDOAdapter extends QueryEngine
             string $table
     )
     {
+        $driver->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $this->table = $table;
         $this->driver = $driver;
     }
@@ -42,6 +43,25 @@ class PDOAdapter extends QueryEngine
             if ($statement->execute()) {
                 return $statement->fetch(PDO::FETCH_ASSOC);
             }
+        }
+
+        return false;
+    }
+
+    public function query(string $query): array|bool
+    {
+
+
+        try {
+            $this->setErrorHandler();
+
+            if ($result = $this->driver->query($query)) {
+                return $result->fetch(PDO::FETCH_ASSOC);
+            }
+        } catch (\throwable) {
+
+        } finally {
+            restore_error_handler();
         }
 
         return false;

@@ -34,13 +34,16 @@ abstract class QueryEngine extends Common
 
     public function write(array $data): bool
     {
+
+
+
         $cols = $this->getColumns();
         $input = [
             'keys' => [],
             'bindings' => [],
         ];
 
-        if (count($input) !== count($cols)) {
+        if (count($data) !== count($cols)) {
             return false;
         }
 
@@ -51,14 +54,14 @@ abstract class QueryEngine extends Common
             $input['keys'] [] = $key;
             $input['bindings'] [":{$key}"] = $value;
         }
-
-
+        var_dump($input);
 
         $statement = $this->prepare(
                 sprintf(
-                        'INSERT OR REPLACE INTO %s (%s) VALUES (:key, :data, :expiry, :tags)',
+                        'INSERT OR REPLACE INTO %s (%s) VALUES (%s)',
                         $this->table,
-                        implode(',', $input['keys'])
+                        implode(',', $input['keys']),
+                        implode(', ', array_keys($input['bindings']))
                 ), $input['bindings']
         );
 
@@ -86,6 +89,21 @@ abstract class QueryEngine extends Common
         );
 
         return $statement && $statement->execute() !== false;
+    }
+
+    public function count(): int
+    {
+        $result = $this->query(sprintf('SELECT COUNT(*) as count FROM %s', $this->table));
+        return $result ? $result['count'] : 0;
+    }
+
+    public function getFilename(): string
+    {
+
+        if ($result = $this->query('PRAGMA database_list')) {
+            return $result['file'];
+        }
+        return '';
     }
 
 }

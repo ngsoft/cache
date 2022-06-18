@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Databases;
 
+use Countable;
+
 /**
  * Basic CRUD operations
  */
-interface DatabaseAdapter
+interface DatabaseAdapter extends Countable
 {
 
     public const COLUMN_KEY = 'id';
     public const COLUMN_DATA = 'data';
     public const COLUMN_EXPIRY = 'expiry';
     public const COLUMN_TAGS = 'tags';
+
+    public function getColumns(): array;
 
     public function createTable(string $table): bool;
 
@@ -26,4 +30,6 @@ interface DatabaseAdapter
     public function purge(): bool;
 
     public function clear(): bool;
+
+    public function query(string $query): array|bool;
 }
