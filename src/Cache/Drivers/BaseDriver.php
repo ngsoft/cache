@@ -71,7 +71,10 @@ abstract class BaseDriver implements CacheDriver, Stringable
         return $this->increment($key, $value * -1);
     }
 
-    /** {@inheritdoc} */
+    /**
+     * {@inheritdoc}
+     * @phan-suppress PhanSuspiciousValueComparison
+     */
     public function get(string $key, mixed $default = null): mixed
     {
         try {
@@ -88,7 +91,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
             $save = true;
 
             $value = $default($save);
-            if ($save === true && !is_null($value)) {
+            if ($save === true && ! is_null($value)) {
                 $this->set($key, $value);
             }
             return $value;
@@ -162,7 +165,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
     {
         $result = true;
         foreach ($values as $key => $value) {
-            if (!$this->set($key, $value, $ttl, $tags)) {
+            if ( ! $this->set($key, $value, $ttl, $tags)) {
                 $result = false;
             }
         }
@@ -173,7 +176,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
     public function invalidateTag(string|iterable $tags): bool
     {
 
-        if (!is_iterable($tags)) {
+        if ( ! is_iterable($tags)) {
             $tags = [$tags];
         }
 
@@ -191,7 +194,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
 
             foreach ($entry as $key) {
                 $cacheEntry = $this->getCacheEntry($key);
-                if (!in_array($tagName, $cacheEntry->tags)) {
+                if ( ! in_array($tagName, $cacheEntry->tags)) {
                     continue;
                 }
                 $removed[$key] = $this->delete($key);
@@ -211,7 +214,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
      */
     protected function tag(string $key, string|iterable $tags): bool
     {
-        if (!is_iterable($tags)) {
+        if ( ! is_iterable($tags)) {
             $tags = [$tags];
         }
 
@@ -220,7 +223,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
             $tagKey = sprintf(self::TAG_PREFIX, $tagName);
             $entry = $this->get($tagKey, []);
 
-            if (!isset($entry[$key])) {
+            if ( ! isset($entry[$key])) {
                 $entry[$key] = $key;
                 $result = $this->set($tagKey, $entry, 0) && $result;
             }
@@ -320,7 +323,7 @@ abstract class BaseDriver implements CacheDriver, Stringable
         $cacheEntry = CacheEntry::createEmpty($key);
         if (is_array($entry)) {
             if (
-                    !$this->isExpired($entry[self::KEY_EXPIRY]) &&
+                    ! $this->isExpired($entry[self::KEY_EXPIRY]) &&
                     null !== $entry[self::KEY_VALUE]
             ) {
                 $cacheEntry->expiry = $entry[self::KEY_EXPIRY];

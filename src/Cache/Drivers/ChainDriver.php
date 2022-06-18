@@ -64,12 +64,12 @@ class ChainDriver extends BaseDriver implements Countable
     {
         $current = $current ?? count($this);
 
-        $previous = $current--;
-        if (!isset($this->drivers[$previous])) {
+        $previous = $current --;
+        if ( ! isset($this->drivers[$previous])) {
             return;
         }
 
-        for ($i = $previous; $i > -1; $i--) {
+        for ($i = $previous; $i > -1; $i --) {
             yield $i => $this->drivers[$i];
         }
     }
@@ -87,6 +87,10 @@ class ChainDriver extends BaseDriver implements Countable
         return $result;
     }
 
+    /**
+     * {@inheritdoc}
+     * @phan-suppress PhanUnusedProtectedMethodParameter
+     */
     protected function doSet(string $key, mixed $value, ?int $ttl, array $tags): bool
     {
         return false;

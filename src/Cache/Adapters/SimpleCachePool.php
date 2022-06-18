@@ -75,7 +75,10 @@ final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Str
         }
     }
 
-    /** {@inheritdoc} */
+    /**
+     * {@inheritdoc}
+     * @phan-suppress PhanSuspiciousValueComparison
+     */
     public function get(string $key, mixed $default = null): mixed
     {
 
@@ -89,7 +92,7 @@ final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Str
             if ($default instanceof Closure) {
                 $save = true;
                 $value = $default($save);
-                if ($save === true && !is_null($value)) {
+                if ($save === true && ! is_null($value)) {
                     $this->set($key, $value);
                 }
                 return $value;
