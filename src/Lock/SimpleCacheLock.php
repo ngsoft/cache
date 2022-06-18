@@ -6,6 +6,9 @@ namespace NGSOFT\Lock;
 
 use Psr\SimpleCache\CacheInterface;
 
+/**
+ * Use SimpleCache to manage your locks
+ */
 class SimpleCacheLock extends CacheLockAbstract
 {
 

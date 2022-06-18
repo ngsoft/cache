@@ -6,6 +6,9 @@ namespace NGSOFT\Lock;
 
 use Psr\Cache\CacheItemPoolInterface;
 
+/**
+ * Use a cache pool to manage your locks
+ */
 class CacheLock extends CacheLockAbstract
 {
 
