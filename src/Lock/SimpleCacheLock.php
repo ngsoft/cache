@@ -15,7 +15,7 @@ class SimpleCacheLock extends CacheLockAbstract
     public function __construct(
             protected CacheInterface $cache,
             string $name,
-            int|float $seconds,
+            int|float $seconds = 0,
             string $owner = '',
             bool $autoRelease = true
     )
