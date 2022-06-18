@@ -54,7 +54,6 @@ abstract class QueryEngine extends Common
             $input['keys'] [] = $key;
             $input['bindings'] [":{$key}"] = $value;
         }
-        var_dump($input);
 
         $statement = $this->prepare(
                 sprintf(
