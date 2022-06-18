@@ -31,6 +31,12 @@ class CacheLock extends BaseLockStore
     protected function read(): array|false
     {
 
+        $item = $this->cache->getItem($this->getCacheKey());
+        if ($item->isHit() && is_array($item->get())) {
+            return $item->get();
+        }
+
+        return false;
     }
 
     protected function write(): bool

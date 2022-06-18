@@ -6,6 +6,9 @@ namespace NGSOFT\Cache\Drivers;
 
 use NGSOFT\Cache\CacheEntry;
 
+/**
+ * @phan-file-suppress PhanUnusedProtectedMethodParameter, PhanUnusedPublicMethodParameter
+ */
 class NullDriver extends BaseDriver
 {
 

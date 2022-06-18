@@ -21,6 +21,7 @@ return [
     'directory_list' => [
         'src',
         'vendor',
+        'stubs',
         '../tools',
         '../deps',
     //'vendor/illuminate',
@@ -38,6 +39,7 @@ return [
     //       to `exclude_analysis_directory_list`.
     "exclude_analysis_directory_list" => [
         'vendor/',
+        'stubs/',
         '../tools/',
         '../deps/'
     //'src/Cache/Drivers/',

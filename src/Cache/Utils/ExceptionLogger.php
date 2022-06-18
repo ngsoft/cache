@@ -29,13 +29,12 @@ trait ExceptionLogger
     )
     {
         $level = LogLevel::ALERT;
-        if ($exception instanceof InvalidArgumentException) $level = LogLevel::WARNING;
+        if ($exception instanceof InvalidArgumentException) { $level = LogLevel::WARNING; }
 
         if ($exception instanceof CacheException === false) {
             $exception = new CacheError('An error has occured.', previous: $exception);
         }
-
-        if ($exception instanceof CacheException && $method) {
+        if ($method) {
             $this->logger?->log($level, sprintf('Cache Exception thrown in %s::%s', static::class, $method), [
                 'exception' => $exception
             ]);
