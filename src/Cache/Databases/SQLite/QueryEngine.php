@@ -90,12 +90,6 @@ abstract class QueryEngine extends Common
         return $statement && $statement->execute() !== false;
     }
 
-    public function count(): int
-    {
-        $result = $this->query(sprintf('SELECT COUNT(*) as count FROM %s', $this->table));
-        return $result ? $result['count'] : 0;
-    }
-
     public function getFilename(): string
     {
 
