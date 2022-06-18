@@ -27,29 +27,24 @@ class PDOAdapter extends QueryEngine
 
 
 
-        if ($statement = $this->prepare(sprintf(
+        if (
+                $statement = $this->prepare(sprintf(
                         'SELECT %s FROM %s WHERE %s = ? LIMIT 1',
                         implode(',', $columns),
                         $this->table,
-                        $columns[0]
+                        self::COLUMN_KEY
                 ), [$key])
         ) {
 
-            try {
-                $this->setErrorHandler();
 
-                if ($statement->execute()) {
-                    $result = $statement->fetch(PDO::FETCH_ASSOC);
-                }
+            $this->setErrorHandler();
 
-                if (false === $result) {
-                    return false;
-                }
-                return $result;
-            } catch (\Throwable) {
-                return false;
-            } finally { restore_error_handler(); }
+            if ($statement->execute()) {
+                return $statement->fetch(PDO::FETCH_ASSOC);
+            }
         }
+
+        return false;
     }
 
 }

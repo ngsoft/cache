@@ -19,7 +19,11 @@ interface DatabaseAdapter
 
     public function read(string $key, bool $data = true): array|false;
 
-    public function write(string $key, array $data): bool;
+    public function write(array $data): bool;
 
     public function delete(string $key): bool;
+
+    public function purge(): bool;
+
+    public function clear(): bool;
 }

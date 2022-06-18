@@ -25,28 +25,20 @@ class SQLite3Adapter extends QueryEngine
 
 
 
-        if ($statement = $this->prepare(sprintf(
+        if (
+                $statement = $this->prepare(sprintf(
                         'SELECT %s FROM %s WHERE %s = :key LIMIT 1',
                         implode(',', $columns),
                         $this->table,
-                        $columns[0]
+                        self::COLUMN_KEY
                 ), ['key' => $key])
         ) {
 
-            try {
-                $this->setErrorHandler();
-
-                $result = $statement->execute()->fetchArray(SQLITE3_ASSOC);
-
-                if (false === $result) {
-                    return false;
-                }
-
-                return $result;
-            } catch (\Throwable) {
-                return false;
-            } finally { restore_error_handler(); }
+            if ($result = $statement->execute()) {
+                return $result->fetchArray(SQLITE3_ASSOC);
+            }
         }
+        return false;
     }
 
 }
