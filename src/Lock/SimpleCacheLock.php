@@ -44,18 +44,9 @@ class SimpleCacheLock extends CacheLockAbstract
     /** {@inheritdoc} */
     public function forceRelease(): void
     {
-        $this->cache->delete($this->getCacheKey());
-    }
-
-    /** {@inheritdoc} */
-    public function release(): bool
-    {
-
-        if ($this->isAcquired()) {
-            return $this->cache->delete($this->getCacheKey());
+        if ($this->cache->delete($this->getCacheKey())) {
+            $this->until = 0;
         }
-
-        return false;
     }
 
 }
