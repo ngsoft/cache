@@ -34,20 +34,14 @@ class CacheLockStore extends CacheLock
     protected function write(): bool
     {
 
-        $expiry = $this->seconds + $this->timestamp();
-        $data = [
-            self::KEY_UNTIL => $expiry,
-            self::KEY_OWNER => $this->getOwner(),
-        ];
-
         $result = $this->cache->save(
                 $this->cache
                         ->getItem($this->getCacheKey())
-                        ->set($data)->expiresAfter((int) ceil($this->seconds))
+                        ->set($data = $this->createEntry())->expiresAfter((int) ceil($this->seconds))
         );
 
         if ($result) {
-            $this->until = $expiry;
+            $this->until = $data[self::KEY_UNTIL];
         }
         return $result;
     }

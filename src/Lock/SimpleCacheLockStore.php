@@ -29,7 +29,16 @@ class SimpleCacheLockStore extends CacheLock
 
     protected function write(): bool
     {
+        $result = $this->cache->set(
+                $this->getCacheKey(),
+                $data = $this->createEntry(),
+                (int) ceil($this->seconds)
+        );
 
+        if ($result) {
+            $this->until = $data[self::KEY_UNTIL];
+        }
+        return $result;
     }
 
     /** {@inheritdoc} */

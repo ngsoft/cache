@@ -15,4 +15,15 @@ abstract class CacheLock extends BaseLockStore
         return sprintf(self::CACHE_KEY_MODIFIER, hash('MD5', $this->name));
     }
 
+    protected function createEntry(): array
+    {
+
+        $data = [
+            static::KEY_UNTIL => $this->seconds + $this->timestamp(),
+            static::KEY_OWNER => $this->getOwner(),
+        ];
+
+        return $data;
+    }
+
 }
