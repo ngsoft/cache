@@ -30,9 +30,6 @@ abstract class Common implements DatabaseAdapter
      */
     protected function prepare(string $query, array $bindings = [])
     {
-
-
-
         try {
             $this->setErrorHandler();
 
@@ -47,6 +44,19 @@ abstract class Common implements DatabaseAdapter
 
             return $prepared;
         } catch (Throwable) {
+            return false;
+        } finally {
+            restore_error_handler();
+        }
+    }
+
+    protected function execute(SQLite3Stmt|PDOStatement|false $statement): SQLite3Stmt|PDOStatement|false
+    {
+        try {
+            $this->setErrorHandler();
+
+            return $statement ? $statement->execute() : false;
+        } catch (\Throwable) {
             return false;
         } finally {
             restore_error_handler();

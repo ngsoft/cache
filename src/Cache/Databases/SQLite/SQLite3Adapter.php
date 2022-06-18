@@ -34,7 +34,7 @@ class SQLite3Adapter extends QueryEngine
                 ), ['key' => $key])
         ) {
 
-            if ($result = $statement->execute()) {
+            if ($result = $this->execute($statement)) {
                 return $result->fetchArray(SQLITE3_ASSOC);
             }
         }

@@ -30,18 +30,14 @@ class SimpleCacheLock extends CacheLockAbstract
         return is_array($result) ? $result : false;
     }
 
-    protected function write(): bool
+    protected function write(int|float $until): bool
     {
-        $result = $this->cache->set(
-                $this->getCacheKey(),
-                $data = $this->createEntry(),
-                (int) ceil($this->seconds)
-        );
 
-        if ($result) {
-            $this->until = $data[self::KEY_UNTIL];
-        }
-        return $result;
+        return $this->cache->set(
+                        $this->getCacheKey(),
+                        $data = $this->createEntry(),
+                        (int) ceil($until - $this->timestamp())
+        );
     }
 
     /** {@inheritdoc} */

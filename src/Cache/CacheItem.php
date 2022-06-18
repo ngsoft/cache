@@ -35,7 +35,7 @@ final class CacheItem implements TaggableCacheItem, Cache, Stringable
     {
 
 
-        if (!is_string($key)) {
+        if ( ! is_string($key)) {
             throw new InvalidArgument(sprintf(
                                     'Cache key must be a string, "%s" given.',
                                     get_debug_type($key)
@@ -71,7 +71,7 @@ final class CacheItem implements TaggableCacheItem, Cache, Stringable
             self::METADATA_TAGS => [],
         ];
 
-        if ($this->hit = $metadata[self::METADATA_VALUE] !== null && !$this->isExpired($metadata[self::METADATA_EXPIRY])) {
+        if ($this->hit = $metadata[self::METADATA_VALUE] !== null && ! $this->isExpired($metadata[self::METADATA_EXPIRY])) {
             $this->value = $metadata[self::METADATA_VALUE];
         }
 
@@ -109,8 +109,7 @@ final class CacheItem implements TaggableCacheItem, Cache, Stringable
     /** {@inheritdoc} */
     public function expiresAt(?DateTimeInterface $expiration): static
     {
-
-        $this->expiry = !is_null($expiration) ? $expiration->getTimestamp() : $expiration;
+        $this->expiry = ! is_null($expiration) ? $expiration->getTimestamp() : $expiration;
         return $this;
     }
 

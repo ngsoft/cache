@@ -40,7 +40,7 @@ class PDOAdapter extends QueryEngine
 
             $this->setErrorHandler();
 
-            if ($statement->execute()) {
+            if ($this->execute($statement)) {
                 return $statement->fetch(PDO::FETCH_ASSOC);
             }
         }

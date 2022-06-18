@@ -29,7 +29,7 @@ abstract class QueryEngine extends Common
                 ), [$key]
         );
 
-        return $statement ? $statement->execute() instanceof SQLite3Result : false;
+        return $this->execute($statement) !== false;
     }
 
     public function write(array $data): bool
@@ -64,7 +64,7 @@ abstract class QueryEngine extends Common
                 ), $input['bindings']
         );
 
-        return $statement && $statement->execute() !== false;
+        return $this->execute($statement) !== false;
     }
 
     public function clear(): bool
@@ -72,7 +72,8 @@ abstract class QueryEngine extends Common
         $statement = $this->prepare(
                 sprintf('DELETE FROM %s', $this->table)
         );
-        return $statement && $statement->execute() !== false;
+
+        return $this->execute($statement);
     }
 
     public function purge(): bool
@@ -87,7 +88,7 @@ abstract class QueryEngine extends Common
                 ), [time()]
         );
 
-        return $statement && $statement->execute() !== false;
+        return $this->execute($statement) !== false;
     }
 
     public function getFilename(): string
