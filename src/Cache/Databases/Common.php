@@ -50,7 +50,10 @@ abstract class Common implements DatabaseAdapter
         }
     }
 
-    protected function execute(SQLite3Stmt|PDOStatement|false $statement): SQLite3Stmt|PDOStatement|false
+    /**
+     * @return \SQLite3Result|bool
+     */
+    protected function execute(SQLite3Stmt|PDOStatement|false $statement)
     {
         try {
             $this->setErrorHandler();

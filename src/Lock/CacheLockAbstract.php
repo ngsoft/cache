@@ -15,11 +15,11 @@ abstract class CacheLockAbstract extends BaseLockStore
         return sprintf(self::CACHE_KEY_MODIFIER, $this->getHashedName());
     }
 
-    protected function createEntry(): array
+    protected function createEntry(int|float $until): array
     {
 
         $data = [
-            static::KEY_UNTIL => $this->seconds + $this->timestamp(),
+            static::KEY_UNTIL => $until,
             static::KEY_OWNER => $this->getOwner(),
         ];
 

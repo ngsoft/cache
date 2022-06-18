@@ -39,7 +39,7 @@ class CacheLock extends CacheLockAbstract
         return $this->cache->save(
                         $this->cache
                                 ->getItem($this->getCacheKey())
-                                ->set($data = $this->createEntry())
+                                ->set($this->createEntry($until))
                                 ->expiresAt(date_timestamp_set(
                                                 date_create(),
                                                 (int) ceil($until))

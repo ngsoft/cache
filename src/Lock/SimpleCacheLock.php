@@ -35,7 +35,7 @@ class SimpleCacheLock extends CacheLockAbstract
 
         return $this->cache->set(
                         $this->getCacheKey(),
-                        $data = $this->createEntry(),
+                        $this->createEntry($until),
                         (int) ceil($until - $this->timestamp())
         );
     }

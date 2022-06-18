@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Databases\SQLite;
 
-use NGSOFT\Cache\Databases\Common,
-    SQLite3Result;
+use NGSOFT\Cache\Databases\Common;
 
 abstract class QueryEngine extends Common
 {
