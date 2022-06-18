@@ -8,9 +8,12 @@ use JsonException;
 use NGSOFT\{
     Cache\CacheEntry, Tools
 };
-use SQLite3,
+use PDOStatement,
+    SQLite3,
     SQLite3Result,
+    SQLite3Stmt,
     Throwable;
+use function str_starts_with;
 
 class Sqlite3Driver extends BaseDriver
 {
@@ -63,6 +66,25 @@ class Sqlite3Driver extends BaseDriver
         ];
 
         return $columns;
+    }
+
+    protected function prepare(string $query, array $bindings = []): SQLite3Stmt|PDOStatement|false
+    {
+        try {
+            $this->setErrorHandler();
+            $prepared = $this->driver->prepare($query);
+            foreach ($bindings as $index => $value) {
+                if (is_string($index) && ! str_starts_with($index, ':')) {
+                    $index = ":$index";
+                }
+                if (is_int($index)) $index ++;
+                $prepared->bindValue($index, $value);
+            }
+
+            return $prepared;
+        } catch (Throwable $err) {
+            return false;
+        } finally { \restore_error_handler(); }
     }
 
     protected function find(string $key, bool $withData = true): ?array
