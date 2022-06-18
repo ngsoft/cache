@@ -34,19 +34,17 @@ class CacheLock extends CacheLockAbstract
         return false;
     }
 
-    protected function write(): bool
+    protected function write(int|float $until): bool
     {
-
-        $result = $this->cache->save(
-                $this->cache
-                        ->getItem($this->getCacheKey())
-                        ->set($data = $this->createEntry())->expiresAfter((int) ceil($this->seconds))
+        return $this->cache->save(
+                        $this->cache
+                                ->getItem($this->getCacheKey())
+                                ->set($data = $this->createEntry())
+                                ->expiresAt(date_timestamp_set(
+                                                date_create(),
+                                                (int) ceil($until))
+                                )
         );
-
-        if ($result) {
-            $this->until = $data[self::KEY_UNTIL];
-        }
-        return $result;
     }
 
     /** {@inheritdoc} */
