@@ -12,7 +12,7 @@ abstract class CacheLockAbstract extends BaseLockStore
     protected function getCacheKey(): string
     {
         // prevents filenames to throw cache errors
-        return sprintf(self::CACHE_KEY_MODIFIER, hash('MD5', $this->name));
+        return sprintf(self::CACHE_KEY_MODIFIER, $this->getHashedName());
     }
 
     protected function createEntry(): array
