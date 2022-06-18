@@ -6,22 +6,14 @@ namespace NGSOFT\Cache\Drivers;
 
 use JsonException;
 use NGSOFT\{
-    Cache\CacheEntry, Tools
+    Cache\CacheEntry, Cache\Databases\DatabaseAdapter, Tools
 };
-use PDOStatement,
-    SQLite3,
+use SQLite3,
     SQLite3Result,
-    SQLite3Stmt,
     Throwable;
-use function str_starts_with;
 
 class Sqlite3Driver extends BaseDriver
 {
-
-    protected const COLUMN_KEY = 'id';
-    protected const COLUMN_DATA = 'data';
-    protected const COLUMN_EXPIRY = 'expiry';
-    protected const COLUMN_TAGS = 'tags';
 
     protected SQLite3 $driver;
 
@@ -47,10 +39,10 @@ class Sqlite3Driver extends BaseDriver
                 sprintf(
                         'CREATE TABLE IF NOT EXISTS %s(%s TEXT PRIMARY KEY NOT NULL, %s BLOB, %s INTEGER, %s BLOB)',
                         $table,
-                        static::COLUMN_KEY,
-                        static::COLUMN_DATA,
-                        static::COLUMN_EXPIRY,
-                        static::COLUMN_TAGS,
+                        DatabaseAdapter::COLUMN_KEY,
+                        DatabaseAdapter::COLUMN_DATA,
+                        DatabaseAdapter::COLUMN_EXPIRY,
+                        DatabaseAdapter::COLUMN_TAGS,
                 )
         );
     }
@@ -59,32 +51,13 @@ class Sqlite3Driver extends BaseDriver
     {
         static $columns;
         $columns = $columns ?? [
-            static::COLUMN_KEY,
-            static::COLUMN_DATA,
-            static::COLUMN_EXPIRY,
-            self::COLUMN_TAGS,
+            DatabaseAdapter::COLUMN_KEY,
+            DatabaseAdapter::COLUMN_DATA,
+            DatabaseAdapter::COLUMN_EXPIRY,
+            DatabaseAdapter::COLUMN_TAGS,
         ];
 
         return $columns;
-    }
-
-    protected function prepare(string $query, array $bindings = []): SQLite3Stmt|PDOStatement|false
-    {
-        try {
-            $this->setErrorHandler();
-            $prepared = $this->driver->prepare($query);
-            foreach ($bindings as $index => $value) {
-                if (is_string($index) && ! str_starts_with($index, ':')) {
-                    $index = ":$index";
-                }
-                if (is_int($index)) $index ++;
-                $prepared->bindValue($index, $value);
-            }
-
-            return $prepared;
-        } catch (Throwable $err) {
-            return false;
-        } finally { \restore_error_handler(); }
     }
 
     protected function find(string $key, bool $withData = true): ?array
@@ -92,7 +65,7 @@ class Sqlite3Driver extends BaseDriver
 
         if ($withData) {
             $columns = $this->getColumns();
-        } else $columns = [self::COLUMN_KEY, self::COLUMN_EXPIRY];
+        } else $columns = [DatabaseAdapter::COLUMN_KEY, DatabaseAdapter::COLUMN_EXPIRY];
 
 
 
@@ -115,7 +88,7 @@ class Sqlite3Driver extends BaseDriver
                 return null;
             }
 
-            if ($this->isExpired($result[static::COLUMN_EXPIRY])) {
+            if ($this->isExpired($result[DatabaseAdapter::COLUMN_EXPIRY])) {
                 $this->delete($key);
                 return null;
             }
@@ -201,8 +174,8 @@ class Sqlite3Driver extends BaseDriver
                     sprintf(
                             'DELETE FROM %s WHERE %s > 0 AND %s < :now',
                             $this->table,
-                            self::COLUMN_EXPIRY,
-                            self::COLUMN_EXPIRY
+                            DatabaseAdapter::COLUMN_EXPIRY,
+                            DatabaseAdapter::COLUMN_EXPIRY
                     )
             );
 
@@ -233,7 +206,7 @@ class Sqlite3Driver extends BaseDriver
                     sprintf(
                             'DELETE FROM %s WHERE %s = :key',
                             $this->table,
-                            self::COLUMN_KEY
+                            DatabaseAdapter::COLUMN_KEY
                     )
             );
 
@@ -252,9 +225,9 @@ class Sqlite3Driver extends BaseDriver
         if ($item = $this->find($key)) {
 
             return $this->createCacheEntry($key, [
-                        self::KEY_EXPIRY => $item[self::COLUMN_EXPIRY],
-                        self::KEY_VALUE => $this->unserializeEntry($item[self::COLUMN_DATA]),
-                        self::KEY_TAGS => json_decode($item[self::COLUMN_TAGS], true),
+                        self::KEY_EXPIRY => $item[DatabaseAdapter::COLUMN_EXPIRY],
+                        self::KEY_VALUE => $this->unserializeEntry($item[DatabaseAdapter::COLUMN_DATA]),
+                        self::KEY_TAGS => json_decode($item[DatabaseAdapter::COLUMN_TAGS], true),
             ]);
         }
 

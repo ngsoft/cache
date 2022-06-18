@@ -10,6 +10,11 @@ namespace NGSOFT\Cache\Databases;
 interface DatabaseAdapter
 {
 
+    public const COLUMN_KEY = 'id';
+    public const COLUMN_DATA = 'data';
+    public const COLUMN_EXPIRY = 'expiry';
+    public const COLUMN_TAGS = 'tags';
+
     public function createTable(string $table): bool;
 
     public function read(string $key, bool $data = true): array|false;
