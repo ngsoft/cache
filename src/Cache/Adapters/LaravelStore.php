@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Adapters;
 
-use Illuminate\Contracts\Cache\Store;
+use Illuminate\{
+    Cache\HasCacheLock, Contracts\Cache\LockProvider, Contracts\Cache\Store
+};
 use NGSOFT\{
     Cache, Cache\Exceptions\CacheError, Cache\Interfaces\CacheDriver, Cache\Utils\PrefixAble, Cache\Utils\Toolkit, Traits\StringableObject, Traits\Unserializable
 };
@@ -13,17 +15,18 @@ use Psr\Log\{
 };
 use Stringable;
 
-if (!interface_exists(Store::class)) {
+if ( ! interface_exists(Store::class)) {
     throw new CacheError('illuminate/contracts not installed, please run: composer require illuminate/contracts:^9.0');
 }
 
-final class LaravelStore implements Cache, Store, LoggerAwareInterface, Stringable
+final class LaravelStore implements Cache, Store, LoggerAwareInterface, Stringable, LockProvider
 {
 
     use Unserializable,
         StringableObject,
         PrefixAble,
-        Toolkit;
+        Toolkit,
+        HasCacheLock;
 
     protected ?LoggerInterface $logger = null;
 
@@ -122,7 +125,7 @@ final class LaravelStore implements Cache, Store, LoggerAwareInterface, Stringab
         $result = true;
 
         foreach ($values as $key => $value) {
-            if (!$this->put($key, $value, $seconds)) {
+            if ( ! $this->put($key, $value, $seconds)) {
                 $result = false;
             }
         }

@@ -7,8 +7,8 @@ namespace NGSOFT\Cache;
 use Closure;
 use NGSOFT\{
     Cache, Cache\Events\CacheEvent, Cache\Events\CacheHit, Cache\Events\CacheMiss, Cache\Events\KeyDeleted, Cache\Events\KeySaved, Cache\Exceptions\InvalidArgument,
-    Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Cache\Utils\ExceptionLogger, Cache\Utils\PrefixAble, Cache\Utils\Toolkit, Traits\StringableObject,
-    Traits\Unserializable
+    Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Cache\Utils\ExceptionLogger, Cache\Utils\PrefixAble, Cache\Utils\Toolkit, Lock\CacheLock,
+    Lock\LockProvider, Lock\LockStore, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\{
     Cache\CacheItemInterface, Cache\CacheItemPoolInterface, EventDispatcher\EventDispatcherInterface, Log\LoggerAwareInterface, Log\LoggerInterface
@@ -16,7 +16,7 @@ use Psr\{
 use Stringable,
     Throwable;
 
-class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterface, Cache
+class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterface, Cache, LockProvider
 {
 
     use Unserializable,
@@ -377,6 +377,12 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
+    }
+
+    /** {@inheritdoc} */
+    public function lock(string $name, int|float $seconds = 0, ?string $owner = null): LockStore
+    {
+        return new CacheLock($this, $name, $seconds, $owner);
     }
 
 }
