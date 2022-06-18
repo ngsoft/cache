@@ -28,6 +28,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
     /** @var CacheItem[] */
     protected array $queue = [];
     protected ?EventDispatcherInterface $eventDispatcher = null;
+    protected int $defaultLifetime;
 
     public function __construct(
             CacheDriver $driver,
@@ -41,6 +42,9 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         $this->driver = $driver;
 
         $this->setPrefix($prefix);
+
+        $defaultLifetime = max(0, $defaultLifetime);
+        $this->defaultLifetime = $defaultLifetime;
 
         if ($defaultLifetime > 0) {
             $this->driver->setDefaultLifetime($defaultLifetime);
@@ -150,7 +154,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
     {
 
         $item = $this->getItem($key);
-        if (!$item->isHit()) {
+        if ( ! $item->isHit()) {
             if ($default instanceof Closure) {
                 $value = $default($item);
             } else $value = $default;
@@ -245,16 +249,16 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
             /** @var CacheItem $item */
             foreach ($queue as $prefixed => $item) {
 
-                if (!$this->isHit($item)) {
+                if ( ! $this->isHit($item)) {
 
-                    if (!$this->deleteItem($item->getKey())) {
+                    if ( ! $this->deleteItem($item->getKey())) {
                         $result = false;
                     }
                     continue;
                 }
                 $ttl = $this->expiryToLifetime($item->expiry);
 
-                if (!$this->driver->set($prefixed, $item->get(), $ttl, $item->tags)) {
+                if ( ! $this->driver->set($prefixed, $item->get(), $ttl, $item->tags)) {
                     $result = false;
                     $this->deleteItem($item->getKey());
                 } else { $this->dispatchEvent(new KeySaved($this, $item->getKey(), $item->get())); }
@@ -289,7 +293,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
 
             $result = true;
             foreach ($keys as $key) {
-                if (!$this->deleteItem($key)) {
+                if ( ! $this->deleteItem($key)) {
                     $result = false;
                 }
             }
