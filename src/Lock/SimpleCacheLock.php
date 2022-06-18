@@ -44,7 +44,7 @@ class SimpleCacheLock extends CacheLockAbstract
     public function forceRelease(): void
     {
         if ($this->cache->delete($this->getCacheKey())) {
-            $this->until = 0;
+            $this->until = 1;
         }
     }
 
