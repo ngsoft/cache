@@ -13,10 +13,13 @@ use Psr\Log\{
 };
 use Stringable;
 
-if (!interface_exists(CacheProvider::class)) {
+if ( ! interface_exists(CacheProvider::class)) {
     throw new CacheError('doctrine/cache not installed, please run: composer require doctrine/cache');
 }
 
+/**
+ * @phan-file-suppress PhanUnusedProtectedFinalMethodParameter
+ */
 final class DoctrineCacheProvider extends CacheProvider implements Cache, LoggerAwareInterface, Stringable
 {
 
@@ -114,7 +117,7 @@ final class DoctrineCacheProvider extends CacheProvider implements Cache, Logger
 
         $result = true;
         foreach ($keys as $key) {
-            if (!$this->delete($key)) {
+            if ( ! $this->delete($key)) {
                 $result = false;
             }
         }
@@ -144,7 +147,7 @@ final class DoctrineCacheProvider extends CacheProvider implements Cache, Logger
 
         foreach ($keysAndValues as $key => $value) {
 
-            if (!$this->save($key, $value, $lifetime)) {
+            if ( ! $this->save($key, $value, $lifetime)) {
                 $result = false;
             }
         }

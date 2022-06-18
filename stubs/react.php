@@ -14,6 +14,16 @@ namespace React\Promise {
         public function then(callable $onFulfilled = null, callable $onRejected = null, callable $onProgress = null): static;
     }
 
+    function resolve(mixed $promiseOrValue = null): PromiseInterface
+    {
+
+    }
+
+    function all(array $promisesOrValues): PromiseInterface
+    {
+
+    }
+
 }
 
 namespace React\Cache {
