@@ -77,6 +77,7 @@ class ArrayDriver extends BaseDriver
             'defaultLifetime' => $this->defaultLifetime,
             'size' => $this->size,
             'entries' => count($this->entries),
+            'keys' => $this->entries->keys(),
         ];
     }
 

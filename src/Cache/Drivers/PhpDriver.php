@@ -90,7 +90,7 @@ class PhpDriver extends BaseDriver
     protected function getHashedChar(): Generator
     {
         static $charcodes = '0123456789abcdef';
-        for ($i = 0; $i < strlen($charcodes); $i ++ ) {
+        for ($i = 0; $i < strlen($charcodes); $i ++) {
             yield $charcodes[$i];
         }
     }
@@ -273,7 +273,8 @@ class PhpDriver extends BaseDriver
 
     public function __destruct()
     {
-        foreach (array_pop($this->tmpFiles) as $file) {
+
+        while ($file = array_pop($this->tmpFiles)) {
             $this->unlink($file);
         }
     }

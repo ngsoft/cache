@@ -83,6 +83,9 @@ trait PrefixAble
 
     final protected function getPrefixVersion(): int
     {
+        if ($this->prefix === '') {
+            return 0;
+        }
         $this->version = -1 === $this->version ? $this->driver->get($this->getPrefixVersionKey(), fn() => 0) : $this->version;
         return $this->version;
     }
