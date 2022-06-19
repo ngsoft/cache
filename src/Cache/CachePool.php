@@ -380,7 +380,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
     }
 
     /** {@inheritdoc} */
-    public function lock(string $name, int|float $seconds = 0, ?string $owner = null): LockStore
+    public function lock(string $name, int|float $seconds = 0, string $owner = ''): LockStore
     {
         return new CacheLock($this, $name, $seconds, $owner);
     }
