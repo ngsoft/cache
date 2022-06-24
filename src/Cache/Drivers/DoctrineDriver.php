@@ -8,10 +8,9 @@ use Doctrine\Common\Cache\CacheProvider;
 use NGSOFT\Cache\{
     CacheEntry, Exceptions\CacheError
 };
+use function require_package;
 
-if (!interface_exists(CacheProvider::class)) {
-    throw new CacheError('doctrine/cache not installed, please run: composer require doctrine/cache:^1.10.1');
-}
+require_package('doctrine/cache:^1.10.1', CacheProvider::class, CacheError::class);
 
 class DoctrineDriver extends BaseDriver
 {

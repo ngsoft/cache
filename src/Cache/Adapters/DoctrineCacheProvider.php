@@ -12,10 +12,9 @@ use Psr\Log\{
     LoggerAwareInterface, LoggerInterface
 };
 use Stringable;
+use function require_package;
 
-if ( ! interface_exists(CacheProvider::class)) {
-    throw new CacheError('doctrine/cache not installed, please run: composer require doctrine/cache');
-}
+require_package('doctrine/cache', CacheProvider::class, CacheError::class);
 
 /**
  * @phan-file-suppress PhanUnusedProtectedFinalMethodParameter

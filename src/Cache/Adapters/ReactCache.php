@@ -22,9 +22,7 @@ use function React\Promise\{
     all, resolve
 };
 
-if (!interface_exists(CacheInterface::class)) {
-    throw new CacheError('react/cache not installed, please run: composer require react/cache:^1.1');
-}
+require_package('react/cache:^1.1', CacheInterface::class, CacheError::class);
 
 final class ReactCache implements Cache, CacheInterface, Stringable, LoggerAwareInterface
 {

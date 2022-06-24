@@ -8,10 +8,9 @@ use Illuminate\Contracts\Cache\Store;
 use NGSOFT\{
     Cache, Cache\CacheEntry, Cache\Exceptions\CacheError, Cache\Exceptions\InvalidArgument
 };
+use function require_package;
 
-if (!interface_exists(Store::class)) {
-    throw new CacheError('illuminate/cache not installed, please run: composer require illuminate/cache:^9.0');
-}
+require_package('illuminate/cache:^9.0', Store::class, CacheError::class);
 
 class IlluminateDriver extends BaseDriver
 {

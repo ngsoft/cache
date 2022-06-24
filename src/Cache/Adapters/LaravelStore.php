@@ -14,10 +14,9 @@ use Psr\Log\{
     LoggerAwareInterface, LoggerInterface
 };
 use Stringable;
+use function require_package;
 
-if ( ! interface_exists(Store::class)) {
-    throw new CacheError('illuminate/contracts not installed, please run: composer require illuminate/contracts:^9.0');
-}
+require_package('illuminate/cache:^9.0', Store::class, CacheError::class);
 
 final class LaravelStore implements Cache, Store, LoggerAwareInterface, Stringable, LockProvider
 {

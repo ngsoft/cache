@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace NGSOFT\Cache\Drivers;
 
 use NGSOFT\{
-    Cache\CacheEntry, DataStructure\SimpleObject, Tools
+    Cache\CacheEntry, DataStructure\JsonObject, Tools
 };
 
 class JsonDriver extends BaseDriver
 {
 
-    public SimpleObject $provider;
+    public JsonObject $provider;
 
     public function __construct(
             protected string $file = '',
@@ -23,7 +23,7 @@ class JsonDriver extends BaseDriver
             $this->file = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'jsondriver.json';
         }
 
-        $this->provider = SimpleObject::syncJsonFile($this->file);
+        $this->provider = JsonObject::fromJsonFile($this->file);
 
         if ( ! isset($this->provider[$this->key])) {
             $this->provider[$this->key] = [];
