@@ -215,7 +215,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
     public function add(string $key, mixed $value): bool
     {
         try {
-            return ! $this->hasItem($key) && $this->save($item->set(value($value)));
+            return ! $this->hasItem($key) && $this->save($this->getItem($key)->set(value($value)));
         } catch (Throwable $error) {
             throw $this->handleException($error, __FUNCTION__);
         }
