@@ -16,6 +16,9 @@ use Psr\{
 use Stringable,
     Throwable;
 
+/**
+ * A PSR-6 cache pool
+ */
 class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterface, Cache, LockProvider
 {
 
@@ -155,9 +158,7 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
 
         $item = $this->getItem($key);
         if ( ! $item->isHit()) {
-            if ($default instanceof Closure) {
-                $value = $default($item);
-            } else $value = $default;
+            $value = value($default);
             if ($value !== null) {
                 $this->save($item->set($value));
             }
@@ -213,20 +214,11 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
      */
     public function add(string $key, mixed $value): bool
     {
-        // also commits
-        if ($this->hasItem($key)) {
-            return false;
+        try {
+            return ! $this->hasItem($key) && $this->save($item->set(value($value)));
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
         }
-
-        $item = $this->getItem($key);
-
-        if ($value instanceof Closure) {
-            $value = $value($item);
-        }
-        if ($value === null) {
-            return false;
-        }
-        return $this->save($item->set($value));
     }
 
     /** {@inheritdoc} */

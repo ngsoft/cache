@@ -7,7 +7,7 @@ namespace NGSOFT\Cache\Adapters;
 use Closure,
     DateInterval;
 use NGSOFT\{
-    Cache, Cache\Utils\ExceptionLogger, Traits\StringableObject, Traits\Unserializable
+    Cache, Cache\CachePool, Cache\Utils\ExceptionLogger, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\{
     Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Log\LoggerAwareInterface, SimpleCache\CacheInterface
@@ -44,6 +44,73 @@ final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Str
     public function getCachePool(): CacheItemPoolInterface
     {
         return $this->cachePool;
+    }
+
+    /**
+     * Increment the value of an item in the cache.
+     *
+     * @param string $key
+     * @param int $value
+     * @return int
+     */
+    public function increment(string $key, int $value = 1): int
+    {
+
+        try {
+
+            if ($this->cachePool instanceof CachePool) {
+                return $this->cachePool->increment($key, $value);
+            }
+
+
+            $current = $this->get($key);
+
+            if (is_int($current)) {
+                $value += $current;
+            }
+            $this->set($key, $value);
+            return $value;
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
+    }
+
+    /**
+     * Decrement the value of an item in the cache.
+     *
+     * @param string $key
+     * @param int $value
+     * @return int
+     */
+    public function decrement(string $key, int $value = 1): int
+    {
+
+        try {
+            return $this->increment($key, $value * -1);
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
+    }
+
+    /**
+     * Adds data if it doesn't already exists
+     *
+     * @param string $key
+     * @param mixed|Closure $value
+     * @return bool True if the data have been added, false otherwise
+     */
+    public function add(string $key, mixed $value): bool
+    {
+
+        try {
+            if ($this->cachePool instanceof CachePool) {
+                return $this->cachePool->add($key, $value);
+            }
+
+            return ! $this->has($key) && $this->set($key, value($value));
+        } catch (Throwable $error) {
+            throw $this->handleException($error, __FUNCTION__);
+        }
     }
 
     /** {@inheritdoc} */
@@ -83,12 +150,12 @@ final class SimpleCachePool implements CacheInterface, LoggerAwareInterface, Str
     {
 
         try {
-            $this->items[$key] = $this->items[$key] ?? $this->cachePool->getItem($key);
-            $item = $this->items[$key];
+            $item = $this->items[$key] ??= $this->cachePool->getItem($key);
 
             if ($item->isHit()) {
                 return $item->get();
             }
+
             if ($default instanceof Closure) {
                 $save = true;
                 $value = $default($save);

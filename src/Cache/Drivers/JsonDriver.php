@@ -4,24 +4,35 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
+use Countable;
 use NGSOFT\{
-    Cache\CacheEntry, DataStructure\JsonObject, Tools
+    Cache\CacheEntry, DataStructure\JsonObject, Filesystem\File, Tools
 };
 
-class JsonDriver extends BaseDriver
+/**
+ * A driver that can be used for Cli applications
+ * Can store data inside a json config file for example
+ */
+class JsonDriver extends BaseDriver implements Countable
 {
 
-    public JsonObject $provider;
+    protected JsonObject $provider;
+    protected string $file;
 
+    /**
+     * @param string|File $file
+     * @param string $key Key to use inside the object
+     */
     public function __construct(
-            protected string $file = '',
+            string|File $file = '',
             protected string $key = 'cache'
     )
     {
 
         if (empty($file)) {
-            $this->file = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'jsondriver.json';
+            $file = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'jsondriver.json';
         }
+        $this->file = (string) $file;
 
         $this->provider = JsonObject::fromJsonFile($this->file);
 
@@ -84,6 +95,11 @@ class JsonDriver extends BaseDriver
     public function has(string $key): bool
     {
         return $this->getCacheEntry($key)->isHit();
+    }
+
+    public function count(): int
+    {
+        return count($this->provider[$this->key] ?? []);
     }
 
     public function __debugInfo(): array

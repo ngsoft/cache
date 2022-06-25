@@ -28,7 +28,8 @@ trait ExceptionLogger
             ?string $method = null
     )
     {
-        $level = LogLevel::ALERT;
+        $level = LogLevel::ERROR;
+
         if ($exception instanceof InvalidArgumentException) { $level = LogLevel::WARNING; }
 
         if ($exception instanceof CacheException === false) {
