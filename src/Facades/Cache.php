@@ -6,7 +6,7 @@ namespace NGSOFT\Facades;
 
 use Closure;
 use NGSOFT\{
-    Cache\Exceptions\InvalidArgument, Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Cache\PHPCache, Container\ContainerInterface,
+    Cache\CachePool, Cache\Exceptions\InvalidArgument, Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Cache\PHPCache, Container\ContainerInterface,
     Container\ServiceProvider, Container\SimpleServiceProvider, Lock\LockStore
 };
 use Psr\Cache\{
@@ -18,17 +18,33 @@ class Cache extends Facade
 
     protected static function getFacadeAccessor(): string
     {
-        return CacheItemPoolInterface::class;
+        return CachePool::class;
     }
 
     protected static function getServiceProvider(): ServiceProvider
     {
-        $provides = [PHPCache::class, CacheItemPoolInterface::class];
+        $provides = [CachePool::class, PHPCache::class, CacheItemPoolInterface::class];
 
         return new SimpleServiceProvider(
                 $provides,
                 function (ContainerInterface $container) use ($provides) {
-                    $cache = new PHPCache();
+
+                    $rootpath = $prefix = '';
+
+                    $defaultLifetime = 0;
+
+                    if ($container->has('Config')) {
+                        $prefix = $container->get('Config')['cache.prefix'] ?? $prefix;
+                        $rootpath = $container->get('Config')['cache.rootpath'] ?? $rootpath;
+                        $defaultLifetime = $container->get('Config')['cache.seconds'] ?? $defaultLifetime;
+                    }
+
+
+                    $cache = $container->make(PHPCache::class, [
+                        'rootpath' => $rootpath,
+                        'prefix' => $prefix,
+                        'defaultLifetime' => $defaultLifetime,
+                    ]);
 
                     foreach ($provides as $id) {
                         if ( ! $container->has($id)) {
