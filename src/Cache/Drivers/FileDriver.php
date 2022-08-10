@@ -4,10 +4,18 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Drivers;
 
-use NGSOFT\Cache\{
-    CacheEntry, Exceptions\CacheError, Exceptions\InvalidArgument
+use FilesystemIterator,
+    Generator;
+use NGSOFT\{
+    Cache\CacheEntry, Cache\Exceptions\CacheError, Cache\Exceptions\InvalidArgument, Tools
 };
-use function mb_strlen;
+use RecursiveDirectoryIterator,
+    Throwable;
+use function class_basename,
+             mb_strlen,
+             React\Promise\some,
+             str_ends_with,
+             str_starts_with;
 
 /**
  * The oldest cache driver that store binary datas
@@ -15,6 +23,8 @@ use function mb_strlen;
 class FileDriver extends BaseDriver
 {
 
+    protected const EXTENSION_META = '.json';
+    protected const EXTENSION_FILE = '.txt';
     protected const STORAGE_PREFIX = '@';
     protected const CHMOD_DIR = 0777;
     protected const CHMOD_FILE = 0666;
@@ -109,16 +119,11 @@ class FileDriver extends BaseDriver
 
     protected function read(string $file): mixed
     {
-        static $handler;
 
-        if ( ! $handler) {
-            $handler = static function () {
-                return require func_get_arg(0);
-            };
-        }
 
         try {
-            return $handler($file);
+            $this->setErrorHandler();
+            return file_get_contents($file);
         } catch (Throwable $error) {
 
             $this->logger?->debug('Cache Miss ! A file failed to load.', [
@@ -126,7 +131,7 @@ class FileDriver extends BaseDriver
                 "filename" => $file,
                 "error" => $error,
             ]);
-        }
+        } finally { restore_error_handler(); }
 
         return null;
     }
@@ -182,7 +187,7 @@ class FileDriver extends BaseDriver
         try {
             $this->setErrorHandler();
 
-            $this->prefix = ! empty($prefix) ? $prefix : strtolower(substr(static::class, 1 + strrpos(static::class, '\\')));
+            $this->prefix = ! empty($prefix) ? $prefix : strtolower(class_basename(static::class));
             $this->root = $this->normalizePath( ! empty($root) ? $root : sys_get_temp_dir());
 
             $this->mkdir($this->root);
@@ -217,6 +222,11 @@ class FileDriver extends BaseDriver
 
     }
 
+    public function purge(): void
+    {
+
+    }
+
     public function clear(): bool
     {
 
@@ -235,6 +245,33 @@ class FileDriver extends BaseDriver
     public function has(string $key): bool
     {
 
+    }
+
+    protected function getStats(): array
+    {
+        $usage = 0;
+        $count = 0;
+        foreach ($this->getFiles($this->root, [self::EXTENSION_META, self::EXTENSION_FILE]) as $path) {
+            $usage += filesize($path) ?: 0;
+            if (str_ends_with($path, self::EXTENSION_FILE)) {
+                $count ++;
+            }
+        }
+
+
+        return [
+            'File Count' => $count,
+            'File Usage' => Tools::getFilesize($usage),
+            'Free Space' => Tools::getFilesize(disk_free_space($this->root) ?: 0),
+        ];
+    }
+
+    public function __debugInfo(): array
+    {
+        return [
+            'defaultLifetime' => $this->defaultLifetime,
+            $this->root => $this->getStats(),
+        ];
     }
 
 }
