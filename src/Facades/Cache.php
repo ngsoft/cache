@@ -6,8 +6,9 @@ namespace NGSOFT\Facades;
 
 use Closure;
 use NGSOFT\{
-    Cache\CachePool, Cache\Exceptions\InvalidArgument, Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Cache\PHPCache, Container\ContainerInterface,
-    Container\ServiceProvider, Container\SimpleServiceProvider, Lock\LockStore
+    Cache\CachePool, Cache\Drivers\ApcuDriver, Cache\Drivers\ArrayDriver, Cache\Drivers\ChainDriver, Cache\Drivers\FileDriver, Cache\Exceptions\InvalidArgument,
+    Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Cache\PHPCache, Container\ContainerInterface, Container\ServiceProvider, Container\SimpleServiceProvider,
+    Lock\LockStore
 };
 use Psr\Cache\{
     CacheItemInterface, CacheItemPoolInterface
@@ -23,7 +24,7 @@ class Cache extends Facade
 
     protected static function getServiceProvider(): ServiceProvider
     {
-        $provides = [CachePool::class, PHPCache::class, CacheItemPoolInterface::class];
+        $provides = [CachePool::class, PHPCache::class, CacheItemPoolInterface::class, 'FileCache'];
 
         return new SimpleServiceProvider(
                 $provides,
@@ -48,6 +49,24 @@ class Cache extends Facade
 
                     foreach ($provides as $id) {
                         if ( ! $container->has($id)) {
+
+                            if ($id === 'FileCache') {
+                                $chain = [new ArrayDriver()];
+                                if (ApcuDriver::isSupported()) {
+                                    $chain[] = new ApcuDriver();
+                                }
+
+                                $chain[] = new FileDriver($rootpath, $prefix);
+
+                                $container->set($id, $container->make(CachePool::class, [
+                                            'driver' => new ChainDriver($chain),
+                                            'prefix' => $prefix . 'fs',
+                                            'defaultLifetime' => $defaultLifetime
+                                ]));
+
+                                continue;
+                            }
+
                             $container->set($id, $cache);
                         }
                     }

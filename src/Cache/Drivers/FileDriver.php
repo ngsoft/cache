@@ -13,7 +13,7 @@ use RecursiveDirectoryIterator,
     Throwable;
 use function class_basename,
              mb_strlen,
-             React\Promise\some,
+             NGSOFT\Tools\some,
              str_ends_with,
              str_starts_with;
 
@@ -75,7 +75,7 @@ class FileDriver extends BaseDriver
     protected function getHashedChar(): Generator
     {
         static $charcodes = '0123456789abcdef';
-        for ($i = 0; $i < strlen($charcodes); $i ++) {
+        for ($i = 0; $i < strlen($charcodes); $i ++ ) {
             yield $charcodes[$i];
         }
     }
@@ -295,14 +295,24 @@ class FileDriver extends BaseDriver
         $filename = $this->getFilename($key);
         $metafile = $filename . self::EXTENSION_META;
         $datafile = $filename . self::EXTENSION_FILE;
+        $meta = null;
 
         try {
             if ($contents = $this->read($metafile)) {
+                $meta = json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
 
+                if ($data = $this->read($datafile)) {
+                    if ($meta[self::KEY_SERIALIZED]) {
+                        $data = $this->unserializeEntry($data);
+                    }
+                    $meta[self::KEY_VALUE] = $data;
+                }
             }
         } catch (\Throwable) {
             $meta = null;
         }
+
+        return $this->createCacheEntry($key, $meta);
     }
 
     public function has(string $key): bool
