@@ -6,29 +6,30 @@ namespace NGSOFT\Facades;
 
 use Closure;
 use NGSOFT\{
-    Cache\CachePool, Cache\Drivers\ApcuDriver, Cache\Drivers\ArrayDriver, Cache\Drivers\ChainDriver, Cache\Drivers\FileDriver, Cache\Exceptions\InvalidArgument,
-    Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Cache\PHPCache, Container\ContainerInterface, Container\ServiceProvider, Container\SimpleServiceProvider,
-    Lock\LockStore
+    Cache\Exceptions\InvalidArgument, Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Container\ContainerInterface, Container\ServiceProvider,
+    Container\SimpleServiceProvider, Lock\LockStore
 };
-use Psr\Cache\{
-    CacheItemInterface, CacheItemPoolInterface
-};
+use Psr\Cache\CacheItemInterface;
 
-class Cache extends Facade
+class FileCache extends Facade
 {
 
     protected static function getFacadeAccessor(): string
     {
-        return CachePool::class;
+
+        return static::getAlias();
     }
 
     protected static function getServiceProvider(): ServiceProvider
     {
-        $provides = [CachePool::class, PHPCache::class, CacheItemPoolInterface::class];
-
+        $accessor = static::getFacadeAccessor();
         return new SimpleServiceProvider(
-                $provides,
-                function (ContainerInterface $container) use ($provides) {
+                $accessor,
+                function (ContainerInterface $container) use ($accessor) {
+
+                    if ($container->has($accessor)) {
+                        return;
+                    }
 
                     $rootpath = $prefix = '';
 
@@ -40,18 +41,18 @@ class Cache extends Facade
                         $defaultLifetime = $container->get('Config')['cache.seconds'] ?? $defaultLifetime;
                     }
 
-
-                    $cache = $container->make(PHPCache::class, [
-                        'rootpath' => $rootpath,
-                        'prefix' => $prefix,
-                        'defaultLifetime' => $defaultLifetime,
-                    ]);
-
-                    foreach ($provides as $id) {
-                        if ( ! $container->has($id)) {
-                            $container->set($id, $cache);
-                        }
+                    $chain = [new ArrayDriver()];
+                    if (ApcuDriver::isSupported()) {
+                        $chain[] = new ApcuDriver();
                     }
+
+                    $chain[] = new FileDriver($rootpath, $prefix);
+
+                    $container->set($accessor, $container->make(CachePool::class, [
+                                'driver' => new ChainDriver($chain),
+                                'prefix' => $prefix . 'fs',
+                                'defaultLifetime' => $defaultLifetime
+                    ]));
                 }
         );
     }
