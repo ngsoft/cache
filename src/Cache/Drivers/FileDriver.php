@@ -228,8 +228,10 @@ class FileDriver extends BaseDriver
 
             try {
 
-                if ($contents = $this->read($path)) {
-                    $meta = json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
+                if (
+                        ($contents = $this->read($path)) &&
+                        ($meta = json_decode($contents, true, flags: JSON_THROW_ON_ERROR))
+                ) {
                     if ($this->isExpired($meta[self::KEY_EXPIRY])) {
                         $canremove = true;
                     }
@@ -263,7 +265,6 @@ class FileDriver extends BaseDriver
         $filename = $this->getFilename($key);
         $metafile = $filename . self::EXTENSION_META;
         $datafile = $filename . self::EXTENSION_FILE;
-        $dirname = dirname($filename);
         if ($serialized = ! is_string($value)) {
             $value = \serialize($value);
         }
@@ -298,14 +299,13 @@ class FileDriver extends BaseDriver
         $meta = null;
 
         try {
-            if ($contents = $this->read($metafile)) {
-                $meta = json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
+            if (
+                    ($contents = $this->read($metafile)) &&
+                    ($meta = json_decode($contents, true, flags: JSON_THROW_ON_ERROR))
+            ) {
 
                 if ($data = $this->read($datafile)) {
-                    if ($meta[self::KEY_SERIALIZED]) {
-                        $data = $this->unserializeEntry($data);
-                    }
-                    $meta[self::KEY_VALUE] = $data;
+                    $meta[self::KEY_VALUE] = $meta[self::KEY_SERIALIZED] ? $this->unserializeEntry($data) : $data;
                 }
             }
         } catch (\Throwable) {
