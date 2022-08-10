@@ -6,9 +6,8 @@ namespace NGSOFT\Facades;
 
 use Closure;
 use NGSOFT\{
-    Cache\CachePool, Cache\Drivers\ApcuDriver, Cache\Drivers\ArrayDriver, Cache\Drivers\ChainDriver, Cache\Drivers\FileDriver, Cache\Exceptions\InvalidArgument,
-    Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Cache\PHPCache, Container\ContainerInterface, Container\ServiceProvider, Container\SimpleServiceProvider,
-    Lock\LockStore
+    Cache\CachePool, Cache\Exceptions\InvalidArgument, Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Cache\PHPCache, Container\ContainerInterface,
+    Container\ServiceProvider, Container\SimpleServiceProvider, Lock\LockStore
 };
 use Psr\Cache\{
     CacheItemInterface, CacheItemPoolInterface

@@ -6,8 +6,8 @@ namespace NGSOFT\Facades;
 
 use Closure;
 use NGSOFT\{
-    Cache\Exceptions\InvalidArgument, Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Container\ContainerInterface, Container\ServiceProvider,
-    Container\SimpleServiceProvider, Lock\LockStore
+    Cache\CachePool, Cache\Drivers\ApcuDriver, Cache\Drivers\ArrayDriver, Cache\Drivers\ChainDriver, Cache\Drivers\FileDriver, Cache\Exceptions\InvalidArgument,
+    Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Container\ContainerInterface, Container\ServiceProvider, Container\SimpleServiceProvider, Lock\LockStore
 };
 use Psr\Cache\CacheItemInterface;
 
@@ -47,7 +47,7 @@ class FileCache extends Facade
                     }
 
                     $chain[] = new FileDriver($rootpath, $prefix);
-
+                    // container adds logger and event dispatcher if available
                     $container->set($accessor, $container->make(CachePool::class, [
                                 'driver' => new ChainDriver($chain),
                                 'prefix' => $prefix . 'fs',
