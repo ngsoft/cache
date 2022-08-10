@@ -23,6 +23,7 @@ use function class_basename,
 class FileDriver extends BaseDriver
 {
 
+    protected const KEY_SERIALIZED = 3;
     protected const EXTENSION_META = '.json';
     protected const EXTENSION_FILE = '.txt';
     protected const STORAGE_PREFIX = '@';
@@ -211,40 +212,102 @@ class FileDriver extends BaseDriver
 
     public function __destruct()
     {
-
         while ($file = array_pop($this->tmpFiles)) {
             $this->unlink($file);
         }
     }
 
-    protected function doSet(string $key, mixed $value, ?int $ttl, array $tags): bool
-    {
-
-    }
-
     public function purge(): void
     {
 
+        $toremove = [];
+
+        foreach ($this->getFiles($this->root, self::EXTENSION_META) as $path) {
+
+            $canremove = false;
+
+            try {
+
+                if ($contents = $this->read($path)) {
+                    $meta = json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
+                    if ($this->isExpired($meta[self::KEY_EXPIRY])) {
+                        $canremove = true;
+                    }
+                } else { $canremove = true; }
+            } catch (\Throwable) {
+                $canremove = true;
+            }
+
+
+            if ($canremove) {
+                $toremove[] = $path;
+                $toremove[] = preg_replace(sprintf('#\%s$#i', self::EXTENSION_META), self::EXTENSION_FILE, $path);
+            }
+        }
+
+        $this->unlink($toremove);
     }
 
     public function clear(): bool
     {
+        $result = true;
+        foreach ($this->getFiles($this->root, [self::EXTENSION_META, self::EXTENSION_FILE]) as $path) {
+            $result = $this->unlink($path) && $result;
+            $this->rmdir(dirname($path));
+        }
+        return $result;
+    }
 
+    protected function doSet(string $key, mixed $value, ?int $ttl, array $tags): bool
+    {
+        $filename = $this->getFilename($key);
+        $metafile = $filename . self::EXTENSION_META;
+        $datafile = $filename . self::EXTENSION_FILE;
+        $dirname = dirname($filename);
+        if ($serialized = ! is_string($value)) {
+            $value = \serialize($value);
+        }
+        $expiry = $this->lifetimeToExpiry($ttl);
+
+        $meta = json_encode([
+            self::KEY_EXPIRY => $expiry,
+            self::KEY_VALUE => null,
+            self::KEY_TAGS => $tags,
+            self::KEY_SERIALIZED => $serialized
+        ]);
+
+        return $this->write($metafile, $meta) && $this->write($datafile, $value);
     }
 
     public function delete(string $key): bool
     {
 
+        $result = true;
+        foreach ([self::EXTENSION_META, self::EXTENSION_FILE] as $extension) {
+            $path = $this->getFilename($key, $extension);
+            $result = $this->unlink($path) && $result;
+        }
+        return $result;
     }
 
     public function getCacheEntry(string $key): CacheEntry
     {
+        $filename = $this->getFilename($key);
+        $metafile = $filename . self::EXTENSION_META;
+        $datafile = $filename . self::EXTENSION_FILE;
 
+        try {
+            if ($contents = $this->read($metafile)) {
+
+            }
+        } catch (\Throwable) {
+            $meta = null;
+        }
     }
 
     public function has(string $key): bool
     {
-
+        return $this->getCacheEntry($key)->isHit();
     }
 
     protected function getStats(): array
