@@ -46,7 +46,9 @@
         "psr-4": {
             "NGSOFT\\": "src/"
         },
-        "files": []
+        "files": [
+            "src/bootstrap.php"
+        ]
     },
     "minimum-stability": "dev",
     "prefer-stable": true
