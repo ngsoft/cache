@@ -6,15 +6,16 @@ namespace NGSOFT\Cache;
 
 use Closure;
 use NGSOFT\{
-    Cache, Cache\Events\CacheEvent, Cache\Events\CacheHit, Cache\Events\CacheMiss, Cache\Events\KeyDeleted, Cache\Events\KeySaved, Cache\Exceptions\InvalidArgument,
-    Cache\Interfaces\CacheDriver, Cache\Interfaces\TaggableCacheItem, Cache\Utils\ExceptionLogger, Cache\Utils\PrefixAble, Cache\Utils\Toolkit, Lock\CacheLock,
-    Lock\LockProvider, Lock\LockStore, Traits\StringableObject, Traits\Unserializable
+    Cache, Cache\Events\CacheHit, Cache\Events\CacheMiss, Cache\Events\KeyDeleted, Cache\Events\KeySaved, Cache\Exceptions\InvalidArgument, Cache\Interfaces\CacheDriver,
+    Cache\Interfaces\TaggableCacheItem, Cache\Utils\ExceptionLogger, Cache\Utils\PrefixAble, Cache\Utils\Toolkit, Lock\CacheLock, Lock\LockProvider, Lock\LockStore,
+    Traits\DispatcherAware, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\{
     Cache\CacheItemInterface, Cache\CacheItemPoolInterface, EventDispatcher\EventDispatcherInterface, Log\LoggerAwareInterface, Log\LoggerInterface
 };
 use Stringable,
     Throwable;
+use function value;
 
 /**
  * A PSR-6 cache pool
@@ -26,11 +27,11 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         PrefixAble,
         ExceptionLogger,
         StringableObject,
-        Toolkit;
+        Toolkit,
+        DispatcherAware;
 
     /** @var CacheItem[] */
     protected array $queue = [];
-    protected ?EventDispatcherInterface $eventDispatcher = null;
     protected int $defaultLifetime;
 
     public function __construct(
@@ -78,11 +79,6 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         ];
     }
 
-    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): void
-    {
-        $this->eventDispatcher = $eventDispatcher;
-    }
-
     public function setLogger(LoggerInterface $logger): void
     {
         $this->driver->setLogger($this->logger = $logger);
@@ -104,11 +100,6 @@ class CachePool implements Stringable, LoggerAwareInterface, CacheItemPoolInterf
         }
 
         return $expiry;
-    }
-
-    protected function dispatchEvent(CacheEvent $event): CacheEvent
-    {
-        return $this->eventDispatcher?->dispatch($event) ?? $event;
     }
 
     /**

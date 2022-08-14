@@ -23,7 +23,7 @@ return [
         'vendor',
         '.phan/stubs/',
         '../tools',
-    // '../deps',
+        '../deps',
     //'vendor/illuminate',
     ],
     // A directory list that defines files that will be excluded
@@ -79,5 +79,6 @@ return [
         'PhanRedefinedClassReference',
         'PhanRedefinedUsedTrait',
         'PhanTypeMismatchArgumentInternalProbablyReal',
+        'PhanRedefinedExtendedClass',
     ]
 ];
