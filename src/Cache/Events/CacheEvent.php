@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Cache\Events;
 
+use NGSOFT\Traits\StoppableEventTrait;
 use Psr\{
     Cache\CacheItemPoolInterface, EventDispatcher\StoppableEventInterface
 };
@@ -11,7 +12,7 @@ use Psr\{
 class CacheEvent implements StoppableEventInterface
 {
 
-    protected bool $propagationStopped = false;
+    use StoppableEventTrait;
 
     public function __construct(
             protected CacheItemPoolInterface $cachePool,
@@ -24,23 +25,6 @@ class CacheEvent implements StoppableEventInterface
     public function getCachePool(): CacheItemPoolInterface
     {
         return $this->cachePool;
-    }
-
-    /** {@inheritdoc} */
-    public function isPropagationStopped(): bool
-    {
-        return $this->propagationStopped;
-    }
-
-    /**
-     * Stop propagation for event
-     *
-     * @return void
-     */
-    public function stopPropagation(): void
-    {
-
-        $this->propagationStopped = true;
     }
 
 }
