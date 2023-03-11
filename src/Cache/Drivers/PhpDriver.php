@@ -35,13 +35,15 @@ class PhpDriver extends BaseDriver
     {
         static $result;
 
-        if ($result === null) {
+        if ($result === null)
+        {
             $result = false;
             if (
                     function_exists('opcache_invalidate') &&
                     filter_var(ini_get('opcache.enable'), FILTER_VALIDATE_BOOLEAN) &&
                     ( ! in_array(PHP_SAPI, ['cli', 'phpdbg'], true) || filter_var(ini_get('opcache.enable_cli'), FILTER_VALIDATE_BOOLEAN))
-            ) {
+            )
+            {
                 $result = true;
             }
         }
@@ -73,10 +75,12 @@ class PhpDriver extends BaseDriver
     protected function unlink(string|array $file): bool
     {
         $result = true;
-        if ( ! is_array($file)) {
+        if ( ! is_array($file))
+        {
             $file = [$file];
         }
-        foreach ($file as $path) {
+        foreach ($file as $path)
+        {
             $result = ( ! is_file($path) || unlink($path)) && $result;
         }
         return $result;
@@ -90,18 +94,23 @@ class PhpDriver extends BaseDriver
     protected function getHashedChar(): Generator
     {
         static $charcodes = '0123456789abcdef';
-        for ($i = 0; $i < strlen($charcodes); $i ++ ) {
+        for ($i = 0; $i < strlen($charcodes); $i ++)
+        {
             yield $charcodes[$i];
         }
     }
 
     protected function getDirs(string $root): Generator
     {
-        if (is_dir($root)) {
-            foreach ($this->getHashedChar() as $char1) {
-                foreach ($this->getHashedChar() as $char2) {
+        if (is_dir($root))
+        {
+            foreach ($this->getHashedChar() as $char1)
+            {
+                foreach ($this->getHashedChar() as $char2)
+                {
                     $file = $char1 . $char2;
-                    if (is_dir($root . DIRECTORY_SEPARATOR . $file)) {
+                    if (is_dir($root . DIRECTORY_SEPARATOR . $file))
+                    {
                         yield $file => $root . DIRECTORY_SEPARATOR . $file;
                     }
                 }
@@ -121,12 +130,16 @@ class PhpDriver extends BaseDriver
         $extensions = ! is_array($extensions) ? [$extensions] : $extensions;
         $extensions = array_map(fn($ex) => (empty($ex) || str_starts_with($ex, '.')) ? $ex : ".$ex", $extensions);
 
-        foreach ($this->getDirs($root) as $dir) {
-            foreach (scandir($dir, SCANDIR_SORT_NONE) ?: [] as $file) {
-                if ($file === '.' || $file === '..' || strpos($file, '.') !== 32) {
+        foreach ($this->getDirs($root) as $dir)
+        {
+            foreach (scandir($dir, SCANDIR_SORT_NONE) ?: [] as $file)
+            {
+                if ($file === '.' || $file === '..' || strpos($file, '.') !== 32)
+                {
                     continue;
                 }
-                if (some(fn($extension) => str_ends_with($file, $extension), $extensions)) {
+                if (some(fn($extension) => str_ends_with($file, $extension), $extensions))
+                {
                     yield $file => $dir . DIRECTORY_SEPARATOR . $file;
                 }
             }
@@ -135,7 +148,8 @@ class PhpDriver extends BaseDriver
 
     protected function compile(string $file): bool
     {
-        if ( ! static::opCacheSupported() || ! is_file($file) || ! str_ends_with($file, self::EXTENSION_PHP)) {
+        if ( ! static::opCacheSupported() || ! is_file($file) || ! str_ends_with($file, self::EXTENSION_PHP))
+        {
             return false;
         }
         $this->invalidate($file);
@@ -144,7 +158,8 @@ class PhpDriver extends BaseDriver
 
     protected function invalidate(string $file): bool
     {
-        if ( ! static::opCacheSupported() || ! is_file($file) || ! str_ends_with($file, self::EXTENSION_PHP)) {
+        if ( ! static::opCacheSupported() || ! is_file($file) || ! str_ends_with($file, self::EXTENSION_PHP))
+        {
             return true;
         }
         return touch($file, static::COMPILE_OFFSET) && opcache_invalidate($file, true);
@@ -154,15 +169,21 @@ class PhpDriver extends BaseDriver
     {
         static $handler;
 
-        if ( ! $handler) {
-            $handler = static function () {
+        if ( ! $handler)
+        {
+            $handler = static function ()
+            {
                 return require func_get_arg(0);
             };
         }
 
-        try {
+        try
+        {
+            $this->setErrorHandler();
             return $handler($file);
-        } catch (Throwable $error) {
+        }
+        catch (Throwable $error)
+        {
 
             $this->logger?->debug('Cache Miss ! A file failed to load.', [
                 "driver" => static::class,
@@ -178,20 +199,27 @@ class PhpDriver extends BaseDriver
     {
         $retry = 0;
 
-        while ($retry < 3) {
+        while ($retry < 3)
+        {
 
-            try {
+            try
+            {
                 $this->setErrorHandler();
-                if ( ! $this->tmpFile) {
+                if ( ! $this->tmpFile)
+                {
                     $this->tmpFiles[] = $this->tmpFile = $this->root . DIRECTORY_SEPARATOR . uniqid('', true);
                 }
-                if ($this->mkdir(dirname($filename))) {
+                if ($this->mkdir(dirname($filename)))
+                {
 
-                    if (file_put_contents($this->tmpFile, $contents) !== false) {
+                    if (file_put_contents($this->tmpFile, $contents) !== false)
+                    {
                         return rename($this->tmpFile, $filename) && $this->chmod($filename);
                     }
                 }
-            } catch (Throwable $error) {
+            }
+            catch (Throwable $error)
+            {
                 // tmpFile busy?
                 $this->tmpFile = null;
                 $this->logger?->debug('Cache write error.', [
@@ -200,7 +228,9 @@ class PhpDriver extends BaseDriver
                     "retry" => ($retry + 1) . "/3",
                     "error" => $error
                 ]);
-            } finally { \restore_error_handler(); }
+            }
+            finally
+            { \restore_error_handler(); }
             $retry ++;
         }
 
@@ -209,7 +239,8 @@ class PhpDriver extends BaseDriver
 
     protected function getFilename(string $key, string $extension = ''): string
     {
-        if ( ! empty($extension)) {
+        if ( ! empty($extension))
+        {
             $extension = str_starts_with($extension, '.') ? $extension : ".$extension";
         }
 
@@ -219,22 +250,34 @@ class PhpDriver extends BaseDriver
 
     protected function varExporter(mixed $data): ?string
     {
-        if (is_scalar($data) || is_null($data)) {
+        if (is_scalar($data) || is_null($data))
+        {
             return var_export($data, true);
-        } elseif (is_object($data)) {
-            try {
+        }
+        elseif (is_object($data))
+        {
+            try
+            {
                 return VarExporter::export($data);
-            } catch (\Throwable) {
+            }
+            catch (\Throwable)
+            {
                 return null;
             }
-        } elseif (is_array($data)) {
+        }
+        elseif (is_array($data))
+        {
             $result = '[';
-            foreach ($data as $key => $value) {
+            foreach ($data as $key => $value)
+            {
                 $tmp = $this->varExporter($value);
                 if ($tmp === null) return null;
-                if (is_int($key)) {
+                if (is_int($key))
+                {
                     $result .= sprintf('%s,', $tmp);
-                } else { $result .= sprintf('%s=>%s,', var_export($key, true), $tmp); }
+                }
+                else
+                { $result .= sprintf('%s=>%s,', var_export($key, true), $tmp); }
             }
             return $result . ']';
         }
@@ -246,7 +289,8 @@ class PhpDriver extends BaseDriver
             protected string $prefix = ''
     )
     {
-        try {
+        try
+        {
             $this->setErrorHandler();
 
             $this->prefix = ! empty($prefix) ? $prefix : strtolower(substr(static::class, 1 + strrpos(static::class, '\\')));
@@ -254,27 +298,33 @@ class PhpDriver extends BaseDriver
 
             $this->mkdir($this->root);
 
-            if ( ! is_dir($this->root) || ! is_writable($this->root)) {
+            if ( ! is_dir($this->root) || ! is_writable($this->root))
+            {
                 throw new CacheError(sprintf('Cannot use "%s" as root directory as it is not writable.', $root));
             }
 
             $this->root .= DIRECTORY_SEPARATOR . static::STORAGE_PREFIX . $this->prefix;
             $this->root = $this->normalizePath($this->root);
 
-            if (self::onWindows() && mb_strlen($this->root) > 200) {
+            if (self::onWindows() && mb_strlen($this->root) > 200)
+            {
                 throw new InvalidArgument(sprintf('Cache directory "%s" too long for windows filesystem.', $this->root));
             }
 
-            if ( ! $this->mkdir($this->root)) {
+            if ( ! $this->mkdir($this->root))
+            {
                 throw new CacheError(sprintf('Cannot create storage directory "%s".', $this->root));
             }
-        } finally { restore_error_handler(); }
+        }
+        finally
+        { restore_error_handler(); }
     }
 
     public function __destruct()
     {
 
-        while ($file = array_pop($this->tmpFiles)) {
+        while ($file = array_pop($this->tmpFiles))
+        {
             $this->unlink($file);
         }
     }
@@ -283,15 +333,18 @@ class PhpDriver extends BaseDriver
     {
 
         $toremove = [];
-        foreach ($this->getFiles($this->root, self::EXTENSION_PHP) as $path) {
+        foreach ($this->getFiles($this->root, self::EXTENSION_PHP) as $path)
+        {
 
             $canremove = false;
             $data = $this->read($path);
             if ( ! $data) $canremove = true;
-            elseif ($this->isExpired($data[self::KEY_EXPIRY])) {
+            elseif ($this->isExpired($data[self::KEY_EXPIRY]))
+            {
                 $canremove = true;
             }
-            if ($canremove) {
+            if ($canremove)
+            {
                 $toremove[] = $path;
                 $toremove[] = preg_replace('#php$#', 'txt', $path);
             }
@@ -303,7 +356,8 @@ class PhpDriver extends BaseDriver
     {
         $result = true;
 
-        foreach ($this->getFiles($this->root, [self::EXTENSION_PHP, self::EXTENSION_TXT]) as $path) {
+        foreach ($this->getFiles($this->root, [self::EXTENSION_PHP, self::EXTENSION_TXT]) as $path)
+        {
             $this->invalidate($path);
             $result = $this->unlink($path) && $result;
             $this->rmdir(dirname($path));
@@ -318,15 +372,21 @@ class PhpDriver extends BaseDriver
         $filename = $this->getFilename($key);
         $dirname = dirname($filename);
 
-        if (is_string($value) && mb_strlen($value) > self::STRING_SIZE_LIMIT) {
+        if (is_string($value) && mb_strlen($value) > self::STRING_SIZE_LIMIT)
+        {
             $txtFile = basename($filename) . self::EXTENSION_TXT;
 
-            if ($this->write($dirname . DIRECTORY_SEPARATOR . $txtFile, $value)) {
+            if ($this->write($dirname . DIRECTORY_SEPARATOR . $txtFile, $value))
+            {
                 $contents = sprintf('file_get_contents( __DIR__ . DIRECTORY_SEPARATOR . %s )', var_export($txtFile, true));
-            } else return false;
-        } else { $contents = $this->varExporter($value); }
+            }
+            else return false;
+        }
+        else
+        { $contents = $this->varExporter($value); }
 
-        if (null === $contents) {
+        if (null === $contents)
+        {
             return false;
         }
 
@@ -334,7 +394,8 @@ class PhpDriver extends BaseDriver
         $expiry = $this->lifetimeToExpiry($ttl);
 
         $fileContents = "<?php\nreturn ";
-        if ($expiry > 0) {
+        if ($expiry > 0)
+        {
             $fileContents .= sprintf('microtime(true) > %d ? null : ', $expiry);
         }
 
@@ -348,7 +409,8 @@ class PhpDriver extends BaseDriver
 
         $this->invalidate($phpFile);
 
-        if ($this->write($phpFile, $fileContents)) {
+        if ($this->write($phpFile, $fileContents))
+        {
             $this->compile($phpFile);
             return true;
         }
@@ -359,7 +421,8 @@ class PhpDriver extends BaseDriver
     public function delete(string $key): bool
     {
         $result = true;
-        foreach ([self::EXTENSION_PHP, self::EXTENSION_TXT] as $extension) {
+        foreach ([self::EXTENSION_PHP, self::EXTENSION_TXT] as $extension)
+        {
 
             $path = $this->getFilename($key, $extension);
             $this->invalidate($path);
@@ -382,9 +445,11 @@ class PhpDriver extends BaseDriver
     {
         $usage = 0;
         $count = 0;
-        foreach ($this->getFiles($this->root, [self::EXTENSION_PHP, self::EXTENSION_TXT]) as $path) {
+        foreach ($this->getFiles($this->root, [self::EXTENSION_PHP, self::EXTENSION_TXT]) as $path)
+        {
             $usage += filesize($path) ?: 0;
-            if (str_ends_with($path, self::EXTENSION_PHP)) {
+            if (str_ends_with($path, self::EXTENSION_PHP))
+            {
                 $count ++;
             }
         }
