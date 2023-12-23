@@ -8,8 +8,8 @@ interface Cache
 {
 
     /**
-     * Version Informations
+     * Version Information
      */
-    public const VERSION = '2.0.1';
+    public const VERSION = '2.1.0';
 
 }
