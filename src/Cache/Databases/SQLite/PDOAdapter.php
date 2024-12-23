@@ -10,8 +10,8 @@ class PDOAdapter extends QueryEngine
 {
 
     public function __construct(
-            PDO $driver,
-            string $table
+        PDO    $driver,
+        string $table
     )
     {
         $driver->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -27,22 +27,27 @@ class PDOAdapter extends QueryEngine
         } else $columns = [self::COLUMN_KEY, self::COLUMN_EXPIRY];
 
 
-
         if (
-                $statement = $this->prepare(sprintf(
-                        'SELECT %s FROM %s WHERE %s = ? LIMIT 1',
-                        implode(',', $columns),
-                        $this->table,
-                        self::COLUMN_KEY
-                ), [$key])
+            $statement = $this->prepare(sprintf(
+                'SELECT %s FROM %s WHERE %s = ? LIMIT 1',
+                implode(',', $columns),
+                $this->table,
+                self::COLUMN_KEY
+            ), [$key])
         ) {
 
+            try {
+                $this->setErrorHandler();
 
-            $this->setErrorHandler();
-
-            if ($this->execute($statement)) {
-                return $statement->fetch(PDO::FETCH_ASSOC);
+                if ($this->execute($statement)) {
+                    return $statement->fetch(PDO::FETCH_ASSOC);
+                }
+            } catch (\Throwable) {
+            } finally {
+                restore_error_handler();
             }
+
+
         }
 
         return false;
